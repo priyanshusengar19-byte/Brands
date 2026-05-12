@@ -1,0 +1,208 @@
+import os
+import re
+import time
+from datetime import datetime
+import pandas as pd
+import tkinter as tk
+from tkinter import messagebox
+from selenium import webdriver
+from selenium.webdriver.chrome.options import Options
+from selenium.webdriver.common.by import By
+from bs4 import BeautifulSoup
+
+# =========================================================
+# CONFIG
+# =========================================================
+_UA = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36"
+BASE_URL   = "https://www2.hm.com/en_in/customer-service/shopping-at-hm/store-locator.html"
+PINCODE_RE = re.compile(r'\b(\d{6})\b')
+
+
+# =========================================================
+# DRIVER
+# =========================================================
+def make_driver():
+    opts = Options()
+    opts.add_argument("--headless=new")
+    opts.add_argument("--no-sandbox")
+    opts.add_argument("--disable-dev-shm-usage")
+    opts.add_argument("--window-size=1920,1080")
+    opts.add_argument(f"--user-agent={_UA}")
+    opts.add_argument("--disable-blink-features=AutomationControlled")
+    opts.add_experimental_option("excludeSwitches", ["enable-automation"])
+    opts.add_experimental_option("useAutomationExtension", False)
+    driver = webdriver.Chrome(options=opts)
+    driver.execute_cdp_cmd("Page.addScriptToEvaluateOnNewDocument", {
+        "source": "Object.defineProperty(navigator, 'webdriver', {get: () => undefined})"
+    })
+    return driver
+
+
+# =========================================================
+# HELPERS
+# =========================================================
+def _clean(text):
+    return " ".join((text or "").replace("\n", " ").replace("\r", " ").split())
+
+
+def _parse_address(aria_label):
+    """'Store address: ADDR, , PINCODE' → (addr, city, pincode)"""
+    raw = aria_label.replace("Store address:", "").strip()
+
+    # Pincode is the last 6-digit number
+    m = re.search(r'\b(\d{6})\s*$', raw)
+    if m:
+        pincode  = m.group(1)
+        addr_raw = raw[:m.start()].strip()
+    else:
+        m2       = PINCODE_RE.search(raw)
+        pincode  = m2.group(1) if m2 else ""
+        addr_raw = raw
+
+    # Clean up trailing commas / double commas
+    addr_clean = re.sub(r',\s*,+', ',', addr_raw).strip().strip(",").strip()
+
+    # City = last comma-part of cleaned address
+    parts = [p.strip() for p in addr_clean.split(",") if p.strip()]
+    city  = parts[-1].title() if parts else ""
+
+    return addr_clean, city, pincode
+
+
+# =========================================================
+# SCRAPER
+# =========================================================
+def scrape_all(output_path):
+    driver = make_driver()
+    rows   = []
+
+    try:
+        # Geolocation → New Delhi (triggers store list to render)
+        driver.execute_cdp_cmd("Emulation.setGeolocationOverride", {
+            "latitude": 28.6139, "longitude": 77.2090, "accuracy": 100,
+        })
+
+        print("[INFO] Loading H&M store locator...")
+        driver.get(BASE_URL)
+        time.sleep(8)
+
+        # Accept cookie consent
+        for phrase in ["Accept all", "Accept All", "ACCEPT ALL", "Accept", "I agree"]:
+            try:
+                btns = driver.find_elements(
+                    By.XPATH, f"//button[contains(normalize-space(.), '{phrase}')]")
+                if btns:
+                    btns[0].click()
+                    print(f"[INFO] Accepted cookies: '{phrase}'")
+                    time.sleep(2)
+                    break
+            except Exception:
+                pass
+
+        time.sleep(3)
+
+        # All 74 stores are server-side rendered — no scrolling needed
+        soup = BeautifulSoup(driver.page_source, "html.parser")
+
+        # Each store is in a div with data-testid="accordion-panel-container-IN####"
+        store_divs = soup.select('[data-testid^="accordion-panel-container-IN"]')
+        print(f"[INFO] Found {len(store_divs)} store containers")
+
+        for div in store_divs:
+            # h2 and address are siblings of the accordion-container div,
+            # so navigate to parent to find them
+            card = div.parent
+
+            # --- Store name: inside the <h2> button, strip SVG icons ---
+            h2  = card.find("h2")
+            btn = h2.find("button") if h2 else None
+            if btn:
+                for svg in btn.find_all("svg"):
+                    svg.decompose()
+                location = _clean(btn.get_text())
+            else:
+                location = "H&M"
+
+            # --- Address: <address aria-label="Store address: ..."> ---
+            addr_el = card.find("address", attrs={"aria-label": True})
+            if addr_el:
+                label        = addr_el["aria-label"]
+                addr, city, pincode = _parse_address(label)
+            else:
+                addr = city = pincode = ""
+
+            # --- Hours: data-testid on timing element (e.g. "1-7, 11:00 - 21:30") ---
+            timing_el = card.find(attrs={"data-testid": re.compile(r'^\d')})
+            hours = timing_el["data-testid"] if timing_el else ""
+
+            rows.append({
+                "Store Name": "H&M",
+                "Location":   location,
+                "City":       city,
+                "State":      "",
+                "Address":    addr,
+                "Pincode":    pincode,
+                "Hours":      hours,
+            })
+
+    finally:
+        driver.quit()
+
+    df = pd.DataFrame(rows)
+    df = df.drop_duplicates(subset=["Location", "Pincode"])
+
+    col_order = ["Store Name", "Location", "City", "State", "Address", "Pincode", "Hours"]
+    df = df.reindex(columns=col_order)
+
+    df.to_excel(output_path, index=False)
+    print(f"[INFO] Saved {len(df)} stores to {output_path}")
+    return df
+
+
+# =========================================================
+# GUI
+# =========================================================
+def run_all():
+    folder      = os.path.dirname(os.path.abspath(__file__))
+    today       = datetime.today().strftime("%Y-%m-%d")
+    output_path = os.path.join(folder, f"HM_Stores_{today}.xlsx")
+
+    print("=" * 70)
+    print("[INFO] STARTING H&M SCRAPER")
+    print("=" * 70)
+
+    scrape_all(output_path)
+
+    print("=" * 70)
+    print("[INFO] FILE SAVED SUCCESSFULLY")
+    print("=" * 70)
+
+    messagebox.showinfo("Success", f"Saved to:\n{output_path}")
+
+
+def run_gui():
+    root = tk.Tk()
+    root.title("H&M Store Scraper")
+    root.geometry("430x220")
+    root.resizable(False, False)
+
+    tk.Label(
+        root,
+        text="H&M Store Scraper",
+        font=("Segoe UI", 14, "bold")
+    ).pack(pady=20)
+
+    tk.Button(
+        root,
+        text="Run",
+        width=18,
+        height=2,
+        font=("Segoe UI", 12, "bold"),
+        command=run_all
+    ).pack(pady=20)
+
+    root.mainloop()
+
+
+if __name__ == "__main__":
+    run_gui()

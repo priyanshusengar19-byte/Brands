@@ -1,0 +1,178 @@
+import os
+import re
+import time
+import random
+from datetime import datetime
+import requests
+import pandas as pd
+from bs4 import BeautifulSoup
+import tkinter as tk
+from tkinter import messagebox
+
+# =========================================================
+# CONFIG
+# =========================================================
+_UA = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36"
+BASE_URL = "https://stylebaazar.in/store-locator"
+
+HEADERS = {
+    "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,*/*;q=0.8",
+    "Accept-Language": "en-US,en;q=0.5",
+    "Connection": "keep-alive",
+    "User-Agent": _UA,
+}
+
+PINCODE_RE = re.compile(r"\b(\d{6})\b")
+
+
+# =========================================================
+# HELPERS
+# =========================================================
+def make_session():
+    return requests.Session()
+
+
+def _clean(text):
+    return " ".join((text or "").replace("\n", " ").replace("\r", " ").split())
+
+
+def _get(session, url, retries=3, base_sleep=1.0):
+    for attempt in range(1, retries + 1):
+        try:
+            r = session.get(url, headers=HEADERS, timeout=30)
+            if r.status_code == 200:
+                return r
+            if r.status_code in (429, 503, 502):
+                time.sleep(base_sleep * (2 ** (attempt - 1)) + random.uniform(0, 0.5))
+                continue
+            return r
+        except requests.RequestException:
+            time.sleep(base_sleep * (2 ** (attempt - 1)))
+    return None
+
+
+def _extract_city_state(addr):
+    clean = re.sub(r"\s*-\s*\d{6}\s*$", "", addr).strip()
+    parts = [p.strip() for p in clean.split(",") if p.strip()]
+    if parts and parts[-1].lower() in ("india",):
+        parts = parts[:-1]
+    state = parts[-1].title() if parts else ""
+    city  = parts[-2].title() if len(parts) >= 2 else ""
+    return city, state
+
+
+# =========================================================
+# PARSER
+# =========================================================
+def _parse_card(card):
+    name_p = card.select_one("div.nearbyOne p")
+    store_name = _clean(name_p.get_text()) if name_p else "Style Bazaar"
+
+    img = card.select_one("img.direction-btn")
+    lat = img["data-lat"] if img and img.get("data-lat") else ""
+    lng = img["data-lng"] if img and img.get("data-lng") else ""
+
+    addr_p = card.select_one("div.storeLocation p")
+    addr   = _clean(addr_p.get_text()) if addr_p else ""
+
+    hours_p = card.select_one("div.clockTimimgDiv p")
+    hours   = _clean(hours_p.get_text()) if hours_p else ""
+
+    pin_m   = PINCODE_RE.search(addr)
+    pincode = pin_m.group(1) if pin_m else ""
+
+    city, state = _extract_city_state(addr)
+
+    maps_url = f"https://www.google.com/maps?q={lat},{lng}" if lat and lng else ""
+
+    return {
+        "Store Name": store_name,
+        "City":       city,
+        "State":      state,
+        "Address":    addr,
+        "Pincode":    pincode,
+        "Hours":      hours,
+        "Maps URL":   maps_url,
+    }
+
+
+# =========================================================
+# SCRAPER
+# =========================================================
+def scrape_all(output_path):
+    session = make_session()
+    rows = []
+
+    print("[INFO] Fetching Style Bazaar stores...")
+
+    r = _get(session, BASE_URL)
+    if r is None:
+        print("[ERROR] Failed to fetch the store locator page.")
+        return pd.DataFrame()
+
+    soup  = BeautifulSoup(r.text, "html.parser")
+    cards = soup.select("div.nearbyStoreDetails div.me-2")
+
+    print(f"[INFO] Found {len(cards)} store cards")
+
+    for card in cards:
+        rows.append(_parse_card(card))
+
+    df = pd.DataFrame(rows)
+    df = df.drop_duplicates(subset=["Store Name", "Address"])
+
+    col_order = ["Store Name", "City", "State", "Address", "Pincode", "Hours", "Maps URL"]
+    df = df.reindex(columns=col_order)
+
+    df.to_excel(output_path, index=False)
+    print(f"[INFO] Saved {len(df)} stores to {output_path}")
+    return df
+
+
+# =========================================================
+# GUI
+# =========================================================
+def run_all():
+    folder = os.path.dirname(os.path.abspath(__file__))
+    today  = datetime.today().strftime("%Y-%m-%d")
+    output_path = os.path.join(folder, f"StyleBazaar_Stores_{today}.xlsx")
+
+    print("=" * 70)
+    print("[INFO] STARTING STYLE BAZAAR SCRAPER")
+    print("=" * 70)
+
+    scrape_all(output_path)
+
+    print("=" * 70)
+    print("[INFO] FILE SAVED SUCCESSFULLY")
+    print("=" * 70)
+
+    messagebox.showinfo("Success", f"Saved to:\n{output_path}")
+
+
+def run_gui():
+    root = tk.Tk()
+    root.title("Style Bazaar Scraper")
+    root.geometry("430x220")
+    root.resizable(False, False)
+
+    tk.Label(
+        root,
+        text="Style Bazaar Store Scraper",
+        font=("Segoe UI", 14, "bold")
+    ).pack(pady=20)
+
+    tk.Button(
+        root,
+        text="Run",
+        width=18,
+        height=2,
+        font=("Segoe UI", 12, "bold"),
+        command=run_all
+    ).pack(pady=20)
+
+    root.mainloop()
+
+
+if __name__ == "__main__":
+    run_gui()

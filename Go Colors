@@ -1,0 +1,268 @@
+import os
+import re
+import time
+from datetime import datetime
+import pandas as pd
+import tkinter as tk
+from tkinter import messagebox
+from selenium import webdriver
+from selenium.webdriver.chrome.options import Options
+from selenium.webdriver.common.by import By
+from selenium.webdriver.support.ui import WebDriverWait
+from selenium.webdriver.support import expected_conditions as EC
+from bs4 import BeautifulSoup
+
+# =========================================================
+# CONFIG
+# =========================================================
+_UA = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36"
+BASE_URL   = "https://gocolors.com/apps/s/storelocators"
+PINCODE_RE = re.compile(r'\b(\d{6})\b')
+
+
+# =========================================================
+# DRIVER
+# =========================================================
+def make_driver():
+    opts = Options()
+    opts.add_argument("--headless=new")
+    opts.add_argument("--no-sandbox")
+    opts.add_argument("--disable-dev-shm-usage")
+    opts.add_argument("--window-size=1920,1080")
+    opts.add_argument(f"--user-agent={_UA}")
+    opts.add_argument("--disable-blink-features=AutomationControlled")
+    opts.add_experimental_option("excludeSwitches", ["enable-automation"])
+    opts.add_experimental_option("useAutomationExtension", False)
+    driver = webdriver.Chrome(options=opts)
+    driver.execute_cdp_cmd("Page.addScriptToEvaluateOnNewDocument", {
+        "source": "Object.defineProperty(navigator, 'webdriver', {get: () => undefined})"
+    })
+    return driver
+
+
+# =========================================================
+# HELPERS
+# =========================================================
+def _clean(text):
+    return " ".join((text or "").replace("\n", " ").replace("\r", " ").split())
+
+
+# =========================================================
+# PARSER
+# =========================================================
+def _parse_cards(soup):
+    rows = []
+
+    # Anchor on every "MORE DETAILS" link — one per store card
+    detail_links = [a for a in soup.find_all("a")
+                    if re.search(r"MORE\s*DETAILS", a.get_text(), re.I)]
+
+    for a in detail_links:
+        link = a.get("href", "")
+
+        # Climb up to find the card div that contains both Address + Phone
+        node = a.parent
+        card = None
+        for _ in range(8):
+            if node is None:
+                break
+            if node.name == "div":
+                txt = node.get_text()
+                if "Address" in txt and ("Phone" in txt or "Store Time" in txt):
+                    card = node
+                    break
+            node = node.parent
+
+        if card is None:
+            continue
+
+        # Store heading
+        name = ""
+        for tag in ["h2", "h3", "h4", "h5", "h6"]:
+            el = card.find(tag)
+            if el:
+                name = _clean(el.get_text())
+                break
+
+        # Label-value extraction from text lines
+        lines = [l.strip() for l in card.get_text(separator="\n").split("\n") if l.strip()]
+        address = phone = hours = ""
+        for i, line in enumerate(lines):
+            lo = line.lower().rstrip(":").strip()
+            if lo == "address" and i + 1 < len(lines):
+                address = lines[i + 1]
+            elif lo in ("phone no", "phone no.", "phone", "phone number") and i + 1 < len(lines):
+                phone = lines[i + 1]
+            elif lo in ("store time", "store timings", "timing", "timings",
+                        "opening hours", "store hours", "hours") and i + 1 < len(lines):
+                hours = lines[i + 1]
+
+        # City from title: "GO COLORS - AREA - MALL, CITY"
+        city = ""
+        if "," in name:
+            city = name.rsplit(",", 1)[-1].strip().title()
+        elif " - " in name:
+            city = name.rsplit(" - ", 1)[-1].strip().title()
+
+        pin_m   = PINCODE_RE.search(address)
+        pincode = pin_m.group(1) if pin_m else ""
+
+        rows.append({
+            "Store Name": "Go Colors",
+            "Location":   name,
+            "City":       city,
+            "Address":    address,
+            "Pincode":    pincode,
+            "Phone No":   phone,
+            "Hours":      hours,
+            "Store Link": link,
+        })
+
+    return rows
+
+
+# =========================================================
+# SCRAPER
+# =========================================================
+def scrape_all(output_path):
+    driver = make_driver()
+    all_rows  = []
+    seen_links = set()
+
+    try:
+        print("[INFO] Loading Go Colors store locator...")
+        driver.get(BASE_URL)
+
+        wait = WebDriverWait(driver, 30)
+        wait.until(EC.presence_of_element_located(
+            (By.XPATH, "//*[contains(text(),'MORE DETAILS')]")))
+
+        page_num = 1
+        while True:
+            print(f"[INFO] Page {page_num}...")
+            time.sleep(2)
+
+            soup = BeautifulSoup(driver.page_source, "html.parser")
+            rows = _parse_cards(soup)
+
+            new_rows = [r for r in rows if r["Store Link"] not in seen_links]
+            for r in new_rows:
+                seen_links.add(r["Store Link"])
+            all_rows.extend(new_rows)
+            print(f"  -> {len(rows)} stores ({len(new_rows)} new)")
+
+            if not rows:
+                break
+
+            # Find Next button
+            next_btn = None
+            for xpath in [
+                "//a[normalize-space(.)='Next']",
+                "//button[normalize-space(.)='Next']",
+                "//a[normalize-space(.)='›']",
+                "//a[normalize-space(.)='>']",
+                "//li[contains(@class,'next') and not(contains(@class,'disabled'))]/a",
+                "//*[contains(@class,'next') and not(contains(@class,'disabled'))]",
+                "//a[@rel='next']",
+            ]:
+                try:
+                    candidates = driver.find_elements(By.XPATH, xpath)
+                    if candidates:
+                        next_btn = candidates[0]
+                        break
+                except Exception:
+                    pass
+
+            if next_btn is None:
+                print("[INFO] No Next button found — done.")
+                break
+
+            # Check button isn't disabled
+            try:
+                cls = next_btn.get_attribute("class") or ""
+                if "disabled" in cls.lower():
+                    print("[INFO] Next button disabled — done.")
+                    break
+            except Exception:
+                pass
+
+            # Grab a reference element to detect page change
+            try:
+                ref_el = driver.find_element(
+                    By.XPATH, "//*[contains(text(),'MORE DETAILS')]")
+            except Exception:
+                ref_el = None
+
+            driver.execute_script("arguments[0].click();", next_btn)
+
+            # Wait for stale / new content
+            if ref_el:
+                try:
+                    WebDriverWait(driver, 10).until(EC.staleness_of(ref_el))
+                except Exception:
+                    pass
+            time.sleep(2)
+
+            page_num += 1
+
+    finally:
+        driver.quit()
+
+    df = pd.DataFrame(all_rows)
+    col_order = ["Store Name", "Location", "City", "Address",
+                 "Pincode", "Phone No", "Hours", "Store Link"]
+    df = df.reindex(columns=col_order)
+    df = df.drop_duplicates(subset=["Store Link"])
+
+    df.to_excel(output_path, index=False)
+    print(f"[INFO] Saved {len(df)} stores to {output_path}")
+    return df
+
+
+# =========================================================
+# GUI
+# =========================================================
+def run_all():
+    folder      = os.path.dirname(os.path.abspath(__file__))
+    today       = datetime.today().strftime("%Y-%m-%d")
+    output_path = os.path.join(folder, f"GoColors_Stores_{today}.xlsx")
+
+    print("=" * 70)
+    print("[INFO] STARTING GO COLORS SCRAPER")
+    print("=" * 70)
+
+    scrape_all(output_path)
+
+    print("=" * 70)
+    print("[INFO] FILE SAVED SUCCESSFULLY")
+    print("=" * 70)
+
+    messagebox.showinfo("Success", f"Saved to:\n{output_path}")
+
+
+def run_gui():
+    root = tk.Tk()
+    root.title("Go Colors Store Scraper")
+    root.geometry("430x220")
+    root.resizable(False, False)
+
+    tk.Label(
+        root,
+        text="Go Colors Store Scraper",
+        font=("Segoe UI", 14, "bold")
+    ).pack(pady=20)
+
+    tk.Button(
+        root,
+        text="Run",
+        width=18,
+        height=2,
+        font=("Segoe UI", 12, "bold"),
+        command=run_all
+    ).pack(pady=20)
+
+    root.mainloop()
+
+
+if __name__ == "__main__":
+    run_gui()

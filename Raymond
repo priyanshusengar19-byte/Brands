@@ -1,0 +1,230 @@
+import os
+import re
+import time
+import random
+from datetime import datetime
+import requests
+import urllib3
+import pandas as pd
+from bs4 import BeautifulSoup
+import tkinter as tk
+from tkinter import messagebox
+
+urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
+
+# =========================================================
+# CONFIG
+# =========================================================
+_UA = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36"
+BASE_URL = "https://branches.myraymond.com/"
+AJAX_URL = "https://branches.myraymond.com/Process/commonlistingfilterdetails"
+
+HEADERS = {
+    "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
+    "Accept-Language": "en-US,en;q=0.5",
+    "User-Agent": _UA,
+}
+AJAX_HEADERS = {
+    "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
+    "Referer": BASE_URL,
+    "User-Agent": _UA,
+    "X-Requested-With": "XMLHttpRequest",
+}
+
+PINCODE_RE = re.compile(r"\b(\d{6})\b")
+FNDIR_RE   = re.compile(r"fndir\('([^']+)','([^']+)'\)")
+
+
+# =========================================================
+# HELPERS
+# =========================================================
+def make_session():
+    s = requests.Session()
+    s.verify = False
+    return s
+
+
+def _clean(text):
+    return " ".join((text or "").replace("\n", " ").replace("\r", " ").split())
+
+
+def _get(session, url, params=None, headers=None, retries=3, base_sleep=1.0):
+    for attempt in range(1, retries + 1):
+        try:
+            r = session.get(url, params=params, headers=headers or HEADERS, timeout=20)
+            if r.status_code == 200:
+                return r
+            if r.status_code in (429, 503, 502):
+                time.sleep(base_sleep * (2 ** (attempt - 1)) + random.uniform(0, 0.5))
+                continue
+            return r
+        except requests.RequestException:
+            time.sleep(base_sleep * (2 ** (attempt - 1)))
+    return None
+
+
+def _get_config(session):
+    try:
+        r = session.get(BASE_URL, headers=HEADERS, timeout=20)
+        if r.status_code == 200:
+            m_domain  = re.search(r'id="hdndomainid"[^>]+value="(\d+)"', r.text)
+            m_listing = re.search(r'id="hdnislisting"[^>]+value="(\d+)"', r.text)
+            domain_id  = m_domain.group(1)  if m_domain  else "89"
+            is_listing = m_listing.group(1) if m_listing else "5"
+            return domain_id, is_listing
+    except Exception:
+        pass
+    print("[INFO] Could not read config from page, using defaults.")
+    return "89", "5"
+
+
+# =========================================================
+# PARSER
+# =========================================================
+def _parse_card(card):
+    h2 = card.find("h2", class_="sk-h5")
+    a  = h2.find("a") if h2 else None
+    store_name = _clean(a.get_text()) if a else ""
+    store_link = a["href"].strip() if a and a.get("href") else ""
+
+    # Address: <address> contains street, then <br />, then "City - Pincode"
+    addr_tag = card.find("address")
+    street = city = pincode = ""
+    if addr_tag:
+        parts = [_clean(t) for t in addr_tag.stripped_strings if _clean(t)]
+        if parts:
+            city_pin = parts[-1]
+            street   = ", ".join(parts[:-1])
+            if " - " in city_pin:
+                city_part, pin_part = city_pin.split(" - ", 1)
+                city    = city_part.strip().title()
+                pincode = pin_part.strip()
+            else:
+                pin_m   = PINCODE_RE.search(city_pin)
+                pincode = pin_m.group(1) if pin_m else ""
+                city    = city_pin.replace(pincode, "").strip(" -").title()
+
+    # Phone
+    phone_a = card.find("a", class_="prophoneclick")
+    phone   = _clean(phone_a.get_text()) if phone_a else ""
+
+    # Maps URL from fndir('lat','lng') onclick on the direction button
+    dir_btn  = card.find("button", class_="prodirecreq")
+    maps_url = ""
+    if dir_btn and dir_btn.get("onclick"):
+        m = FNDIR_RE.search(dir_btn["onclick"])
+        if m:
+            maps_url = f"https://www.google.com/maps?q={m.group(1)},{m.group(2)}"
+
+    return {
+        "Store Name": store_name,
+        "City":       city,
+        "Address":    street,
+        "Pincode":    pincode,
+        "Phone No":   phone,
+        "Store Link": store_link,
+        "Maps URL":   maps_url,
+    }
+
+
+# =========================================================
+# SCRAPER
+# =========================================================
+def scrape_all(output_path, max_pages=200):
+    session = make_session()
+    rows = []
+
+    print("[INFO] Reading config from main page...")
+    domain_id, is_listing = _get_config(session)
+    print(f"[INFO] domainid={domain_id}, islisting={is_listing}")
+
+    print("[INFO] Fetching Raymond store pages...")
+
+    for page in range(1, max_pages + 1):
+        params = {
+            "pageno":     page,
+            "domainid":   domain_id,
+            "islisting":  is_listing,
+            "listingurl": "",
+        }
+        r = _get(session, AJAX_URL, params=params, headers=AJAX_HEADERS)
+
+        if r is None:
+            print(f"[WARN] Failed to fetch page {page} (request error). Stopping.")
+            break
+
+        if r.status_code != 200:
+            print(f"[WARN] HTTP {r.status_code} on page {page}. Stopping.")
+            break
+
+        soup  = BeautifulSoup(r.text, "html.parser")
+        cards = soup.find_all("div", class_="sk-card")
+
+        if not cards:
+            print(f"[INFO] No cards on page {page}. Done.")
+            break
+
+        print(f"[INFO] Page {page}: {len(cards)} stores")
+        for card in cards:
+            rows.append(_parse_card(card))
+
+        time.sleep(0.4 + random.uniform(0, 0.3))
+
+    df = pd.DataFrame(rows)
+    df = df.drop_duplicates(subset=["Store Link"])
+
+    col_order = ["Store Name", "City", "Address", "Pincode", "Phone No", "Store Link", "Maps URL"]
+    df = df.reindex(columns=col_order)
+
+    df.to_excel(output_path, index=False)
+    print(f"[INFO] Saved {len(df)} stores to {output_path}")
+    return df
+
+
+# =========================================================
+# GUI
+# =========================================================
+def run_all():
+    folder = os.path.dirname(os.path.abspath(__file__))
+    today  = datetime.today().strftime("%Y-%m-%d")
+    output_path = os.path.join(folder, f"Raymond_Stores_{today}.xlsx")
+
+    print("=" * 70)
+    print("[INFO] STARTING RAYMOND SCRAPER")
+    print("=" * 70)
+
+    scrape_all(output_path)
+
+    print("=" * 70)
+    print("[INFO] FILE SAVED SUCCESSFULLY")
+    print("=" * 70)
+
+    messagebox.showinfo("Success", f"Saved to:\n{output_path}")
+
+
+def run_gui():
+    root = tk.Tk()
+    root.title("Raymond Scraper")
+    root.geometry("430x220")
+    root.resizable(False, False)
+
+    tk.Label(
+        root,
+        text="Raymond Store Scraper",
+        font=("Segoe UI", 14, "bold")
+    ).pack(pady=20)
+
+    tk.Button(
+        root,
+        text="Run",
+        width=18,
+        height=2,
+        font=("Segoe UI", 12, "bold"),
+        command=run_all
+    ).pack(pady=20)
+
+    root.mainloop()
+
+
+if __name__ == "__main__":
+    run_gui()

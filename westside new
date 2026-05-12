@@ -1,0 +1,454 @@
+import os
+import re
+import time
+import random
+from datetime import datetime
+import requests
+import pandas as pd
+from bs4 import BeautifulSoup
+from bs4.element import Comment
+import tkinter as tk
+from tkinter import messagebox
+
+# =========================================================
+# CONFIG
+# =========================================================
+_UA = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36"
+
+CURL_HEADERS = {
+    "Accept": "application/json, text/javascript, */*; q=0.01",
+    "Accept-Language": "en-GB,en-US;q=0.9,en;q=0.8",
+    "Connection": "keep-alive",
+    "Content-Type": "application/x-www-form-urlencoded; charset=UTF-8",
+    "Origin": "https://www.westside.com",
+    "Referer": "https://www.westside.com/",
+    "Sec-Fetch-Dest": "empty",
+    "Sec-Fetch-Mode": "cors",
+    "Sec-Fetch-Site": "cross-site",
+    "User-Agent": _UA,
+    "Accept-Encoding": "gzip, deflate, br",
+}
+
+BROWSER_HEADERS = {
+    "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,*/*;q=0.8",
+    "Accept-Language": "en-US,en;q=0.5",
+    "Connection": "keep-alive",
+    "User-Agent": _UA,
+}
+
+LOCAL_HTML_FALLBACK = os.path.join(os.path.dirname(os.path.abspath(__file__)), "westside.html")
+
+PINCODE_RE = re.compile(r"\b(\d{6})\b")
+PHONE_RE = re.compile(r"\b\d{6,}\b")
+
+
+# =========================================================
+# COMMON HELPERS
+# =========================================================
+def make_session():
+    return requests.Session()
+
+
+def _clean(text):
+    return " ".join((text or "").replace("\n", " ").replace("\r", " ").split())
+
+
+def _extract_phone_from_comments(div):
+    for node in div.descendants:
+        if isinstance(node, Comment):
+            c = str(node)
+            if "Phone No" in c:
+                m = PHONE_RE.search(c)
+                if m:
+                    return m.group(0)
+    return ""
+
+
+def _parse_store_div(div):
+    store = {}
+
+    h3 = div.find("h3")
+    store["Store Name"] = _clean(h3.get_text(strip=True)) if h3 else ""
+
+    # Try address under an <h5> labelled "address", else fall back to first <p>
+    paddr = None
+    for h5 in div.find_all("h5"):
+        if "address" in h5.get_text(strip=True).lower():
+            paddr = h5.find_next("p")
+            break
+    if paddr is None:
+        paddr = div.find("p")
+
+    addr_raw = paddr.get_text(" ", strip=True) if paddr else ""
+    store["Address"] = _clean(addr_raw)
+
+    m = PINCODE_RE.search(addr_raw)
+    store["Pincode"] = m.group(1) if m else ""
+
+    phone = _extract_phone_from_comments(div)
+    if not phone:
+        phone_h5 = div.find("h5", string=lambda x: x and "phone" in x.lower())
+        if phone_h5:
+            p_next = phone_h5.find_next("p")
+            if p_next:
+                m2 = PHONE_RE.search(p_next.get_text(" ", strip=True))
+                if m2:
+                    phone = m2.group(0)
+
+    store["Phone No"] = phone
+
+    a = div.find("a", class_="moredetails")
+    store["Store Link"] = a["href"].strip() if a and a.has_attr("href") else ""
+
+    return store
+
+
+# =========================================================
+# RETRIES
+# =========================================================
+def _get_with_retries(session, url, params=None, max_retries=3, base_sleep=0.6):
+    for attempt in range(1, max_retries + 1):
+        try:
+            r = session.get(url, params=params, headers=CURL_HEADERS, timeout=20)
+            if r.status_code == 200:
+                return r
+            if r.status_code in (406, 429, 503, 502):
+                sleep = base_sleep * (2 ** (attempt - 1)) + random.uniform(0, 0.5)
+                time.sleep(sleep)
+                continue
+            return r
+        except requests.RequestException:
+            sleep = base_sleep * (2 ** (attempt - 1)) + random.uniform(0, 0.5)
+            time.sleep(sleep)
+    return None
+
+
+def _post_with_retries(session, url, data=None, max_retries=3, base_sleep=0.6):
+    for attempt in range(1, max_retries + 1):
+        try:
+            r = session.post(url, data=data, headers=CURL_HEADERS, timeout=25)
+            if r.status_code == 200:
+                return r
+            if r.status_code in (406, 429, 503, 502):
+                sleep = base_sleep * (2 ** (attempt - 1)) + random.uniform(0, 0.5)
+                time.sleep(sleep)
+                continue
+            return r
+        except requests.RequestException:
+            sleep = base_sleep * (2 ** (attempt - 1)) + random.uniform(0, 0.5)
+            time.sleep(sleep)
+    return None
+
+
+# =========================================================
+# STATE EXTRACTION
+# =========================================================
+def _opts_to_states(sel_tag):
+    states = []
+    for opt in sel_tag.find_all("option"):
+        val = (opt.get("value") or "").strip()
+        if not val:
+            continue
+        if val.lower().startswith("select"):
+            continue
+        states.append(val)
+    return states
+
+
+def _extract_states_from_live(session):
+    # Try westside store locator page (path-style, matching Zudio pattern)
+    for url in [
+        "https://www.westside.com/apps/s/westside/storelocators",
+        "https://www.westside.com/apps/s/storelocators?type=westside",
+        "https://www.westside.com/",
+    ]:
+        try:
+            r = session.get(url, headers=BROWSER_HEADERS, timeout=20)
+            if r.status_code == 200:
+                soup = BeautifulSoup(r.text, "html.parser")
+                sel = soup.find("select", id="store_state")
+                if sel:
+                    states = _opts_to_states(sel)
+                    if states:
+                        return states
+        except requests.RequestException:
+            pass
+
+    return None
+
+
+def _extract_states_from_local_file(path):
+    if not path or not os.path.exists(path):
+        return None
+
+    with open(path, "r", encoding="utf-8", errors="ignore") as fh:
+        html = fh.read()
+
+    soup = BeautifulSoup(html, "html.parser")
+    sel = soup.find("select", id="store_state")
+
+    if not sel:
+        return None
+
+    return _opts_to_states(sel)
+
+
+# =========================================================
+# SCRAPER 1 → BY CITY  (2-step: state → cities → stores)
+# =========================================================
+def scrape_by_city(output_path):
+    api_url = "https://reports.trent-tata.com/api/custom/getstore-name?type=westside"
+    session = make_session()
+
+    try:
+        session.get("https://www.westside.com/", headers=BROWSER_HEADERS, timeout=15)
+    except Exception:
+        pass
+
+    states = _extract_states_from_live(session)
+
+    if not states:
+        states = _extract_states_from_local_file(LOCAL_HTML_FALLBACK)
+
+    if not states:
+        raise RuntimeError("Failed to obtain state list")
+
+    states = sorted(set(states))
+    print(f"[INFO] States to process: {len(states)}")
+
+    rows = []
+
+    for state in states:
+        time.sleep(0.3 + random.uniform(0, 0.4))
+
+        r_cities = _post_with_retries(session, api_url, data={"store_state": state})
+        if r_cities is None:
+            print(f"[WARN] Failed to get cities for state {state}")
+            continue
+        try:
+            cities_data = r_cities.json()
+        except ValueError:
+            print(f"[WARN] Non-JSON city response for {state}")
+            continue
+
+        city_dict = cities_data.get("data", {})
+        if isinstance(city_dict, dict):
+            cities = sorted(city_dict.keys())
+        else:
+            cities = []
+
+        if not cities:
+            print(f"[INFO] No cities found for {state}")
+            continue
+
+        print(f"[INFO] {state}: {len(cities)} cities")
+
+        state_count = 0
+        for city in cities:
+            time.sleep(0.25 + random.uniform(0, 0.35))
+
+            r = _post_with_retries(
+                session, api_url,
+                data={"store_state": state, "store_city": city}
+            )
+            if r is None:
+                print(f"[WARN] Failed POST for {state}/{city}")
+                continue
+            try:
+                payload = r.json()
+            except ValueError:
+                print(f"[WARN] Non-JSON store response for {state}/{city}")
+                continue
+
+            html_fragment = payload.get("render") or ""
+            soup = BeautifulSoup(html_fragment, "html.parser")
+            divs = soup.find_all("div", class_="storedetails")
+
+            for div in divs:
+                store = _parse_store_div(div)
+                store["State"] = state
+                store["City"] = city
+                rows.append(store)
+
+            state_count += len(divs)
+
+        print(f"[INFO] {state}: {state_count} stores total")
+
+    df = pd.DataFrame(rows)
+    df = df.drop_duplicates(subset=["Store Name", "Pincode"])
+    df.to_excel(output_path, index=False)
+    print(f"[INFO] Saved {len(df)} rows to {output_path}")
+    return df
+
+
+# =========================================================
+# SCRAPER 2 → BY PAGE
+# =========================================================
+def scrape_by_page(output_path, max_pages=200):
+    base_url = "https://reports.trent-tata.com/api/custom/getstore-all"
+    session = make_session()
+
+    rows = []
+    empty_pages_seen = 0
+
+    for page in range(1, max_pages + 1):
+        r = _get_with_retries(
+            session,
+            base_url,
+            params={"type": "westside", "page": page},
+            max_retries=4
+        )
+
+        if r is None:
+            print(f"[WARN] Failed after retries on page {page}")
+            continue
+
+        if r.status_code != 200:
+            print(f"[WARN] HTTP {r.status_code} on page {page}")
+            empty_pages_seen += 1
+            if empty_pages_seen >= 2:
+                print("[INFO] Multiple consecutive empty/error pages. Stopping.")
+                break
+            continue
+
+        try:
+            payload = r.json()
+        except ValueError:
+            print(f"[WARN] Non-JSON on page {page}")
+            continue
+
+        html = payload.get("data") or ""
+
+        soup = BeautifulSoup(html, "html.parser")
+        divs = soup.find_all("div", class_="storedetails")
+
+        if not divs:
+            print(f"[INFO] No stores found on page {page}")
+            empty_pages_seen += 1
+            if page > 1 and empty_pages_seen >= 2:
+                print("[INFO] Looks like we overshot. Stopping early.")
+                break
+            continue
+        else:
+            empty_pages_seen = 0
+
+        print(f"[INFO] Page {page}: {len(divs)} stores")
+
+        for div in divs:
+            rows.append(_parse_store_div(div))
+
+        time.sleep(0.4 + random.uniform(0, 0.4))
+
+    df = pd.DataFrame(rows)
+    df = df.drop_duplicates(subset=["Store Name", "Pincode"])
+    df.to_excel(output_path, index=False)
+    print(f"[INFO] Saved {len(df)} rows to {output_path}")
+
+    return df
+
+
+# =========================================================
+# COMBINED FILE
+# =========================================================
+def create_combined(city_df, page_df, output_path):
+    city_df = city_df.copy()
+    page_df = page_df.copy()
+
+    city_keys = set(
+        zip(
+            city_df["Store Name"].str.lower().str.strip(),
+            city_df["Pincode"].astype(str).str.strip()
+        )
+    )
+
+    missing = page_df[
+        ~page_df.apply(
+            lambda row: (
+                str(row["Store Name"]).lower().strip(),
+                str(row["Pincode"]).strip()
+            ) in city_keys,
+            axis=1
+        )
+    ].copy()
+
+    print(f"[INFO] Missing stores from by_page: {len(missing)}")
+
+    known_states = city_df["State"].dropna().unique().tolist()
+
+    def infer_state(address):
+        address = str(address).lower()
+        for state in known_states:
+            if state.lower() in address:
+                return state
+        return "Unknown"
+
+    if not missing.empty:
+        missing["State"] = missing["Address"].apply(infer_state)
+
+    combined = pd.concat([city_df, missing], ignore_index=True)
+    combined = combined.drop_duplicates(subset=["Store Name", "Pincode"])
+    col_order = ["Store Name", "City", "State", "Address", "Pincode", "Phone No", "Store Link"]
+    combined = combined.reindex(columns=[c for c in col_order if c in combined.columns])
+
+    print(f"[INFO] Combined rows after merge: {len(combined)}")
+
+    combined.to_excel(output_path, index=False)
+    print(f"[INFO] Saved combined file to {output_path}")
+
+
+# =========================================================
+# GUI
+# =========================================================
+def run_all():
+    folder = os.path.dirname(os.path.abspath(__file__))
+    today = datetime.today().strftime("%Y-%m-%d")
+
+    city_path = os.path.join(folder, f"Westside_Stores_{today}_by_city.xlsx")
+    page_path = os.path.join(folder, f"Westside_Stores_{today}_by_page.xlsx")
+    combined_path = os.path.join(folder, f"Westside_Stores_{today}_combined.xlsx")
+
+    print("=" * 70)
+    print("[INFO] STARTING WESTSIDE COMBINED SCRAPER")
+    print("=" * 70)
+
+    city_df = scrape_by_city(city_path)
+    page_df = scrape_by_page(page_path)
+
+    create_combined(city_df, page_df, combined_path)
+
+    print("=" * 70)
+    print("[INFO] ALL FILES SAVED SUCCESSFULLY")
+    print("=" * 70)
+
+    messagebox.showinfo(
+        "Success",
+        f"Saved all files in:\n{folder}"
+    )
+
+
+def run_gui():
+    root = tk.Tk()
+    root.title("Westside Combined Scraper")
+    root.geometry("430x220")
+    root.resizable(False, False)
+
+    tk.Label(
+        root,
+        text="Westside Combined Scraper",
+        font=("Segoe UI", 14, "bold")
+    ).pack(pady=20)
+
+    tk.Button(
+        root,
+        text="Run All",
+        width=18,
+        height=2,
+        font=("Segoe UI", 12, "bold"),
+        command=run_all
+    ).pack(pady=20)
+
+    root.mainloop()
+
+
+if __name__ == "__main__":
+    run_gui()

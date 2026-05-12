@@ -1,0 +1,206 @@
+import os
+import re
+import time
+import random
+from datetime import datetime
+import requests
+import pandas as pd
+from bs4 import BeautifulSoup
+import tkinter as tk
+from tkinter import messagebox
+
+# =========================================================
+# CONFIG
+# =========================================================
+_UA = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36"
+BASE_URL    = "https://stores.jockey.in"
+TOTAL_PAGES = 86
+
+HEADERS = {
+    "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,*/*;q=0.8",
+    "Accept-Language": "en-US,en;q=0.5",
+    "Connection": "keep-alive",
+    "User-Agent": _UA,
+}
+
+PINCODE_RE = re.compile(r'\b(\d{6})\b')
+
+
+# =========================================================
+# HELPERS
+# =========================================================
+def _clean(text):
+    return " ".join((text or "").replace("\n", " ").replace("\r", " ").split())
+
+
+def _get(session, url, params=None, retries=3):
+    for attempt in range(1, retries + 1):
+        try:
+            r = session.get(url, params=params, headers=HEADERS, timeout=30)
+            if r.status_code == 200:
+                return r
+            if r.status_code in (429, 503, 502):
+                time.sleep(2 ** attempt)
+                continue
+            return r
+        except requests.RequestException:
+            time.sleep(2 ** attempt)
+    return None
+
+
+# =========================================================
+# PARSER
+# =========================================================
+def _parse_card(card):
+    # Store name
+    name_el = card.select_one("span.h2")
+    name = _clean(name_el.get_text()) if name_el else ""
+
+    # Location / area (h3 link text: "City, Area")
+    h3_link = card.select_one("span.h3 a")
+    location = _clean(h3_link.get_text()) if h3_link else ""
+    city = location.split(",")[0].strip().title() if location else ""
+
+    # Address / phone / email / hours from icon-tagged list items
+    address = phone = email = hours = ""
+    for li in card.select("div.card-add ul li"):
+        icon = li.select_one("i")
+        p    = li.select_one("p")
+        if not icon or not p:
+            continue
+        icon_str = " ".join(icon.get("class", []))
+        text = _clean(p.get_text())
+
+        if "fa-map-marker-alt" in icon_str:
+            address = text
+        elif "fa-mobile-alt" in icon_str:
+            phone = text
+        elif "fa-envelope" in icon_str:
+            a_el  = p.select_one("a")
+            email = _clean(a_el.get_text()) if a_el else text
+        elif "fa-clock" in icon_str:
+            hours = text
+
+    # Pincode
+    pin_m   = PINCODE_RE.search(address)
+    pincode = pin_m.group(1) if pin_m else ""
+
+    # State: last comma-segment of address before the pincode
+    state = ""
+    if pincode and pincode in address:
+        before_pin = address[: address.index(pincode)].rstrip(", ")
+        parts = [p.strip() for p in before_pin.split(",") if p.strip()]
+        if parts:
+            state = parts[-1].title()
+
+    # Store page link
+    link_a  = card.select_one("a[href*='/home']")
+    link    = link_a["href"] if link_a else ""
+
+    # Google Maps directions URL (contains lat,lng)
+    dir_a    = card.select_one("a[href*='google.com/maps']")
+    maps_url = dir_a["href"] if dir_a else ""
+
+    return {
+        "Store Name": "Jockey",
+        "Location":   location,
+        "City":       city,
+        "State":      state,
+        "Address":    address,
+        "Pincode":    pincode,
+        "Phone No":   phone,
+        "Email":      email,
+        "Hours":      hours,
+        "Store Link": link,
+        "Maps URL":   maps_url,
+    }
+
+
+# =========================================================
+# SCRAPER
+# =========================================================
+def scrape_all(output_path):
+    session = requests.Session()
+    rows = []
+
+    for page in range(1, TOTAL_PAGES + 1):
+        params = {"page": page}
+        print(f"[INFO] Page {page}/{TOTAL_PAGES}...")
+
+        r = _get(session, BASE_URL, params=params)
+        if r is None:
+            print(f"[WARN] Failed page {page}, skipping")
+            continue
+
+        soup  = BeautifulSoup(r.text, "html.parser")
+        cards = soup.select("div.grid-address-card")
+
+        if not cards:
+            print(f"[INFO] No cards on page {page} — done.")
+            break
+
+        for card in cards:
+            rows.append(_parse_card(card))
+
+        print(f"  -> {len(cards)} stores")
+        time.sleep(random.uniform(0.3, 0.6))
+
+    df = pd.DataFrame(rows)
+    df = df.drop_duplicates(subset=["Store Link"])
+
+    col_order = ["Store Name", "Location", "City", "State", "Address",
+                 "Pincode", "Phone No", "Email", "Hours", "Store Link", "Maps URL"]
+    df = df.reindex(columns=col_order)
+
+    df.to_excel(output_path, index=False)
+    print(f"[INFO] Saved {len(df)} stores to {output_path}")
+    return df
+
+
+# =========================================================
+# GUI
+# =========================================================
+def run_all():
+    folder      = os.path.dirname(os.path.abspath(__file__))
+    today       = datetime.today().strftime("%Y-%m-%d")
+    output_path = os.path.join(folder, f"Jockey_Stores_{today}.xlsx")
+
+    print("=" * 70)
+    print("[INFO] STARTING JOCKEY SCRAPER")
+    print("=" * 70)
+
+    scrape_all(output_path)
+
+    print("=" * 70)
+    print("[INFO] FILE SAVED SUCCESSFULLY")
+    print("=" * 70)
+
+    messagebox.showinfo("Success", f"Saved to:\n{output_path}")
+
+
+def run_gui():
+    root = tk.Tk()
+    root.title("Jockey Store Scraper")
+    root.geometry("430x220")
+    root.resizable(False, False)
+
+    tk.Label(
+        root,
+        text="Jockey Store Scraper",
+        font=("Segoe UI", 14, "bold")
+    ).pack(pady=20)
+
+    tk.Button(
+        root,
+        text="Run",
+        width=18,
+        height=2,
+        font=("Segoe UI", 12, "bold"),
+        command=run_all
+    ).pack(pady=20)
+
+    root.mainloop()
+
+
+if __name__ == "__main__":
+    run_gui()

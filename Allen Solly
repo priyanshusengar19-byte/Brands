@@ -1,0 +1,459 @@
+import os, time, re
+from datetime import datetime
+import pandas as pd
+import tkinter as tk
+from tkinter import messagebox
+
+from selenium import webdriver
+from selenium.webdriver.chrome.options import Options
+from selenium.webdriver.chrome.service import Service
+from selenium.webdriver.common.by import By
+from selenium.webdriver.common.keys import Keys
+from selenium.webdriver.support.ui import WebDriverWait
+from selenium.webdriver.support import expected_conditions as EC
+from selenium.common.exceptions import WebDriverException
+from webdriver_manager.chrome import ChromeDriverManager
+
+STORELOCATOR_URL = "https://allensolly.abfrl.in/storelocator"
+
+MAJOR_CITIES = [
+    # Metros
+    "Mumbai", "Delhi", "Bangalore", "Hyderabad", "Chennai", "Kolkata",
+    "Pune", "Ahmedabad",
+    # Tier-1
+    "Jaipur", "Surat", "Lucknow", "Chandigarh", "Indore", "Bhopal",
+    "Nagpur", "Coimbatore", "Kochi", "Vadodara", "Visakhapatnam",
+    "Bhubaneswar", "Patna", "Guwahati", "Dehradun", "Raipur",
+    "Jodhpur", "Udaipur", "Amritsar", "Ludhiana", "Jalandhar",
+    # UP / NCR
+    "Agra", "Varanasi", "Meerut", "Kanpur", "Prayagraj",
+    "Ghaziabad", "Noida", "Gurugram", "Faridabad",
+    # Central / East
+    "Jabalpur", "Gwalior", "Ranchi", "Jamshedpur",
+    "Siliguri", "Durgapur", "Cuttack",
+    # Andhra / Telangana
+    "Vijayawada", "Guntur", "Tirupati", "Warangal", "Rajahmundry",
+    # Tamil Nadu
+    "Madurai", "Tiruchirappalli", "Salem", "Erode", "Tiruppur", "Vellore",
+    # Karnataka
+    "Mysuru", "Mangaluru", "Hubballi", "Belagavi", "Davangere",
+    # Kerala
+    "Thrissur", "Kozhikode", "Thiruvananthapuram", "Kollam",
+    # Maharashtra
+    "Aurangabad", "Kolhapur", "Solapur", "Navi Mumbai", "Thane", "Nashik",
+    # Gujarat
+    "Gandhinagar", "Rajkot", "Bhavnagar", "Jamnagar", "Anand", "Bharuch",
+    # Rajasthan
+    "Ajmer", "Bikaner", "Alwar", "Kota",
+    # Others
+    "Jammu", "Haridwar", "Pondicherry", "Panaji",
+]
+
+
+# =========================================================
+# DRIVER
+# =========================================================
+def _make_driver():
+    opts = Options()
+    opts.add_argument("--no-sandbox")
+    opts.add_argument("--disable-dev-shm-usage")
+    opts.add_argument("--disable-blink-features=AutomationControlled")
+    opts.add_experimental_option("excludeSwitches", ["enable-automation"])
+    opts.add_experimental_option("useAutomationExtension", False)
+    svc = Service(ChromeDriverManager().install())
+    drv = webdriver.Chrome(service=svc, options=opts)
+    drv.execute_script("Object.defineProperty(navigator,'webdriver',{get:()=>undefined})")
+    return drv
+
+
+def _is_alive(driver):
+    """Return True if the Chrome session is still open."""
+    try:
+        _ = driver.title
+        return True
+    except WebDriverException:
+        return False
+
+
+# =========================================================
+# HELPERS
+# =========================================================
+def _get_store_count(driver):
+    try:
+        m = re.search(r'(\d+)\s*Stores?\s*Found', driver.find_element(By.TAG_NAME, "body").text, re.I)
+        return int(m.group(1)) if m else 0
+    except Exception:
+        return 0
+
+
+# JS: find the City/Area input by scanning all inputs for a city/area placeholder
+_JS_FIND_INPUT = """
+var inputs = document.querySelectorAll('input');
+for (var i = 0; i < inputs.length; i++) {
+    var p = (inputs[i].placeholder || '').toLowerCase();
+    if (p.includes('city') || p.includes('area') || p.includes('address')) {
+        return inputs[i];
+    }
+}
+return null;
+"""
+
+# JS: click the first visible dropdown option that contains city text
+_JS_CLICK_FIRST_OPTION = """
+var city = arguments[0].toLowerCase();
+var selectors = ['li', '[role="option"]', '[role="listitem"]',
+                 '[class*="suggestion"]', '[class*="option"]', '[class*="item"]'];
+for (var si = 0; si < selectors.length; si++) {
+    var els = document.querySelectorAll(selectors[si]);
+    for (var i = 0; i < els.length; i++) {
+        var el = els[i];
+        if (el.offsetWidth === 0 && el.offsetHeight === 0) continue;
+        var txt = (el.innerText || '').trim();
+        if (txt && txt.toLowerCase().includes(city)) {
+            el.click();
+            return txt;
+        }
+    }
+}
+return null;
+"""
+
+# JS: scrape store cards — finds the list container where multiple siblings
+# all have card-sized text (letters + digits). Does NOT require AM/PM.
+_JS_SCRAPE_CARDS = """
+var cards = [];
+var seenParents = new WeakSet();
+
+var allEls = document.querySelectorAll('*');
+for (var i = 0; i < allEls.length; i++) {
+    var el = allEls[i];
+    var t = (el.innerText || '').trim();
+    // Card-sized element with both letters (name/address) and digits (pincode/phone/number)
+    if (t.length < 40 || t.length > 800) continue;
+    if (el.children.length > 25) continue;
+    if (!/\d/.test(t) || !/[A-Za-z]{3,}/.test(t)) continue;
+
+    var parent = el.parentElement;
+    if (!parent || parent === document.body) continue;
+    if (seenParents.has(parent)) continue;
+
+    // Count siblings that also look like store cards
+    var sibTexts = [];
+    for (var j = 0; j < parent.children.length; j++) {
+        var sib = parent.children[j];
+        var st = (sib.innerText || '').trim();
+        if (st.length >= 40 && st.length <= 800 &&
+            /\d/.test(st) && /[A-Za-z]{3,}/.test(st) &&
+            sib.children.length <= 25) {
+            sibTexts.push(st);
+        }
+    }
+
+    // Only use this container if it has 3+ card-like children (real store list)
+    if (sibTexts.length >= 3) {
+        seenParents.add(parent);
+        for (var k = 0; k < sibTexts.length; k++) {
+            cards.push({ text: sibTexts[k], tag: 'CARD', cls: '' });
+        }
+        if (cards.length >= 60) break;
+    }
+}
+return cards;
+"""
+
+# JS: get raw panel text for debug / fallback parsing
+_JS_GET_PANEL_TEXT = """
+var all = document.querySelectorAll('*');
+for (var i = 0; i < all.length; i++) {
+    var t = (all[i].innerText || '').trim();
+    if (/^\d+\s*Stores?\s*Found/i.test(t) && all[i].children.length <= 5) {
+        var p = all[i].parentElement;
+        for (var d = 0; d < 10; d++) {
+            if (!p || p === document.body) break;
+            if (p.children.length >= 3) {
+                return {
+                    text: (p.innerText || '').substring(0, 4000),
+                    html: p.innerHTML.substring(0, 3000),
+                    kids: p.children.length
+                };
+            }
+            p = p.parentElement;
+        }
+    }
+}
+return null;
+"""
+
+
+def _find_city_input(driver):
+    """Find the City/Area input via JS (case-insensitive placeholder match)."""
+    el = driver.execute_script(_JS_FIND_INPUT)
+    if el is None:
+        raise RuntimeError("City/Area input not found on page")
+    return el
+
+
+def _clear_and_type(driver, inp, city):
+    """Clear the input and type the city name."""
+    driver.execute_script("arguments[0].value = '';", inp)
+    inp.click()
+    time.sleep(0.2)
+    inp.send_keys(Keys.CONTROL + "a")
+    inp.send_keys(Keys.DELETE)
+    time.sleep(0.1)
+    inp.send_keys(city)
+    time.sleep(2.5)
+
+
+def _wait_for_dropdown(driver, timeout=4):
+    """Wait until a dropdown option containing text appears (polls every 300 ms)."""
+    deadline = time.time() + timeout
+    while time.time() < deadline:
+        visible = driver.execute_script("""
+            var tags = ['li','[role="option"]','[role="listitem"]'];
+            for (var i = 0; i < tags.length; i++) {
+                var els = document.querySelectorAll(tags[i]);
+                for (var j = 0; j < els.length; j++) {
+                    if (els[j].offsetParent && (els[j].innerText || '').trim())
+                        return true;
+                }
+            }
+            return false;
+        """)
+        if visible:
+            return True
+        time.sleep(0.3)
+    return False
+
+
+def _wait_for_stores(driver, timeout=6):
+    deadline = time.time() + timeout
+    while time.time() < deadline:
+        if _get_store_count(driver) > 0:
+            return True
+        time.sleep(0.5)
+    return False
+
+
+def _parse_card(text, city_searched):
+    lines = [l.strip() for l in text.split("\n") if l.strip()]
+    name = ""
+    address_parts = []
+    phone = ""
+    open_t = close_t = ""
+
+    pin_m = re.search(r'\b(\d{6})\b', text)
+    pincode = pin_m.group(1) if pin_m else ""
+
+    for i, line in enumerate(lines):
+        if re.search(r'\d{1,2}:\d{2}\s*(AM|PM)', line, re.I):
+            parts = re.split(r'\s*[-–]\s*', line, maxsplit=1)
+            open_t  = parts[0].strip()
+            close_t = parts[1].strip() if len(parts) == 2 else ""
+        elif re.search(r'(\+91[\s-]?)?\b\d{10}\b', line):
+            digits = re.sub(r'\D', '', line)
+            phone = digits[-10:] if len(digits) >= 10 else digits
+        elif i == 0:
+            name = line
+        elif line.lower() not in ("express delivery", "alteration", "personal shopper"):
+            address_parts.append(line)
+
+    return {
+        "Store Name":    name,
+        "City Searched": city_searched,
+        "Address":       ", ".join(address_parts),
+        "Pincode":       pincode,
+        "Phone":         phone,
+        "Open Time":     open_t,
+        "Close Time":    close_t,
+    }
+
+
+_debug_printed = [False]   # print panel debug once per run
+
+def _scrape_visible_stores(driver, city_searched):
+    if _get_store_count(driver) == 0:
+        return []
+
+    raw = driver.execute_script(_JS_SCRAPE_CARDS) or []
+
+    # If JS found nothing, print the raw panel text ONCE so we can see the card format
+    if not raw and not _debug_printed[0]:
+        _debug_printed[0] = True
+        panel = driver.execute_script(_JS_GET_PANEL_TEXT)
+        if panel:
+            print(f"\n[DEBUG] Panel has {panel['kids']} children.")
+            print(f"[DEBUG PANEL TEXT]\n{panel['text'][:3000]}")
+            print(f"[DEBUG PANEL HTML]\n{panel['html'][:2000]}")
+        else:
+            body = driver.find_element(By.TAG_NAME, "body").text
+            print(f"\n[DEBUG BODY TEXT (first 3000)]\n{body[:3000]}")
+
+    stores = []
+    for card in raw:
+        s = _parse_card(card["text"], city_searched)
+        if s["Store Name"]:
+            stores.append(s)
+    return stores
+
+
+def _save_partial(all_stores, output_path):
+    if not all_stores:
+        return
+    df = pd.DataFrame(all_stores.values()).drop(columns=["City Searched"], errors="ignore")
+    df = df.sort_values("Store Name").reset_index(drop=True)
+    df.to_excel(output_path, index=False)
+    print(f"  [partial save: {len(df)} stores -> {output_path}]")
+
+
+# =========================================================
+# MAIN SCRAPER
+# =========================================================
+def scrape_allen_solly(output_path):
+    driver = _make_driver()
+    wait   = WebDriverWait(driver, 20)
+    all_stores = {}
+
+    def _store_key(s):
+        return (s["Store Name"].lower(), s["Pincode"] or s["Phone"])
+
+    def _add(stores):
+        new = 0
+        for s in stores:
+            k = _store_key(s)
+            if k not in all_stores:
+                all_stores[k] = s
+                new += 1
+        return new
+
+    try:
+        print("[INFO] Opening Allen Solly store locator...")
+        driver.get(STORELOCATOR_URL)
+        time.sleep(6)
+        print(f"[INFO] Title: {driver.title}")
+
+        # Print the input placeholder found, so we can verify correct field
+        found_ph = driver.execute_script(
+            "var el = (" + _JS_FIND_INPUT + ")(); return el ? el.placeholder : 'NOT FOUND';"
+        ) if False else driver.execute_script(
+            "(function(){" + _JS_FIND_INPUT.replace("return null;", "return null;") + "})()"
+        )
+        # simpler: just report what placeholder the JS finder returns
+        dbg = driver.execute_script("""
+            var inputs = document.querySelectorAll('input');
+            var found = [];
+            for (var i = 0; i < inputs.length; i++) {
+                found.push(inputs[i].placeholder || '(no placeholder)');
+            }
+            return found;
+        """)
+        print(f"[DEBUG] All input placeholders on page: {dbg}")
+
+        for ci, city in enumerate(MAJOR_CITIES):
+            # ---- session health check ----
+            if not _is_alive(driver):
+                print(f"\n[WARN] Browser was closed at city {ci+1} ({city}). Saving partial results.")
+                break
+
+            print(f"[{ci+1}/{len(MAJOR_CITIES)}] {city}", end="", flush=True)
+
+            try:
+                inp = _find_city_input(driver)
+                _clear_and_type(driver, inp, city)
+
+                # --- Strategy 1: wait for dropdown, then Arrow Down + Enter ---
+                _wait_for_dropdown(driver)   # wait until options appear
+                inp.send_keys(Keys.ARROW_DOWN)
+                time.sleep(0.4)
+                inp.send_keys(Keys.RETURN)
+                time.sleep(3)
+
+                count = _get_store_count(driver)
+
+                # --- Strategy 2: JS click on first visible option ---
+                if count == 0:
+                    inp = _find_city_input(driver)
+                    _clear_and_type(driver, inp, city)
+                    clicked = driver.execute_script(_JS_CLICK_FIRST_OPTION, city)
+                    if clicked:
+                        print(f"  [js-click: {clicked.strip()[:40]}]", end="", flush=True)
+                        _wait_for_stores(driver)
+                        count = _get_store_count(driver)
+
+                stores = _scrape_visible_stores(driver, city)
+                n = _add(stores)
+                print(f"  {count} found / {len(stores)} parsed / {n} new  [total {len(all_stores)}]")
+
+                # Intermediate save every 10 cities
+                if (ci + 1) % 10 == 0:
+                    _save_partial(all_stores, output_path)
+
+            except WebDriverException as e:
+                if "invalid session id" in str(e) or "no such session" in str(e):
+                    print(f"\n[WARN] Session lost. Saving partial results.")
+                    break
+                print(f"  [ERR: {e}]")
+            except Exception as e:
+                print(f"  [ERR: {e}]")
+
+    finally:
+        try:
+            driver.quit()
+        except Exception:
+            pass
+
+    if not all_stores:
+        raise RuntimeError(
+            "No stores scraped.\n"
+            "Check [DEBUG] line above — if the City/Area input placeholder is missing,\n"
+            "the page structure has changed. Share this output to fix the selector."
+        )
+
+    df = pd.DataFrame(all_stores.values()).drop(columns=["City Searched"], errors="ignore")
+    df = df.sort_values("Store Name").reset_index(drop=True)
+    df.to_excel(output_path, index=False)
+    print(f"\n[INFO] Saved {len(df)} stores -> {output_path}")
+    return df
+
+
+# =========================================================
+# GUI
+# =========================================================
+def run_all():
+    folder = os.path.dirname(os.path.abspath(__file__))
+    today  = datetime.today().strftime("%Y-%m-%d")
+    output_path = os.path.join(folder, f"AllenSolly_Stores_{today}.xlsx")
+
+    print("=" * 70)
+    print("[INFO] STARTING Allen Solly Store Scraper")
+    print("=" * 70)
+
+    try:
+        scrape_allen_solly(output_path)
+        print("=" * 70)
+        print("[INFO] DONE")
+        print("=" * 70)
+        messagebox.showinfo("Done", f"Saved to:\n{output_path}")
+    except Exception as e:
+        print(f"[ERROR] {e}")
+        messagebox.showerror("Error", str(e))
+
+
+def run_gui():
+    root = tk.Tk()
+    root.title("Allen Solly Store Scraper")
+    root.geometry("460x220")
+    root.resizable(False, False)
+
+    tk.Label(root, text="Allen Solly Store Scraper",
+             font=("Segoe UI", 14, "bold")).pack(pady=20)
+    tk.Label(root, text="Scrapes allensolly.abfrl.in/storelocator  (~300 stores)",
+             font=("Segoe UI", 9), fg="gray").pack()
+    tk.Button(root, text="Run Scraper", width=18, height=2,
+              font=("Segoe UI", 12, "bold"), command=run_all).pack(pady=20)
+
+    root.mainloop()
+
+
+if __name__ == "__main__":
+    run_gui()

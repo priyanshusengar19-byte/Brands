@@ -1,0 +1,257 @@
+import os
+import re
+import time
+import random
+from datetime import datetime
+import pandas as pd
+import tkinter as tk
+from tkinter import messagebox
+from selenium import webdriver
+from selenium.webdriver.chrome.options import Options
+from selenium.webdriver.common.by import By
+from selenium.webdriver.support.ui import WebDriverWait
+from selenium.webdriver.support import expected_conditions as EC
+from bs4 import BeautifulSoup
+
+# =========================================================
+# CONFIG
+# =========================================================
+_UA = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36"
+BASE_URL = "https://www.nike.com/retail/directory/india"
+
+PINCODE_RE = re.compile(r'\b(\d{6})\b')
+
+
+# =========================================================
+# DRIVER
+# =========================================================
+def make_driver():
+    opts = Options()
+    opts.add_argument("--headless=new")
+    opts.add_argument("--no-sandbox")
+    opts.add_argument("--disable-dev-shm-usage")
+    opts.add_argument("--window-size=1920,1080")
+    opts.add_argument(f"--user-agent={_UA}")
+    opts.add_argument("--disable-blink-features=AutomationControlled")
+    opts.add_experimental_option("excludeSwitches", ["enable-automation"])
+    opts.add_experimental_option("useAutomationExtension", False)
+    driver = webdriver.Chrome(options=opts)
+    driver.execute_cdp_cmd("Page.addScriptToEvaluateOnNewDocument", {
+        "source": "Object.defineProperty(navigator, 'webdriver', {get: () => undefined})"
+    })
+    return driver
+
+
+# =========================================================
+# HELPERS
+# =========================================================
+def _clean(text):
+    return " ".join((text or "").replace("\n", " ").replace("\r", " ").split())
+
+
+def _get_state_urls(driver):
+    print("[INFO] Loading India directory page...")
+    driver.get(BASE_URL)
+    wait = WebDriverWait(driver, 30)
+    wait.until(EC.presence_of_element_located(
+        (By.CSS_SELECTOR, "a[href*='/retail/directory/india/']")))
+    time.sleep(3)
+
+    soup = BeautifulSoup(driver.page_source, "html.parser")
+    links = soup.select("a[href*='/retail/directory/india/']")
+
+    state_urls = []
+    seen = set()
+    for link in links:
+        href = link.get("href", "")
+        # Normalise: links may be full URLs or relative paths
+        path = href.replace("https://www.nike.com", "")
+        # Only direct state pages: /retail/directory/india/<state> (exactly 4 slashes)
+        if (href and href not in seen
+                and "/retail/directory/india/" in href
+                and path.count("/") == 4):
+            seen.add(href)
+            name = re.sub(r'\s*\(\d+\)\s*$', '', _clean(link.get_text())).strip()
+            full_url = href if href.startswith("http") else "https://www.nike.com" + href
+            state_urls.append((name, full_url))
+
+    print(f"[INFO] Found {len(state_urls)} states")
+    return state_urls
+
+
+def _parse_card(link_tag, state_name):
+    """
+    Each <a href="/retail/s/..."> wraps the entire store card.
+    Structure inside:
+      <h3>Store Name</h3>
+      <div class="body-2 text-color-secondary"><p>addr line</p>...</div>  (address)
+      <div class="body-2 text-color-secondary"><span>Open/Closed</span> text</div>  (hours)
+    """
+    store_link = link_tag.get("href", "")
+
+    # Store name
+    h3 = link_tag.select_one("h3")
+    store_name = _clean(h3.get_text()) if h3 else "Nike"
+
+    # Address: the secondary div whose children are <p> tags
+    addr = ""
+    for div in link_tag.select("div.body-2.text-color-secondary"):
+        if div.find("p"):
+            parts = [_clean(p.get_text()) for p in div.find_all("p") if p.get_text(strip=True)]
+            addr = " ".join(parts)
+            break
+
+    # Hours: the secondary div that contains a <span> (Open/Closed status)
+    hours = ""
+    for div in link_tag.select("div.body-2.text-color-secondary"):
+        if div.find("span"):
+            hours = _clean(div.get_text(separator=" "))
+            break
+
+    # Pincode from address
+    pin_m = PINCODE_RE.search(addr)
+    pincode = pin_m.group(1) if pin_m else ""
+
+    # City: address format is "Street..., City, State, Pincode, Country"
+    # Strip ", Pincode, Country" suffix then take second-to-last comma part
+    city = ""
+    if addr:
+        clean_addr = re.sub(r',?\s*\d{6},?\s*\w{2}\s*$', '', addr).strip()
+        parts = [p.strip() for p in clean_addr.split(",") if p.strip()]
+        # second-to-last = city (last = state, which we already know)
+        city = parts[-2].title() if len(parts) >= 2 else (parts[-1].title() if parts else "")
+
+    return {
+        "Store Name": store_name,
+        "City":       city,
+        "State":      state_name,
+        "Address":    addr,
+        "Pincode":    pincode,
+        "Phone No":   "",
+        "Hours":      hours,
+        "Store Link": store_link,
+        "Maps URL":   "",
+    }
+
+
+# =========================================================
+# SCRAPER
+# =========================================================
+def _scrape_state(driver, state_name, state_url, retries=2):
+    for attempt in range(1, retries + 1):
+        print(f"  [INFO] {state_name} (attempt {attempt})...")
+        driver.get(state_url)
+        wait = WebDriverWait(driver, 30)
+
+        try:
+            wait.until(EC.presence_of_element_located(
+                (By.CSS_SELECTOR, "a[href*='/retail/s/']")))
+        except Exception:
+            print(f"  [WARN] No stores loaded for {state_name}")
+            if attempt < retries:
+                time.sleep(3)
+            continue
+
+        time.sleep(3)  # let full content settle
+
+        soup = BeautifulSoup(driver.page_source, "html.parser")
+        # Links may be full URLs (https://www.nike.com/retail/s/...) or relative
+        store_links = soup.select("a[href*='/retail/s/']")
+
+        # Deduplicate by href
+        seen_hrefs = set()
+        unique_links = []
+        for lnk in store_links:
+            h = lnk.get("href", "")
+            if h and h not in seen_hrefs:
+                seen_hrefs.add(h)
+                unique_links.append(lnk)
+
+        if not unique_links:
+            continue
+
+        rows = []
+        for lnk in unique_links:
+            row = _parse_card(lnk, state_name)
+            rows.append(row)
+
+        print(f"  [INFO] {state_name}: {len(rows)} stores")
+        return rows
+
+    return []
+
+
+def scrape_all(output_path):
+    driver = make_driver()
+    rows = []
+
+    try:
+        state_urls = _get_state_urls(driver)
+
+        for state_name, state_url in state_urls:
+            state_rows = _scrape_state(driver, state_name, state_url)
+            rows.extend(state_rows)
+            time.sleep(random.uniform(1.0, 2.0))
+
+    finally:
+        driver.quit()
+
+    df = pd.DataFrame(rows)
+    df = df.drop_duplicates(subset=["Store Link"])
+
+    col_order = ["Store Name", "City", "State", "Address", "Pincode",
+                 "Phone No", "Hours", "Store Link", "Maps URL"]
+    df = df.reindex(columns=col_order)
+
+    df.to_excel(output_path, index=False)
+    print(f"[INFO] Saved {len(df)} stores to {output_path}")
+    return df
+
+
+# =========================================================
+# GUI
+# =========================================================
+def run_all():
+    folder = os.path.dirname(os.path.abspath(__file__))
+    today  = datetime.today().strftime("%Y-%m-%d")
+    output_path = os.path.join(folder, f"Nike_Stores_{today}.xlsx")
+
+    print("=" * 70)
+    print("[INFO] STARTING NIKE SCRAPER")
+    print("=" * 70)
+
+    scrape_all(output_path)
+
+    print("=" * 70)
+    print("[INFO] FILE SAVED SUCCESSFULLY")
+    print("=" * 70)
+
+    messagebox.showinfo("Success", f"Saved to:\n{output_path}")
+
+
+def run_gui():
+    root = tk.Tk()
+    root.title("Nike Store Scraper")
+    root.geometry("430x220")
+    root.resizable(False, False)
+
+    tk.Label(
+        root,
+        text="Nike Store Scraper",
+        font=("Segoe UI", 14, "bold")
+    ).pack(pady=20)
+
+    tk.Button(
+        root,
+        text="Run",
+        width=18,
+        height=2,
+        font=("Segoe UI", 12, "bold"),
+        command=run_all
+    ).pack(pady=20)
+
+    root.mainloop()
+
+
+if __name__ == "__main__":
+    run_gui()

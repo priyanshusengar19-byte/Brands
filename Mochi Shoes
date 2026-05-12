@@ -1,0 +1,164 @@
+import os
+import re
+import time
+import random
+import math
+from datetime import datetime
+import requests
+import pandas as pd
+from bs4 import BeautifulSoup
+import tkinter as tk
+from tkinter import messagebox
+
+# =========================================================
+# CONFIG
+# =========================================================
+_UA = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36"
+API_URL  = "https://store.mochishoes.com/locations"
+PER_PAGE = 15
+TOTAL    = 284
+
+HEADERS = {
+    "Accept":           "application/json, text/javascript, */*; q=0.01",
+    "X-Requested-With": "XMLHttpRequest",
+    "Referer":          "https://store.mochishoes.com/",
+    "User-Agent":       _UA,
+}
+
+PINCODE_RE = re.compile(r'\b(\d{6})\b')
+
+
+# =========================================================
+# HELPERS
+# =========================================================
+def _clean(text):
+    return " ".join((text or "").replace("\n", " ").replace("\r", " ").split())
+
+
+def _city_state(addr):
+    clean = PINCODE_RE.sub("", addr).strip().rstrip(",").strip()
+    parts = [p.strip() for p in clean.split(",") if p.strip()]
+    state = parts[-1].title() if parts else ""
+    city  = parts[-2].title() if len(parts) >= 2 else ""
+    return city, state
+
+
+# =========================================================
+# SCRAPER
+# =========================================================
+def scrape_all(output_path):
+    session = requests.Session()
+    rows = []
+    total_pages = math.ceil(TOTAL / PER_PAGE)
+
+    for page in range(1, total_pages + 1):
+        params = {"page": page}
+        print(f"[INFO] Page {page}/{total_pages}...")
+
+        for attempt in range(3):
+            try:
+                r = session.get(API_URL, params=params, headers=HEADERS, timeout=30)
+                if r.status_code == 200:
+                    break
+                time.sleep(2)
+            except requests.RequestException:
+                time.sleep(2)
+        else:
+            print(f"[WARN] Failed page {page}, skipping")
+            continue
+
+        data = r.json()
+        html = data.get("html", "")
+        soup = BeautifulSoup(html, "html.parser")
+        cards = soup.select("div.locationItems")
+
+        if not cards:
+            print(f"[INFO] No cards on page {page}, stopping.")
+            break
+
+        for card in cards:
+            addr  = _clean(card.get("data-addr", ""))
+            phone = _clean(card.get("data-phone", ""))
+            lat   = card.get("data-lat", "")
+            lng   = card.get("data-lng", "")
+            link  = card.get("data-page-link", "")
+
+            pin_m   = PINCODE_RE.search(addr)
+            pincode = pin_m.group(1) if pin_m else ""
+
+            city, state = _city_state(addr)
+            maps_url = f"https://www.google.com/maps?q={lat},{lng}" if lat and lng else ""
+
+            rows.append({
+                "Store Name": "Mochi Shoes",
+                "City":       city,
+                "State":      state,
+                "Address":    addr,
+                "Pincode":    pincode,
+                "Phone No":   phone,
+                "Store Link": link,
+                "Maps URL":   maps_url,
+            })
+
+        print(f"  -> {len(cards)} stores")
+        time.sleep(random.uniform(0.3, 0.6))
+
+    df = pd.DataFrame(rows)
+    df = df.drop_duplicates(subset=["Store Link"])
+
+    col_order = ["Store Name", "City", "State", "Address", "Pincode",
+                 "Phone No", "Store Link", "Maps URL"]
+    df = df.reindex(columns=col_order)
+
+    df.to_excel(output_path, index=False)
+    print(f"[INFO] Saved {len(df)} stores to {output_path}")
+    return df
+
+
+# =========================================================
+# GUI
+# =========================================================
+def run_all():
+    folder = os.path.dirname(os.path.abspath(__file__))
+    today  = datetime.today().strftime("%Y-%m-%d")
+    output_path = os.path.join(folder, f"MochiShoes_Stores_{today}.xlsx")
+
+    print("=" * 70)
+    print("[INFO] STARTING MOCHI SHOES SCRAPER")
+    print("=" * 70)
+
+    scrape_all(output_path)
+
+    print("=" * 70)
+    print("[INFO] FILE SAVED SUCCESSFULLY")
+    print("=" * 70)
+
+    messagebox.showinfo("Success", f"Saved to:\n{output_path}")
+
+
+def run_gui():
+    root = tk.Tk()
+    root.title("Mochi Shoes Scraper")
+    root.geometry("430x220")
+    root.resizable(False, False)
+
+    tk.Label(
+        root,
+        text="Mochi Shoes Store Scraper",
+        font=("Segoe UI", 14, "bold")
+    ).pack(pady=20)
+
+    tk.Button(
+        root,
+        text="Run",
+        width=18,
+        height=2,
+        font=("Segoe UI", 12, "bold"),
+        command=run_all
+    ).pack(pady=20)
+
+    root.mainloop()
+
+
+if __name__ == "__main__":
+    run_gui()

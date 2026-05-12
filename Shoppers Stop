@@ -1,0 +1,189 @@
+import os
+import re
+import time
+import random
+from datetime import datetime
+import requests
+import pandas as pd
+from bs4 import BeautifulSoup
+import tkinter as tk
+from tkinter import messagebox
+
+# =========================================================
+# CONFIG
+# =========================================================
+_UA = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36"
+
+BASE_URL = "https://store.shoppersstop.com/"
+
+HEADERS = {
+    "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,*/*;q=0.8",
+    "Accept-Language": "en-US,en;q=0.5",
+    "Connection": "keep-alive",
+    "User-Agent": _UA,
+}
+
+PINCODE_RE = re.compile(r"\b(\d{6})\b")
+
+
+# =========================================================
+# HELPERS
+# =========================================================
+def make_session():
+    return requests.Session()
+
+
+def _clean(text):
+    return " ".join((text or "").replace("\n", " ").replace("\r", " ").split())
+
+
+def _get_with_retries(session, url, params=None, max_retries=3, base_sleep=1.0):
+    for attempt in range(1, max_retries + 1):
+        try:
+            r = session.get(url, params=params, headers=HEADERS, timeout=20)
+            if r.status_code == 200:
+                return r
+            if r.status_code in (429, 503, 502):
+                sleep = base_sleep * (2 ** (attempt - 1)) + random.uniform(0, 0.5)
+                time.sleep(sleep)
+                continue
+            return r
+        except requests.RequestException:
+            time.sleep(base_sleep * (2 ** (attempt - 1)))
+    return None
+
+
+# =========================================================
+# PARSER
+# =========================================================
+def _hidden(div, cls):
+    inp = div.find("input", class_=cls)
+    return inp["value"].strip() if inp and inp.get("value") else ""
+
+
+def _parse_store_card(div):
+    name    = _hidden(div, "business_name")
+    address = _hidden(div, "address")
+    phone   = _hidden(div, "phone")
+    city    = _hidden(div, "business_city")
+    state   = _hidden(div, "state")
+
+    pin_m   = PINCODE_RE.search(address)
+    pincode = pin_m.group(1) if pin_m else ""
+
+    # Store link — the <a> inside the <h2>, not the phone/map links
+    h2 = div.find("h2", class_="store_outlet_01__name")
+    link_a = h2.find("a") if h2 else None
+    store_link = link_a["href"].strip() if link_a and link_a.get("href") else ""
+
+    return {
+        "Store Name": name,
+        "City":       city,
+        "State":      state,
+        "Address":    address,
+        "Pincode":    pincode,
+        "Phone No":   phone,
+        "Store Link": store_link,
+    }
+
+
+# =========================================================
+# SCRAPER
+# =========================================================
+def scrape_all_pages(output_path, max_pages=50):
+    session = make_session()
+    rows = []
+    empty_pages_seen = 0
+
+    for page in range(1, max_pages + 1):
+        params = {"page": page} if page > 1 else {}
+        r = _get_with_retries(session, BASE_URL, params=params)
+
+        if r is None:
+            print(f"[WARN] Failed to fetch page {page} after retries")
+            empty_pages_seen += 1
+            if empty_pages_seen >= 3:
+                print("[INFO] Too many failed pages. Stopping.")
+                break
+            continue
+
+        if r.status_code != 200:
+            print(f"[WARN] HTTP {r.status_code} on page {page}. Stopping.")
+            break
+
+        soup = BeautifulSoup(r.text, "html.parser")
+        cards = soup.find_all("div", class_="store_outlet_01__item")
+
+        if not cards:
+            print(f"[INFO] No store cards on page {page}. Stopping.")
+            empty_pages_seen += 1
+            if empty_pages_seen >= 2:
+                break
+            continue
+
+        empty_pages_seen = 0
+        print(f"[INFO] Page {page}: {len(cards)} stores")
+
+        for card in cards:
+            rows.append(_parse_store_card(card))
+
+        time.sleep(0.5 + random.uniform(0, 0.5))
+
+    df = pd.DataFrame(rows)
+    df = df.drop_duplicates(subset=["Store Name", "Pincode"])
+
+    col_order = ["Store Name", "City", "State", "Address", "Pincode", "Phone No", "Store Link"]
+    df = df.reindex(columns=[c for c in col_order if c in df.columns])
+
+    df.to_excel(output_path, index=False)
+    print(f"[INFO] Saved {len(df)} stores to {output_path}")
+    return df
+
+
+# =========================================================
+# GUI
+# =========================================================
+def run_all():
+    folder = os.path.dirname(os.path.abspath(__file__))
+    today = datetime.today().strftime("%Y-%m-%d")
+    output_path = os.path.join(folder, f"ShoppersStop_Stores_{today}.xlsx")
+
+    print("=" * 70)
+    print("[INFO] STARTING SHOPPERS STOP SCRAPER")
+    print("=" * 70)
+
+    scrape_all_pages(output_path)
+
+    print("=" * 70)
+    print("[INFO] FILE SAVED SUCCESSFULLY")
+    print("=" * 70)
+
+    messagebox.showinfo("Success", f"Saved to:\n{output_path}")
+
+
+def run_gui():
+    root = tk.Tk()
+    root.title("Shoppers Stop Scraper")
+    root.geometry("430x220")
+    root.resizable(False, False)
+
+    tk.Label(
+        root,
+        text="Shoppers Stop Store Scraper",
+        font=("Segoe UI", 14, "bold")
+    ).pack(pady=20)
+
+    tk.Button(
+        root,
+        text="Run",
+        width=18,
+        height=2,
+        font=("Segoe UI", 12, "bold"),
+        command=run_all
+    ).pack(pady=20)
+
+    root.mainloop()
+
+
+if __name__ == "__main__":
+    run_gui()

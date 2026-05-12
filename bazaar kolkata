@@ -1,0 +1,161 @@
+import os
+import re
+import time
+import random
+import json
+from datetime import datetime
+import requests
+import pandas as pd
+from bs4 import BeautifulSoup
+import tkinter as tk
+from tkinter import messagebox
+
+# =========================================================
+# CONFIG
+# =========================================================
+_UA = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36"
+SHOWROOMS_URL = "https://baazarkolkata.com/showrooms/"
+AJAX_URL      = "https://baazarkolkata.com/showrooms/wp-admin/admin-ajax.php"
+
+HEADERS = {
+    "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,*/*;q=0.8",
+    "Accept-Language": "en-US,en;q=0.5",
+    "Connection": "keep-alive",
+    "User-Agent": _UA,
+}
+
+
+# =========================================================
+# HELPERS
+# =========================================================
+def make_session():
+    return requests.Session()
+
+
+def _clean(text):
+    return " ".join((text or "").replace("\n", " ").replace("\r", " ").split())
+
+
+def _get_nonce(session):
+    r = session.get(SHOWROOMS_URL, headers=HEADERS, timeout=30)
+    m = re.search(r'"nonce"\s*:\s*"([a-f0-9]+)"', r.text)
+    return m.group(1) if m else ""
+
+
+def _parse_hours(open_hours_str):
+    try:
+        oh = json.loads(open_hours_str)
+        for val in oh.values():
+            if isinstance(val, list) and val:
+                return _clean(val[0])
+            if isinstance(val, str) and val:
+                return _clean(val)
+    except Exception:
+        pass
+    return ""
+
+
+# =========================================================
+# SCRAPER
+# =========================================================
+def scrape_all(output_path):
+    session = make_session()
+    rows = []
+
+    print("[INFO] Fetching nonce from showrooms page...")
+    nonce = _get_nonce(session)
+    if not nonce:
+        print("[ERROR] Could not extract nonce from showrooms page.")
+        return pd.DataFrame()
+
+    print(f"[INFO] Nonce obtained: {nonce}")
+
+    ajax_headers = {**HEADERS, "Referer": SHOWROOMS_URL}
+    payload = {
+        "action":   "asl_load_stores",
+        "nonce":    nonce,
+        "load_all": "1",
+        "lang":     "en_US",
+    }
+
+    print("[INFO] Fetching Baazar Kolkata stores via AJAX...")
+    r = session.post(AJAX_URL, data=payload, headers=ajax_headers, timeout=30)
+
+    stores = r.json()
+    print(f"[INFO] Found {len(stores)} stores")
+
+    for s in stores:
+        lat = s.get("lat", "")
+        lng = s.get("lng", "")
+        maps_url = f"https://www.google.com/maps?q={lat},{lng}" if lat and lng else ""
+
+        rows.append({
+            "Store Name": _clean(s.get("title", "")),
+            "City":       _clean(s.get("city", "")).title(),
+            "State":      _clean(s.get("state", "")).title(),
+            "Address":    _clean(s.get("street", "")),
+            "Pincode":    _clean(str(s.get("postal_code", ""))),
+            "Phone No":   _clean(s.get("phone", "")),
+            "Email":      _clean(s.get("email", "")),
+            "Hours":      _parse_hours(s.get("open_hours", "")),
+            "Maps URL":   maps_url,
+        })
+
+    df = pd.DataFrame(rows)
+    df = df.drop_duplicates(subset=["Store Name", "Address"])
+
+    col_order = ["Store Name", "City", "State", "Address", "Pincode", "Phone No", "Email", "Hours", "Maps URL"]
+    df = df.reindex(columns=col_order)
+
+    df.to_excel(output_path, index=False)
+    print(f"[INFO] Saved {len(df)} stores to {output_path}")
+    return df
+
+
+# =========================================================
+# GUI
+# =========================================================
+def run_all():
+    folder = os.path.dirname(os.path.abspath(__file__))
+    today  = datetime.today().strftime("%Y-%m-%d")
+    output_path = os.path.join(folder, f"BaazarKolkata_Stores_{today}.xlsx")
+
+    print("=" * 70)
+    print("[INFO] STARTING BAAZAR KOLKATA SCRAPER")
+    print("=" * 70)
+
+    scrape_all(output_path)
+
+    print("=" * 70)
+    print("[INFO] FILE SAVED SUCCESSFULLY")
+    print("=" * 70)
+
+    messagebox.showinfo("Success", f"Saved to:\n{output_path}")
+
+
+def run_gui():
+    root = tk.Tk()
+    root.title("Baazar Kolkata Scraper")
+    root.geometry("430x220")
+    root.resizable(False, False)
+
+    tk.Label(
+        root,
+        text="Baazar Kolkata Store Scraper",
+        font=("Segoe UI", 14, "bold")
+    ).pack(pady=20)
+
+    tk.Button(
+        root,
+        text="Run",
+        width=18,
+        height=2,
+        font=("Segoe UI", 12, "bold"),
+        command=run_all
+    ).pack(pady=20)
+
+    root.mainloop()
+
+
+if __name__ == "__main__":
+    run_gui()

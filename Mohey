@@ -1,0 +1,187 @@
+import os
+import re
+import time
+import random
+from datetime import datetime
+import requests
+import pandas as pd
+from bs4 import BeautifulSoup
+import tkinter as tk
+from tkinter import messagebox
+
+# =========================================================
+# CONFIG
+# =========================================================
+_UA = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36"
+BASE_URL    = "https://stores.manyavar.com/ManyavarMohey/"
+TOTAL_PAGES = 29
+
+HEADERS = {
+    "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,*/*;q=0.8",
+    "Accept-Language": "en-US,en;q=0.5",
+    "Connection": "keep-alive",
+    "User-Agent": _UA,
+}
+
+PINCODE_RE = re.compile(r'\b(\d{6})\b')
+
+
+# =========================================================
+# HELPERS
+# =========================================================
+def _clean(text):
+    return " ".join((text or "").replace("\n", " ").replace("\r", " ").split())
+
+
+def _get(session, url, params=None, retries=3):
+    for attempt in range(1, retries + 1):
+        try:
+            r = session.get(url, params=params, headers=HEADERS, timeout=30)
+            if r.status_code == 200:
+                return r
+            if r.status_code in (429, 503, 502):
+                time.sleep(2 ** attempt)
+                continue
+            return r
+        except requests.RequestException:
+            time.sleep(2 ** attempt)
+    return None
+
+
+# =========================================================
+# PARSER
+# =========================================================
+def _parse_card(card):
+    lat = card.find("input", class_="outlet-latitude")
+    lng = card.find("input", class_="outlet-longitude")
+    lat = _clean(lat["value"]) if lat else ""
+    lng = _clean(lng["value"]) if lng else ""
+
+    name_a = card.select_one("li.outlet-name a")
+    city   = _clean(name_a.get("data-track-event-city", "")).title() if name_a else ""
+    state  = _clean(name_a.get("data-track-event-state", "")).title() if name_a else ""
+    link   = name_a["href"] if name_a else ""
+
+    addr_div = card.select_one("li.outlet-address .info-text")
+    addr = _clean(addr_div.get_text(separator=" ")) if addr_div else ""
+
+    landmark = ""
+    for li in card.select("ul.outlet-detail li"):
+        if li.select_one(".icn-landmark"):
+            info = li.select_one(".info-text")
+            landmark = _clean(info.get_text()) if info else ""
+            break
+
+    phone_a = card.select_one("li.outlet-phone a[href^='tel:']")
+    phone = _clean(phone_a.get_text()) if phone_a else ""
+
+    hours_div = card.select_one("li.outlet-timings .info-text")
+    hours = _clean(hours_div.get_text()) if hours_div else ""
+
+    pin_m   = PINCODE_RE.search(addr)
+    pincode = pin_m.group(1) if pin_m else ""
+
+    maps_url = f"https://www.google.com/maps?q={lat},{lng}" if lat and lng else ""
+
+    return {
+        "Store Name": "Mohey",
+        "City":       city,
+        "State":      state,
+        "Address":    addr,
+        "Landmark":   landmark,
+        "Pincode":    pincode,
+        "Phone No":   phone,
+        "Hours":      hours,
+        "Store Link": link,
+        "Maps URL":   maps_url,
+    }
+
+
+# =========================================================
+# SCRAPER
+# =========================================================
+def scrape_all(output_path):
+    session = requests.Session()
+    rows = []
+
+    for page in range(1, TOTAL_PAGES + 1):
+        params = {"page": page} if page > 1 else {}
+        print(f"[INFO] Page {page}/{TOTAL_PAGES}...")
+
+        r = _get(session, BASE_URL, params=params)
+        if r is None:
+            print(f"[WARN] Failed page {page}, skipping")
+            continue
+
+        soup  = BeautifulSoup(r.text, "html.parser")
+        cards = soup.find_all("div", class_="store-info-box")
+
+        if not cards:
+            print(f"[INFO] No cards on page {page} — done.")
+            break
+
+        for card in cards:
+            rows.append(_parse_card(card))
+
+        print(f"  -> {len(cards)} stores")
+        time.sleep(random.uniform(0.3, 0.6))
+
+    df = pd.DataFrame(rows)
+    df = df.drop_duplicates(subset=["Store Link"])
+
+    col_order = ["Store Name", "City", "State", "Address", "Landmark",
+                 "Pincode", "Phone No", "Hours", "Store Link", "Maps URL"]
+    df = df.reindex(columns=col_order)
+
+    df.to_excel(output_path, index=False)
+    print(f"[INFO] Saved {len(df)} stores to {output_path}")
+    return df
+
+
+# =========================================================
+# GUI
+# =========================================================
+def run_all():
+    folder = os.path.dirname(os.path.abspath(__file__))
+    today  = datetime.today().strftime("%Y-%m-%d")
+    output_path = os.path.join(folder, f"Mohey_Stores_{today}.xlsx")
+
+    print("=" * 70)
+    print("[INFO] STARTING MOHEY SCRAPER")
+    print("=" * 70)
+
+    scrape_all(output_path)
+
+    print("=" * 70)
+    print("[INFO] FILE SAVED SUCCESSFULLY")
+    print("=" * 70)
+
+    messagebox.showinfo("Success", f"Saved to:\n{output_path}")
+
+
+def run_gui():
+    root = tk.Tk()
+    root.title("Mohey Store Scraper")
+    root.geometry("430x220")
+    root.resizable(False, False)
+
+    tk.Label(
+        root,
+        text="Mohey Store Scraper",
+        font=("Segoe UI", 14, "bold")
+    ).pack(pady=20)
+
+    tk.Button(
+        root,
+        text="Run",
+        width=18,
+        height=2,
+        font=("Segoe UI", 12, "bold"),
+        command=run_all
+    ).pack(pady=20)
+
+    root.mainloop()
+
+
+if __name__ == "__main__":
+    run_gui()

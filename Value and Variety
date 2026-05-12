@@ -1,0 +1,147 @@
+import os
+import re
+from datetime import datetime
+import requests
+import pandas as pd
+import tkinter as tk
+from tkinter import messagebox
+
+# =========================================================
+# CONFIG
+# =========================================================
+_UA = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36"
+BASE_URL  = "https://store.v2retail.com/"
+AJAX_URL  = "https://store.v2retail.com/wp-admin/admin-ajax.php"
+STORE_URL = "https://store.v2retail.com/{slug}/"
+
+HEADERS = {
+    "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
+    "User-Agent": _UA,
+}
+AJAX_HEADERS = {
+    "Accept": "application/json, */*",
+    "Content-Type": "application/x-www-form-urlencoded",
+    "Referer": BASE_URL,
+    "User-Agent": _UA,
+    "X-Requested-With": "XMLHttpRequest",
+}
+
+NONCE_RE = re.compile(r'"nonce"\s*:\s*"([a-f0-9]+)"')
+
+
+# =========================================================
+# HELPERS
+# =========================================================
+def _clean(text):
+    return " ".join((str(text) or "").replace("\n", " ").replace("\r", " ").split()).strip()
+
+
+def _get_nonce(session):
+    r = session.get(BASE_URL, headers=HEADERS, timeout=20)
+    r.raise_for_status()
+    m = NONCE_RE.search(r.text)
+    if not m:
+        raise RuntimeError("Could not find ASL nonce on page")
+    return m.group(1)
+
+
+# =========================================================
+# SCRAPER
+# =========================================================
+def scrape(output_path):
+    session = requests.Session()
+
+    print("[INFO] Fetching nonce from store page...")
+    nonce = _get_nonce(session)
+    print(f"[INFO] Got nonce: {nonce}")
+
+    print("[INFO] Loading all stores via AJAX...")
+    r = session.post(
+        AJAX_URL,
+        data={"action": "asl_load_stores", "nonce": nonce},
+        headers=AJAX_HEADERS,
+        timeout=30,
+    )
+    r.raise_for_status()
+
+    stores = r.json()
+    print(f"[INFO] Received {len(stores)} stores")
+
+    rows = []
+    for s in stores:
+        lat = _clean(s.get("lat", ""))
+        lng = _clean(s.get("lng", ""))
+        maps_url = f"https://www.google.com/maps?q={lat},{lng}" if lat and lng else ""
+
+        slug = _clean(s.get("slug", ""))
+        store_link = STORE_URL.format(slug=slug) if slug else ""
+
+        rows.append({
+            "Store Name": _clean(s.get("title", "")),
+            "City":       _clean(s.get("city", "")).title(),
+            "State":      _clean(s.get("state", "")).title(),
+            "Address":    _clean(s.get("street", "")),
+            "Pincode":    _clean(s.get("postal_code", "")),
+            "Phone No":   _clean(s.get("phone", "")),
+            "Store Link": store_link,
+            "Maps URL":   maps_url,
+        })
+
+    df = pd.DataFrame(rows)
+    df = df.drop_duplicates(subset=["Store Name", "Pincode"])
+
+    col_order = ["Store Name", "City", "State", "Address", "Pincode", "Phone No", "Store Link", "Maps URL"]
+    df = df.reindex(columns=col_order)
+
+    df.to_excel(output_path, index=False)
+    print(f"[INFO] Saved {len(df)} stores to {output_path}")
+    return df
+
+
+# =========================================================
+# GUI
+# =========================================================
+def run_all():
+    folder = os.path.dirname(os.path.abspath(__file__))
+    today  = datetime.today().strftime("%Y-%m-%d")
+    output_path = os.path.join(folder, f"ValueAndVariety_Stores_{today}.xlsx")
+
+    print("=" * 70)
+    print("[INFO] STARTING VALUE & VARIETY SCRAPER")
+    print("=" * 70)
+
+    scrape(output_path)
+
+    print("=" * 70)
+    print("[INFO] FILE SAVED SUCCESSFULLY")
+    print("=" * 70)
+
+    messagebox.showinfo("Success", f"Saved to:\n{output_path}")
+
+
+def run_gui():
+    root = tk.Tk()
+    root.title("Value & Variety Scraper")
+    root.geometry("430x220")
+    root.resizable(False, False)
+
+    tk.Label(
+        root,
+        text="Value & Variety Store Scraper",
+        font=("Segoe UI", 14, "bold")
+    ).pack(pady=20)
+
+    tk.Button(
+        root,
+        text="Run",
+        width=18,
+        height=2,
+        font=("Segoe UI", 12, "bold"),
+        command=run_all
+    ).pack(pady=20)
+
+    root.mainloop()
+
+
+if __name__ == "__main__":
+    run_gui()

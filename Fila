@@ -1,0 +1,122 @@
+import os
+import re
+from datetime import datetime
+import requests
+import pandas as pd
+import tkinter as tk
+from tkinter import messagebox
+
+_ILLEGAL_CHARS = re.compile(r'[\x00-\x08\x0b\x0c\x0e-\x1f\x7f]')
+
+# =========================================================
+# CONFIG
+# =========================================================
+SHEET_URL = (
+    "https://sheets.googleapis.com/v4/spreadsheets/"
+    "1GEnUrSfASn9vwWdmg2PCJf0ssk2vlA0VW4b8sUgpiQ8"
+    "/values/Store-HUL!A:G"
+    "?key=AIzaSyDWhXx-QiNSPYoDaSTfN21UoKcF4GEcvqo"
+)
+
+
+# =========================================================
+# HELPERS
+# =========================================================
+def _clean(text):
+    text = _ILLEGAL_CHARS.sub("", (text or ""))
+    return " ".join(text.replace("\r", " ").replace("\n", " ").split())
+
+
+# =========================================================
+# SCRAPER
+# =========================================================
+def scrape_all(output_path):
+    print("[INFO] Fetching Fila store data from Google Sheets...")
+    r = requests.get(SHEET_URL, timeout=30)
+    r.raise_for_status()
+
+    data   = r.json()
+    values = data.get("values", [])
+    if not values:
+        print("[ERROR] No data returned.")
+        return pd.DataFrame()
+
+    headers = [h.strip() for h in values[0]]
+    rows = []
+    for row in values[1:]:
+        padded = row + [""] * (len(headers) - len(row))
+        d = {headers[i]: _clean(padded[i]) for i in range(len(headers))}
+
+        # "Get Directions" is a maps URL when it starts with http, else skip it
+        maps_url = d.get("Get Directions", "")
+        if not maps_url.startswith("http"):
+            maps_url = ""
+
+        rows.append({
+            "Store Name": d.get("Store Name", ""),
+            "City":       d.get("City", "").title(),
+            "State":      d.get("State", "").title(),
+            "Address":    d.get("Address", ""),
+            "Pincode":    d.get("Pincode", ""),
+            "Phone No":   d.get("Phone Number", ""),
+            "Maps URL":   maps_url,
+        })
+
+    df = pd.DataFrame(rows)
+    df = df.drop_duplicates(subset=["Store Name", "Address"])
+
+    col_order = ["Store Name", "City", "State", "Address", "Pincode", "Phone No", "Maps URL"]
+    df = df.reindex(columns=col_order)
+
+    df.to_excel(output_path, index=False)
+    print(f"[INFO] Saved {len(df)} stores to {output_path}")
+    return df
+
+
+# =========================================================
+# GUI
+# =========================================================
+def run_all():
+    folder = os.path.dirname(os.path.abspath(__file__))
+    today  = datetime.today().strftime("%Y-%m-%d")
+    output_path = os.path.join(folder, f"Fila_Stores_{today}.xlsx")
+
+    print("=" * 70)
+    print("[INFO] STARTING FILA SCRAPER")
+    print("=" * 70)
+
+    scrape_all(output_path)
+
+    print("=" * 70)
+    print("[INFO] FILE SAVED SUCCESSFULLY")
+    print("=" * 70)
+
+    messagebox.showinfo("Success", f"Saved to:\n{output_path}")
+
+
+def run_gui():
+    root = tk.Tk()
+    root.title("Fila Store Scraper")
+    root.geometry("430x220")
+    root.resizable(False, False)
+
+    tk.Label(
+        root,
+        text="Fila Store Scraper",
+        font=("Segoe UI", 14, "bold")
+    ).pack(pady=20)
+
+    tk.Button(
+        root,
+        text="Run",
+        width=18,
+        height=2,
+        font=("Segoe UI", 12, "bold"),
+        command=run_all
+    ).pack(pady=20)
+
+    root.mainloop()
+
+
+if __name__ == "__main__":
+    run_gui()
