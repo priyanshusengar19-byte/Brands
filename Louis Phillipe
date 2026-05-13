@@ -14,40 +14,62 @@ from selenium.webdriver.support import expected_conditions as EC
 from selenium.common.exceptions import WebDriverException
 from webdriver_manager.chrome import ChromeDriverManager
 
-STORELOCATOR_URL = "https://allensolly.abfrl.in/storelocator"
+STORELOCATOR_URL = "https://louisphilippe.abfrl.in/storelocator"
 
 MAJOR_CITIES = [
-    # Metros
-    "Mumbai", "Delhi", "Bangalore", "Hyderabad", "Chennai", "Kolkata",
-    "Pune", "Ahmedabad",
-    # Tier-1
-    "Jaipur", "Surat", "Lucknow", "Chandigarh", "Indore", "Bhopal",
-    "Nagpur", "Coimbatore", "Kochi", "Vadodara", "Visakhapatnam",
-    "Bhubaneswar", "Patna", "Guwahati", "Dehradun", "Raipur",
-    "Jodhpur", "Udaipur", "Amritsar", "Ludhiana", "Jalandhar",
-    # UP / NCR
-    "Agra", "Varanasi", "Meerut", "Kanpur", "Prayagraj",
-    "Ghaziabad", "Noida", "Gurugram", "Faridabad",
-    # Central / East
-    "Jabalpur", "Gwalior", "Ranchi", "Jamshedpur",
-    "Siliguri", "Durgapur", "Cuttack",
-    # Andhra / Telangana
-    "Vijayawada", "Guntur", "Tirupati", "Warangal", "Rajahmundry",
-    # Tamil Nadu
-    "Madurai", "Tiruchirappalli", "Salem", "Erode", "Tiruppur", "Vellore",
-    # Karnataka
-    "Mysuru", "Mangaluru", "Hubballi", "Belagavi", "Davangere",
-    # Kerala
-    "Thrissur", "Kozhikode", "Thiruvananthapuram", "Kollam",
-    # Maharashtra
-    "Aurangabad", "Kolhapur", "Solapur", "Navi Mumbai", "Thane", "Nashik",
-    # Gujarat
-    "Gandhinagar", "Rajkot", "Bhavnagar", "Jamnagar", "Anand", "Bharuch",
-    # Rajasthan
-    "Ajmer", "Bikaner", "Alwar", "Kota",
-    # Others
-    "Jammu", "Haridwar", "Pondicherry", "Panaji",
+    "Mumbai", "Delhi", "Bengaluru", "Hyderabad", "Ahmedabad", "Chennai",
+    "Kolkata", "Surat", "Pune", "Jaipur", "Lucknow", "Kanpur", "Nagpur",
+    "Indore", "Thane", "Bhopal", "Visakhapatnam", "Pimpri-Chinchwad", "Patna",
+    "Vadodara", "Ghaziabad", "Ludhiana", "Agra", "Nashik", "Faridabad",
+    "Meerut", "Rajkot", "Kalyan-Dombivli", "Vasai-Virar", "Varanasi",
+    "Srinagar", "Aurangabad", "Dhanbad", "Amritsar", "Navi Mumbai",
+    "Prayagraj", "Howrah", "Ranchi", "Jabalpur", "Gwalior", "Coimbatore",
+    "Vijayawada", "Jodhpur", "Madurai", "Raipur", "Kota", "Guwahati",
+    "Chandigarh", "Solapur", "Hubballi", "Tiruchirappalli", "Tiruppur",
+    "Moradabad", "Mysuru", "Bareilly", "Gurgaon", "Aligarh", "Jalandhar",
+    "Bhubaneswar", "Salem", "Mira-Bhayandar", "Warangal", "Thiruvananthapuram",
+    "Guntur", "Bhiwandi", "Saharanpur", "Gorakhpur", "Bikaner", "Amravati",
+    "Noida", "Jamshedpur", "Bhilai", "Cuttack", "Firozabad", "Kochi",
+    "Nellore", "Bhavnagar", "Dehradun", "Durgapur", "Asansol", "Nanded",
+    "Kolhapur", "Ajmer", "Kalaburagi", "Jamnagar", "Ujjain", "Loni",
+    "Siliguri", "Jhansi", "Ulhasnagar", "Jammu", "Sangli", "Mangaluru",
+    "Erode", "Belagavi", "Ambattur", "Tirunelveli", "Malegaon", "Gaya",
+    "Jalgaon", "Udaipur", "Davanagere", "Kozhikode", "Kurnool", "Akola",
+    "Rajahmundry", "Bokaro", "Bellary", "Patiala", "Agartala", "Bhagalpur",
+    "Muzaffarnagar", "Latur", "Dhule", "Tirupati", "Rohtak", "Bhilwara",
+    "Muzaffarpur", "Ahmednagar", "Mathura", "Kollam", "Kadapa", "Bilaspur",
+    "Shahjahanpur", "Shivamogga", "Chandrapur", "Junagadh", "Thrissur",
+    "Alwar", "Kakinada", "Nizamabad", "Tumkur", "Khammam", "Panipat",
+    "Darbhanga", "Aizawl", "Dewas", "Ichalkaranji", "Karnal", "Bathinda",
+    "Jalna", "Eluru", "Barasat", "Purnia", "Satna", "Mau", "Sonipat",
+    "Farrukhabad", "Sagar", "Raurkela", "Durg", "Imphal", "Ratlam",
+    "Hapur", "Arrah", "Karimnagar", "Anantapur", "Etawah", "Bharatpur",
+    "Begusarai", "New Delhi", "Gandhidham", "Puducherry", "Sikar",
+    "Thoothukudi", "Rewa", "Mirzapur", "Raichur", "Ramagundam", "Haridwar",
+    "Katihar", "Nagercoil", "Sri Ganganagar", "Thanjavur", "Bulandshahr",
+    "Singrauli", "Nadiad", "Secunderabad", "Yamunanagar", "Panchkula",
+    "Burhanpur", "Kharagpur", "Dindigul", "Gandhinagar", "Ongole",
+    "Deoghar", "Chapra", "Khandwa", "Nandyal", "Chittoor", "Morena",
+    "Amroha", "Anand", "Bhiwani", "Baharampur", "Ambala", "Morvi",
+    "Fatehpur", "Raebareli", "Bhusawal", "Orai", "Bahraich", "Vellore",
+    "Veraval", "Mahesana", "Sambalpur", "Raiganj", "Sirsa", "Danapur",
+    "Guna", "Jaunpur", "Panvel", "Shivpuri", "Unnao", "Badlapur",
+    "Alappuzha", "Kottayam", "Machilipatnam", "Shimla", "Adoni", "Tenali",
+    "Proddatur", "Hindupur", "Sasaram", "Hajipur", "Bhimavaram",
+    "Madanapalle", "Siwan", "Bettiah", "Gondia", "Guntakal", "Srikakulam",
+    "Motihari", "Satara", "Gudivada", "Yavatmal", "Wardha", "Karaikudi",
+    "Suryapet", "Kavali", "Tadepalligudem", "Greater Noida", "Hinganghat",
 ]
+
+
+def _search_term(city):
+    """Simplify complex city names before typing into the search box."""
+    city = re.sub(r'\s*\([^)]*\)', '', city).strip()   # remove "(town)" etc.
+    if '–' in city or '—' in city:
+        city = re.split(r'[–—]', city)[0].strip()       # "Hubli–Dharwad" → "Hubli"
+    if ' & ' in city:
+        city = city.split(' & ')[0].strip()              # "Sangli & Kupwad" → "Sangli"
+    return city
 
 
 # =========================================================
@@ -220,6 +242,7 @@ def _click_first_dropdown_option(driver, city="", timeout=6):
     city_lower = city.lower()
     first_word = re.split(r'[\s,\-\(]', city_lower)[0] if city_lower else ""
 
+    # 1. Wait for .pac-item suggestions to appear
     deadline = time.time() + timeout
     visible_texts = []
     while time.time() < deadline:
@@ -239,12 +262,14 @@ def _click_first_dropdown_option(driver, city="", timeout=6):
     if not visible_texts:
         return None
 
+    # 2. Best matching index
     best_idx = 0
     for i, txt in enumerate(visible_texts):
         if first_word and first_word in txt.lower():
             best_idx = i
             break
 
+    # 3a. pynput: move mouse to exact screen coordinates and click
     if _pynput:
         coords = driver.execute_script("""
             var idx = arguments[0];
@@ -274,6 +299,7 @@ def _click_first_dropdown_option(driver, city="", timeout=6):
             time.sleep(0.4)
             return visible_texts[best_idx]
 
+    # 3b. Keyboard fallback: Arrow Down × N then Return
     inp = driver.execute_script("""
         var inputs = document.querySelectorAll('input');
         for (var i = 0; i < inputs.length; i++) {
@@ -376,7 +402,7 @@ def _save_partial(all_stores, output_path):
 # =========================================================
 # MAIN SCRAPER
 # =========================================================
-def scrape_allen_solly(output_path):
+def scrape_louis_philippe(output_path):
     driver = _make_driver()
     wait   = WebDriverWait(driver, 20)
     all_stores = {}
@@ -394,18 +420,11 @@ def scrape_allen_solly(output_path):
         return new
 
     try:
-        print("[INFO] Opening Allen Solly store locator...")
+        print("[INFO] Opening Louis Philippe store locator...")
         driver.get(STORELOCATOR_URL)
         time.sleep(6)
         print(f"[INFO] Title: {driver.title}")
 
-        # Print the input placeholder found, so we can verify correct field
-        found_ph = driver.execute_script(
-            "var el = (" + _JS_FIND_INPUT + ")(); return el ? el.placeholder : 'NOT FOUND';"
-        ) if False else driver.execute_script(
-            "(function(){" + _JS_FIND_INPUT.replace("return null;", "return null;") + "})()"
-        )
-        # simpler: just report what placeholder the JS finder returns
         dbg = driver.execute_script("""
             var inputs = document.querySelectorAll('input');
             var found = [];
@@ -425,11 +444,12 @@ def scrape_allen_solly(output_path):
             print(f"[{ci+1}/{len(MAJOR_CITIES)}] {city}", end="", flush=True)
 
             try:
+                search = _search_term(city)
                 inp = _find_city_input(driver)
-                _clear_and_type(driver, inp, city)
+                _clear_and_type(driver, inp, search)
 
-                # Click first dropdown suggestion automatically
-                clicked = _click_first_dropdown_option(driver, city=city)
+                # Click dropdown option — prefers match with city name
+                clicked = _click_first_dropdown_option(driver, city=search)
                 if clicked:
                     print(f"  [dropdown: {clicked[:40]}]", end="", flush=True)
                 else:
@@ -483,14 +503,14 @@ def scrape_allen_solly(output_path):
 def run_all():
     folder = os.path.dirname(os.path.abspath(__file__))
     today  = datetime.today().strftime("%Y-%m-%d")
-    output_path = os.path.join(folder, f"AllenSolly_Stores_{today}.xlsx")
+    output_path = os.path.join(folder, f"LouisPhilippe_Stores_{today}.xlsx")
 
     print("=" * 70)
-    print("[INFO] STARTING Allen Solly Store Scraper")
+    print("[INFO] STARTING Louis Philippe Store Scraper")
     print("=" * 70)
 
     try:
-        scrape_allen_solly(output_path)
+        scrape_louis_philippe(output_path)
         print("=" * 70)
         print("[INFO] DONE")
         print("=" * 70)
@@ -502,13 +522,13 @@ def run_all():
 
 def run_gui():
     root = tk.Tk()
-    root.title("Allen Solly Store Scraper")
+    root.title("Louis Philippe Store Scraper")
     root.geometry("460x220")
     root.resizable(False, False)
 
-    tk.Label(root, text="Allen Solly Store Scraper",
+    tk.Label(root, text="Louis Philippe Store Scraper",
              font=("Segoe UI", 14, "bold")).pack(pady=20)
-    tk.Label(root, text="Scrapes allensolly.abfrl.in/storelocator  (~300 stores)",
+    tk.Label(root, text=f"Scrapes louisphilippe.abfrl.in/storelocator  ·  {len(MAJOR_CITIES)} cities",
              font=("Segoe UI", 9), fg="gray").pack()
     tk.Button(root, text="Run Scraper", width=18, height=2,
               font=("Segoe UI", 12, "bold"), command=run_all).pack(pady=20)

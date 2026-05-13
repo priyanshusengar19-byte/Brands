@@ -1,0 +1,179 @@
+import os
+import re
+import time
+import random
+from datetime import datetime
+import requests
+import pandas as pd
+import tkinter as tk
+from tkinter import messagebox
+
+# =========================================================
+# CONFIG
+# =========================================================
+_UA = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36"
+API_BASE = "https://apisap.fabindia.com/occ/v2/fabindiab2c/stores/search"
+
+HEADERS = {
+    "Accept": "application/json, text/plain, */*",
+    "Accept-Language": "en-US,en;q=0.9",
+    "Origin": "https://www.fabindia.com",
+    "Referer": "https://www.fabindia.com/",
+    "User-Agent": _UA,
+}
+
+# All 139 Indian cities shown on the FabIndia store locator
+CITIES = [
+    "Bengaluru", "New Delhi", "Mumbai", "Chennai", "Hyderabad", "Kolkata",
+    "Gurugram", "Pune", "Ahmedabad", "Kochi", "Jaipur", "Lucknow", "Noida",
+    "Chandigarh", "Patna", "Agartala", "Agra", "Aizawl", "Ajmer", "Alappuzha",
+    "Aligarh", "Alwar", "Amritsar", "Anand", "Balasore", "Bareilly", "Bathinda",
+    "Begusarai", "Belagavi", "Bhopal", "Bhubaneswar", "Bhuj", "Bilaspur",
+    "Circle Bettiah", "Coimbatore", "Cuttack", "Dehradun", "Dhanbad",
+    "Dharamshala", "Dimapur", "Durgapur", "Ernakulam", "Faridabad", "Gangtok",
+    "Ghaziabad", "Greater Noida", "Guntur", "Guwahati", "Gwalior", "Hanamkonda",
+    "Haridwar", "Howrah", "Hubballi", "Idukki", "Imphal", "Indore", "Itanagar",
+    "Jabalpur", "Jalandhar", "Jammu", "Jamnagar", "Jamshedpur", "Jhansi",
+    "Jodhpur", "Jorhat", "Kakinada", "Kannur", "Kanpur", "Karnal", "Kolhapur",
+    "Kollam", "Kota", "Kottayam", "Kozhikode", "Ludhiana", "Madurai", "Malda",
+    "Mandi", "Mangaluru", "Manipal", "Mapusa", "Margao", "Meerut", "Mohali",
+    "Moradabad", "Motihari", "Mysore", "Mysuru", "Nagpur", "Nainital", "Nashik",
+    "Navi Mumbai", "Nilgiris", "North Goa", "North West Delhi", "Palakkad",
+    "Panaji", "Panchkula", "Pathankot", "Patiala", "Pimpri-Chinchwad",
+    "Prayagraj", "Puducherry", "Purulia", "Raipur", "Rajahmundry", "Rajkot",
+    "Ranchi", "Rangareddy", "Rishikesh", "Rohtak", "Roorkee", "Rourkela",
+    "Salem", "Sangli", "Santacruz", "Saroornagar", "Secunderabad", "Siliguri",
+    "Solan", "Sri Sathya Sai", "Srinagar", "Surat", "Tehri Garhwal", "Tezpur",
+    "Thane", "Thiruvalla", "Thiruvananthapuram", "Thrissur", "Tiruvannamalai",
+    "Udaipur", "Vadodara", "Vapi", "Varanasi", "Vellore", "Vijayawada",
+    "Visakhapatnam", "Yamuna Nagar", "Zirakpur",
+]
+
+
+# =========================================================
+# HELPERS
+# =========================================================
+def _clean(text):
+    return " ".join((text or "").replace("\n", " ").replace("\r", " ").split())
+
+
+def _get(session, city, retries=3):
+    url = f"{API_BASE}/{city}"
+    for attempt in range(1, retries + 1):
+        try:
+            r = session.get(url, params={"citySearch": "true"},
+                            headers=HEADERS, timeout=30)
+            if r.status_code == 200:
+                return r.json()
+            if r.status_code in (429, 503, 502):
+                time.sleep(2 ** attempt)
+                continue
+            return None
+        except Exception:
+            time.sleep(2 ** attempt)
+    return None
+
+
+# =========================================================
+# SCRAPER
+# =========================================================
+def scrape_all(output_path):
+    session = requests.Session()
+    rows    = []
+    seen    = set()
+
+    for i, city in enumerate(CITIES, 1):
+        print(f"[INFO] [{i}/{len(CITIES)}] {city}...")
+        data = _get(session, city)
+        if data is None:
+            print(f"  [WARN] Failed — skipping")
+            continue
+
+        stores = data.get("pointOfServices") or []
+        new = 0
+        for s in stores:
+            store_id = s.get("name", "")
+            if store_id in seen:
+                continue
+            seen.add(store_id)
+
+            lat = _clean(str(s.get("latitude", "")))
+            lng = _clean(str(s.get("longitude", "")))
+            maps_url = f"https://www.google.com/maps?q={lat},{lng}" if lat and lng else ""
+
+            rows.append({
+                "Store Name":       "FabIndia",
+                "Store ID":         store_id,
+                "Location":         _clean(s.get("displayName", "")),
+                "City":             _clean(s.get("city", city)).title(),
+                "Country":          _clean(s.get("country", "")),
+                "Address":          _clean(s.get("address", "")),
+                "Pincode":          _clean(str(s.get("pincode", ""))),
+                "Phone No":         _clean(s.get("phone", "")),
+                "Additional Phone": _clean(s.get("additionalPhone", "")),
+                "Hours":            _clean(s.get("openingHours", "")),
+                "Maps URL":         maps_url,
+            })
+            new += 1
+
+        print(f"  -> {len(stores)} stores ({new} new)")
+        time.sleep(random.uniform(0.3, 0.6))
+
+    df = pd.DataFrame(rows)
+    col_order = ["Store Name", "Store ID", "Location", "City", "Country",
+                 "Address", "Pincode", "Phone No", "Additional Phone",
+                 "Hours", "Maps URL"]
+    df = df.reindex(columns=col_order)
+
+    df.to_excel(output_path, index=False)
+    print(f"[INFO] Saved {len(df)} stores to {output_path}")
+    return df
+
+
+# =========================================================
+# GUI
+# =========================================================
+def run_all():
+    folder      = os.path.dirname(os.path.abspath(__file__))
+    today       = datetime.today().strftime("%Y-%m-%d")
+    output_path = os.path.join(folder, f"FabIndia_Stores_{today}.xlsx")
+
+    print("=" * 70)
+    print("[INFO] STARTING FABINDIA SCRAPER")
+    print("=" * 70)
+
+    scrape_all(output_path)
+
+    print("=" * 70)
+    print("[INFO] FILE SAVED SUCCESSFULLY")
+    print("=" * 70)
+
+    messagebox.showinfo("Success", f"Saved to:\n{output_path}")
+
+
+def run_gui():
+    root = tk.Tk()
+    root.title("FabIndia Store Scraper")
+    root.geometry("430x220")
+    root.resizable(False, False)
+
+    tk.Label(
+        root,
+        text="FabIndia Store Scraper",
+        font=("Segoe UI", 14, "bold")
+    ).pack(pady=20)
+
+    tk.Button(
+        root,
+        text="Run",
+        width=18,
+        height=2,
+        font=("Segoe UI", 12, "bold"),
+        command=run_all
+    ).pack(pady=20)
+
+    root.mainloop()
+
+
+if __name__ == "__main__":
+    run_gui()

@@ -1,0 +1,304 @@
+import os
+import re
+import time
+import random
+from datetime import datetime
+import pandas as pd
+import tkinter as tk
+from tkinter import messagebox, scrolledtext
+from selenium import webdriver
+from selenium.webdriver.common.by import By
+from selenium.webdriver.support.ui import WebDriverWait
+from selenium.webdriver.support import expected_conditions as EC
+from selenium.webdriver.chrome.options import Options
+
+# =========================================================
+# CONFIG
+# =========================================================
+URL = "https://www.nnnow.com/store-locator"
+
+# Brand prefix → canonical name  (longest prefix checked first per brand)
+BRAND_PREFIXES = [
+    ("U.S. Polo Assn.", ["u.s. polo assn", "us polo assn", "uspa"]),
+    ("AD by Arvind",    ["ad by arvind"]),
+    ("Arrow",           ["arrow"]),
+    ("Calvin Klein",    ["calvin klein"]),
+    ("Flying Machine",  ["flying machine"]),
+    ("Tommy Hilfiger",  ["tommy hilfiger"]),
+]
+
+# ~70 pincodes covering all major metros and tier-2 cities
+PINCODES = [
+    # Delhi NCR
+    "110001", "110017", "110025", "110055", "110075",
+    "122001", "122018",             # Gurugram
+    "201301", "201305",             # Noida
+    "201001",                       # Ghaziabad
+    "121001",                       # Faridabad
+    # Mumbai
+    "400001", "400013", "400049", "400053", "400063", "400093",
+    "400601",                       # Thane
+    "400703", "400706",             # Navi Mumbai
+    # Pune
+    "411001", "411006", "411045",
+    # Bengaluru
+    "560001", "560010", "560025", "560066", "560095",
+    # Hyderabad
+    "500001", "500029", "500033", "500081", "500084",
+    # Chennai
+    "600001", "600020", "600040", "600096",
+    # Kolkata
+    "700001", "700017", "700091",
+    # Ahmedabad
+    "380001", "380006", "380015",
+    # Jaipur
+    "302001", "302017",
+    # Lucknow
+    "226001", "226010",
+    # Chandigarh / Mohali
+    "160001", "160055",
+    # Tier-2
+    "440001",   # Nagpur
+    "452001",   # Indore
+    "462001",   # Bhopal
+    "395001",   # Surat
+    "390001",   # Vadodara
+    "682001",   # Kochi
+    "641001",   # Coimbatore
+    "800001",   # Patna
+    "781001",   # Guwahati
+    "248001",   # Dehradun
+    "530001",   # Visakhapatnam
+    "751001",   # Bhubaneswar
+    "141001",   # Ludhiana
+    "143001",   # Amritsar
+    "474001",   # Gwalior
+    "492001",   # Raipur
+    "834001",   # Ranchi
+    "302020",   # Jaipur - Mansarovar
+    "500038",   # Hyderabad - Secunderabad
+    "411014",   # Pune - Kothrud
+    "400614",   # Navi Mumbai - Kharghar
+    "560034",   # Bengaluru - Electronic City
+    "324001",   # Kota
+]
+PINCODES = list(dict.fromkeys(PINCODES))   # deduplicate, preserve order
+
+
+# =========================================================
+# HELPERS
+# =========================================================
+def _clean(t):
+    return " ".join((t or "").replace("\n", " ").replace("\r", " ").split())
+
+
+def _detect_brand(store_name):
+    nl = store_name.lower().strip()
+    for canonical, prefixes in BRAND_PREFIXES:
+        for prefix in prefixes:
+            if nl.startswith(prefix):
+                return canonical
+    return None
+
+
+def _find(card, selector):
+    els = card.find_elements(By.CSS_SELECTOR, selector)
+    return els[0] if els else None
+
+
+def _text(el):
+    """Get text from an element, including CSS-hidden ones."""
+    if el is None:
+        return ""
+    return _clean(el.get_attribute("textContent") or el.text or "")
+
+
+def _init_driver():
+    opts = Options()
+    opts.add_argument("--headless=new")
+    opts.add_argument("--no-sandbox")
+    opts.add_argument("--disable-dev-shm-usage")
+    opts.add_argument("--window-size=1280,900")
+    opts.add_argument("--user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) "
+                      "AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36")
+    return webdriver.Chrome(options=opts)
+
+
+# =========================================================
+# PARSER
+# =========================================================
+def _parse_card(card):
+    # Store ID from class e.g. "nwc-store nwc-store-ALBL_3265"
+    classes   = card.get_attribute("class") or ""
+    id_match  = re.search(r'nwc-store-(\S+)', classes)
+    store_id  = id_match.group(1) if id_match else ""
+
+    # Brand + location in one string e.g. "U.S. Polo Assn Phoenix Market City Mall Kurla"
+    store_name = _text(_find(card, ".nw-store-name"))
+    brand      = _detect_brand(store_name)
+    if not brand:
+        return None                 # skip non-target brands
+
+    # Address: "..., kurla west, mumbai, mumbai-400070"
+    address = _text(_find(card, ".nw-store-address div"))
+
+    # Pincode from address
+    pin_m   = re.search(r'\b(\d{6})\b', address)
+    pincode = pin_m.group(1) if pin_m else ""
+
+    # City from "cityname-PINCODE" pattern at end of address
+    city_m = re.search(r',\s*([^,\n]+?)-\d{6}', address)
+    if city_m:
+        city = city_m.group(1).strip().title()
+    else:
+        parts = [p.strip() for p in address.split(",") if p.strip()]
+        city = parts[-2].title() if len(parts) >= 2 else ""
+
+    # Phone & hours are in CSS-hidden section — use textContent not .text
+    phone = _text(_find(card, ".nw-store-phone span"))
+    hours = _text(_find(card, ".nw-store-timings span"))
+
+    # Shop-store link (absolute URL returned by Selenium)
+    link_el    = _find(card, "a.nw-store-shopthisstore")
+    store_link = link_el.get_attribute("href") if link_el else ""
+
+    return {
+        "Brand":      brand,
+        "Store Name": store_name,
+        "Store ID":   store_id,
+        "Address":    address,
+        "City":       city,
+        "Pincode":    pincode,
+        "Phone No":   phone,
+        "Hours":      hours,
+        "Store Link": store_link,
+    }
+
+
+# =========================================================
+# SCRAPER
+# =========================================================
+def scrape_all(output_path, log_fn=print):
+    driver = _init_driver()
+    try:
+        log_fn("[INFO] Opening store locator...")
+        driver.get(URL)
+
+        # Wait for the pincode input (real selector confirmed)
+        wait = WebDriverWait(driver, 20)
+        wait.until(EC.presence_of_element_located(
+            (By.CSS_SELECTOR, "input[placeholder*='Pincode']")))
+        log_fn(f"[INFO] Page ready. Sweeping {len(PINCODES)} pincodes...")
+
+        all_rows = []
+        seen_ids = set()
+
+        for i, pin in enumerate(PINCODES, 1):
+            log_fn(f"[INFO] [{i}/{len(PINCODES)}] Pincode {pin}...")
+
+            # Clear + type pincode
+            pin_inp = driver.find_element(
+                By.CSS_SELECTOR, "input[placeholder*='Pincode']")
+            driver.execute_script("arguments[0].value = '';", pin_inp)
+            pin_inp.send_keys(pin)
+
+            # Click FIND NOW button
+            btns = driver.find_elements(By.CSS_SELECTOR, "button.nwc-btn-primary")
+            clicked = False
+            for b in btns:
+                if "FIND" in (b.text or "").upper():
+                    b.click()
+                    clicked = True
+                    break
+            if not clicked:
+                pin_inp.submit()
+
+            # Wait for results or no-stores state
+            time.sleep(4)
+
+            cards = driver.find_elements(By.CSS_SELECTOR, "li.nwc-store")
+            new = 0
+            for card in cards:
+                row = _parse_card(card)
+                if not row:
+                    continue
+                uid = row["Store ID"] or f"{row['Brand']}|{row['Address']}"
+                if uid in seen_ids:
+                    continue
+                seen_ids.add(uid)
+                all_rows.append(row)
+                new += 1
+
+            total = len(cards)
+            log_fn(f"  -> {total} stores found, {new} new target-brand stores")
+            time.sleep(random.uniform(0.4, 0.8))
+
+    finally:
+        driver.quit()
+
+    df = pd.DataFrame(all_rows)
+    col_order = ["Brand", "Store Name", "Store ID", "City", "Address",
+                 "Pincode", "Phone No", "Hours", "Store Link"]
+    df = df.reindex(columns=col_order)
+    df = df.sort_values(["Brand", "City"]).reset_index(drop=True)
+
+    df.to_excel(output_path, index=False)
+    log_fn(f"[INFO] Saved {len(df)} stores to {output_path}")
+    return df
+
+
+# =========================================================
+# GUI
+# =========================================================
+def run_gui():
+    root = tk.Tk()
+    root.title("NNNow Store Scraper")
+    root.geometry("560x380")
+    root.resizable(False, False)
+
+    tk.Label(root, text="NNNow Store Scraper",
+             font=("Segoe UI", 14, "bold")).pack(pady=12)
+    tk.Label(root,
+             text="AD by Arvind  ·  Arrow  ·  Calvin Klein  ·  Flying Machine  ·  Tommy Hilfiger  ·  USPA",
+             font=("Segoe UI", 8), fg="#555").pack()
+
+    log_box = scrolledtext.ScrolledText(root, width=68, height=14,
+                                        font=("Consolas", 8), state="disabled")
+    log_box.pack(padx=10, pady=8)
+
+    def log(msg):
+        log_box.config(state="normal")
+        log_box.insert(tk.END, msg + "\n")
+        log_box.see(tk.END)
+        log_box.config(state="disabled")
+        root.update()
+
+    def run_all():
+        btn.config(state="disabled")
+        folder      = os.path.dirname(os.path.abspath(__file__))
+        today       = datetime.today().strftime("%Y-%m-%d")
+        output_path = os.path.join(folder, f"NNNow_Stores_{today}.xlsx")
+
+        log("=" * 60)
+        log("[INFO] STARTING NNNOW SCRAPER")
+        log("=" * 60)
+        try:
+            scrape_all(output_path, log_fn=log)
+            log("=" * 60)
+            log("[INFO] FILE SAVED SUCCESSFULLY")
+            log("=" * 60)
+            messagebox.showinfo("Success", f"Saved to:\n{output_path}")
+        except Exception as e:
+            log(f"[ERROR] {e}")
+            messagebox.showerror("Error", str(e))
+        finally:
+            btn.config(state="normal")
+
+    btn = tk.Button(root, text="Run", width=16, height=2,
+                    font=("Segoe UI", 12, "bold"), command=run_all)
+    btn.pack(pady=6)
+    root.mainloop()
+
+
+if __name__ == "__main__":
+    run_gui()

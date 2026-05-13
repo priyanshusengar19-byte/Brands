@@ -1,0 +1,332 @@
+import os
+import re
+import json
+import time
+from datetime import datetime
+import pandas as pd
+import tkinter as tk
+from tkinter import messagebox
+from bs4 import BeautifulSoup
+from selenium import webdriver
+from selenium.webdriver.chrome.options import Options
+from selenium.webdriver.common.by import By
+from selenium.webdriver.support.ui import WebDriverWait
+
+# =========================================================
+# CONFIG
+# =========================================================
+_UA = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36"
+BASE_URL = "https://www.zara.com/in/en/z-stores-st1404.html"
+PINCODE_RE = re.compile(r"\b(\d{6})\b")
+
+
+# =========================================================
+# DRIVER
+# =========================================================
+def make_driver():
+    opts = Options()
+    opts.add_argument("--headless=new")
+    opts.add_argument("--no-sandbox")
+    opts.add_argument("--disable-dev-shm-usage")
+    opts.add_argument("--window-size=1920,1080")
+    opts.add_argument(f"--user-agent={_UA}")
+    opts.add_argument("--disable-blink-features=AutomationControlled")
+    opts.add_experimental_option("excludeSwitches", ["enable-automation"])
+    opts.add_experimental_option("useAutomationExtension", False)
+    driver = webdriver.Chrome(options=opts)
+    driver.execute_cdp_cmd(
+        "Page.addScriptToEvaluateOnNewDocument",
+        {"source": "Object.defineProperty(navigator, 'webdriver', {get: () => undefined})"},
+    )
+    return driver
+
+
+# =========================================================
+# HELPERS
+# =========================================================
+def _clean(text):
+    return " ".join((text or "").replace("\n", " ").replace("\r", " ").split())
+
+
+def _pick(*vals):
+    for v in vals:
+        if v is not None and _clean(str(v)):
+            return _clean(str(v))
+    return ""
+
+
+def _deep_collect_store_nodes(node, out):
+    if isinstance(node, dict):
+        keys = set(node.keys())
+        has_geo = ("latitude" in keys and "longitude" in keys) or ("lat" in keys and "lng" in keys)
+        has_id = any(k in keys for k in ["id", "storeId", "name", "displayName", "storeName"])
+        has_addr = any(k in keys for k in ["address", "fullAddress", "city", "postalCode", "zip"])
+        if has_geo and (has_id or has_addr):
+            out.append(node)
+        for v in node.values():
+            _deep_collect_store_nodes(v, out)
+    elif isinstance(node, list):
+        for it in node:
+            _deep_collect_store_nodes(it, out)
+
+
+def _row_from_store(st):
+    addr_obj = st.get("address") if isinstance(st.get("address"), dict) else {}
+
+    name = _pick(st.get("name"), st.get("displayName"), st.get("storeName"), "ZARA")
+    city = _pick(st.get("city"), addr_obj.get("city")).title()
+    state = _pick(st.get("state"), addr_obj.get("state")).title()
+    country = _pick(st.get("country"), addr_obj.get("country"), "India")
+
+    address = _pick(
+        st.get("fullAddress"),
+        st.get("addressLine"),
+        st.get("address1"),
+        st.get("address2"),
+    )
+    if not address and addr_obj:
+        parts = [
+            addr_obj.get("addressLine1"),
+            addr_obj.get("addressLine2"),
+            addr_obj.get("street"),
+            addr_obj.get("city"),
+            addr_obj.get("state"),
+            addr_obj.get("postalCode"),
+        ]
+        address = ", ".join([_clean(str(x)) for x in parts if _clean(str(x))])
+
+    phone = _pick(st.get("phone"), st.get("telephone"), st.get("phoneNumber"))
+    hours = _pick(st.get("openingHours"), st.get("hours"), st.get("schedule"))
+
+    lat = st.get("latitude", st.get("lat"))
+    lng = st.get("longitude", st.get("lng"))
+    if lat is None and isinstance(st.get("geolocation"), dict):
+        lat = st["geolocation"].get("latitude")
+        lng = st["geolocation"].get("longitude")
+
+    maps_url = f"https://www.google.com/maps?q={lat},{lng}" if lat not in (None, "") and lng not in (None, "") else ""
+
+    store_link = _pick(st.get("url"), st.get("link"), st.get("seoUrl"))
+    if store_link.startswith("/"):
+        store_link = "https://www.zara.com" + store_link
+
+    pincode = ""
+    for candidate in [address, _pick(addr_obj.get("postalCode"), st.get("postalCode"), st.get("zip"))]:
+        m = PINCODE_RE.search(candidate)
+        if m:
+            pincode = m.group(1)
+            break
+
+    return {
+        "Store Name": name,
+        "City": city,
+        "State": state,
+        "Country": country,
+        "Address": address,
+        "Pincode": pincode,
+        "Phone No": phone,
+        "Hours": hours,
+        "Store Link": store_link,
+        "Maps URL": maps_url,
+    }
+
+
+def _extract_runtime_json_candidates(driver):
+    """
+    Pull potential JSON containers directly from runtime globals.
+    This is more reliable than HTML-only parsing on Zara.
+    """
+    script = r'''
+        const candidates = [];
+        const keys = [
+          '__INITIAL_STATE__','__PRELOADED_STATE__','__NEXT_DATA__','__STATE__',
+          'zara','storeFinder','storefinder','APP_STATE','appState'
+        ];
+        for (const k of keys) {
+          try {
+            if (window[k]) candidates.push(window[k]);
+          } catch (e) {}
+        }
+
+        try {
+          const nuxt = document.querySelector('#__NEXT_DATA__');
+          if (nuxt && nuxt.textContent) {
+            candidates.push(JSON.parse(nuxt.textContent));
+          }
+        } catch (e) {}
+
+        // Also inspect all JSON script tags
+        const scripts = document.querySelectorAll('script[type*="json"]');
+        for (const s of scripts) {
+          try {
+            if (!s.textContent) continue;
+            const obj = JSON.parse(s.textContent);
+            candidates.push(obj);
+          } catch (e) {}
+        }
+
+        return candidates;
+    '''
+    return driver.execute_script(script) or []
+
+
+def _extract_embedded_json_texts(soup):
+    out = []
+    for s in soup.find_all("script"):
+        txt = s.string or s.get_text("", strip=False)
+        if not txt:
+            continue
+        if any(k in txt for k in ["latitude", "longitude", "storeFinder", "stores"]):
+            out.append(txt)
+    return out
+
+
+def _rows_from_visible_dom(soup):
+    rows = []
+    cards = soup.select("[data-qa-id*='store'], .store-item, .store, article")
+    for c in cards:
+        name_node = c.select_one("h2, h3, .store-name, [data-qa-qualifier='storeName']")
+        address_node = c.select_one("address, .store-address, [data-qa-qualifier='storeAddress']")
+        tel = c.select_one("a[href^='tel:']")
+        maps = c.select_one("a[href*='maps'], a[href*='google.com/maps']")
+
+        name = _clean(name_node.get_text(" ")) if name_node else ""
+        address = _clean(address_node.get_text(" ")) if address_node else ""
+        phone = _clean(tel.get_text(" ")) if tel else ""
+        maps_url = _clean(maps.get("href", "")) if maps else ""
+
+        if not (name or address or phone):
+            continue
+
+        pincode = ""
+        m = PINCODE_RE.search(address)
+        if m:
+            pincode = m.group(1)
+
+        rows.append({
+            "Store Name": name or "ZARA",
+            "City": "",
+            "State": "",
+            "Country": "India",
+            "Address": address,
+            "Pincode": pincode,
+            "Phone No": phone,
+            "Hours": "",
+            "Store Link": "",
+            "Maps URL": maps_url,
+        })
+    return rows
+
+
+# =========================================================
+# SCRAPER
+# =========================================================
+def scrape_all(output_path):
+    driver = make_driver()
+    rows = []
+
+    try:
+        print("[INFO] Loading Zara store finder...")
+        driver.get(BASE_URL)
+
+        wait = WebDriverWait(driver, 50)
+        wait.until(lambda d: d.execute_script("return document.readyState") == "complete")
+
+        # Give scripts time and trigger lazy chunks.
+        time.sleep(5)
+        for _ in range(5):
+            driver.execute_script("window.scrollBy(0, document.body.scrollHeight/5);")
+            time.sleep(1)
+
+        # Strategy 1: runtime globals / JSON scripts via JS execution.
+        candidates = _extract_runtime_json_candidates(driver)
+        print(f"[INFO] Runtime JSON candidates: {len(candidates)}")
+
+        store_nodes = []
+        for c in candidates:
+            _deep_collect_store_nodes(c, store_nodes)
+
+        # Strategy 2: regex scan from page source script text.
+        if not store_nodes:
+            html = driver.page_source
+            soup = BeautifulSoup(html, "html.parser")
+            script_texts = _extract_embedded_json_texts(soup)
+            print(f"[INFO] Embedded script candidates: {len(script_texts)}")
+            for txt in script_texts:
+                for pat in [
+                    r"window\.__INITIAL_STATE__\s*=\s*(\{.*?\})\s*;",
+                    r"window\.__PRELOADED_STATE__\s*=\s*(\{.*?\})\s*;",
+                ]:
+                    m = re.search(pat, txt, flags=re.S)
+                    if not m:
+                        continue
+                    try:
+                        obj = json.loads(m.group(1))
+                        _deep_collect_store_nodes(obj, store_nodes)
+                    except Exception:
+                        pass
+
+        print(f"[INFO] Candidate store nodes: {len(store_nodes)}")
+
+        for st in store_nodes:
+            rows.append(_row_from_store(st))
+
+        # Strategy 3: visible DOM fallback.
+        if not rows:
+            soup = BeautifulSoup(driver.page_source, "html.parser")
+            rows = _rows_from_visible_dom(soup)
+            print(f"[INFO] DOM fallback rows: {len(rows)}")
+
+    finally:
+        driver.quit()
+
+    df = pd.DataFrame(rows)
+    col_order = ["Store Name", "City", "State", "Country", "Address", "Pincode", "Phone No", "Hours", "Store Link", "Maps URL"]
+    for c in col_order:
+        if c not in df.columns:
+            df[c] = ""
+
+    df = df.reindex(columns=col_order)
+    df = df.drop_duplicates(subset=["Store Name", "Address", "Phone No", "Maps URL"])
+    df.to_excel(output_path, index=False)
+
+    print(f"[INFO] Saved {len(df)} stores to {output_path}")
+    return df
+
+
+# =========================================================
+# GUI
+# =========================================================
+def run_all():
+    folder = os.path.dirname(os.path.abspath(__file__))
+    today = datetime.today().strftime("%Y-%m-%d")
+    output_path = os.path.join(folder, f"Zara_Stores_{today}.xlsx")
+
+    print("=" * 70)
+    print("[INFO] STARTING ZARA SCRAPER")
+    print("=" * 70)
+
+    scrape_all(output_path)
+
+    print("=" * 70)
+    print("[INFO] FILE SAVED SUCCESSFULLY")
+    print("=" * 70)
+
+    messagebox.showinfo("Success", f"Saved to:\n{output_path}")
+
+
+def run_gui():
+    root = tk.Tk()
+    root.title("Zara Store Scraper")
+    root.geometry("430x220")
+    root.resizable(False, False)
+
+    tk.Label(root, text="Zara Store Scraper", font=("Segoe UI", 14, "bold")).pack(pady=20)
+
+    tk.Button(root, text="Run", width=18, height=2, font=("Segoe UI", 12, "bold"), command=run_all).pack(pady=20)
+
+    root.mainloop()
+
+
+if __name__ == "__main__":
+    run_gui()
