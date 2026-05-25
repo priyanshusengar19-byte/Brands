@@ -176,10 +176,9 @@ BRANDS = [
 # =========================================================
 def make_driver():
     opts = Options()
-    opts.add_argument("--headless=new")
-    opts.add_argument("--no-sandbox")
-    opts.add_argument("--disable-dev-shm-usage")
-    opts.add_argument("--window-size=1920,1080")
+    # Running in VISIBLE mode — Tracxn blocks headless browsers
+    opts.add_argument("--window-size=1400,900")
+    opts.add_argument("--start-maximized")
     opts.add_argument(f"--user-agent={_UA}")
     opts.add_argument("--disable-blink-features=AutomationControlled")
     opts.add_experimental_option("excludeSwitches", ["enable-automation"])
@@ -343,35 +342,106 @@ def login(driver):
 # SEARCH → profile URL
 # =========================================================
 def search_brand(driver, brand_name):
-    url = SEARCH_URL.format(query=brand_name.replace(" ", "+"))
+    """
+    Search Tracxn for a brand using the top search bar (Ctrl+K),
+    then return the first company profile URL from results.
+    Falls back to direct URL if search bar fails.
+    """
+    from selenium.webdriver.common.keys import Keys
+
+    # Strategy 1: use Tracxn search bar via Ctrl+K shortcut
     try:
-        driver.get(url)
-    except WebDriverException:
+        driver.get("https://tracxn.com")
+        time.sleep(random.uniform(2, 3))
+        _dismiss_popup(driver)
+
+        # Open search with Ctrl+K
+        webdriver.ActionChains(driver).key_down(Keys.CONTROL).send_keys("k").key_up(Keys.CONTROL).perform()
+        time.sleep(1.5)
+
+        # Type brand name in search box
+        search_box = None
+        for sel in [
+            "input[placeholder*='search']",
+            "input[placeholder*='Search']",
+            "input[type='search']",
+            "input[type='text']",
+            "[class*='search'] input",
+            "[class*='Search'] input",
+        ]:
+            try:
+                search_box = WebDriverWait(driver, 5).until(
+                    EC.presence_of_element_located((By.CSS_SELECTOR, sel))
+                )
+                if search_box.is_displayed():
+                    break
+            except Exception:
+                search_box = None
+
+        if search_box:
+            search_box.clear()
+            search_box.send_keys(brand_name)
+            time.sleep(2)  # wait for results to load
+
+            # Click first company result
+            for sel in [
+                "a[href*='/d/companies/']",
+                "[class*='result'] a[href*='/d/']",
+                "[class*='suggestion'] a[href*='/d/']",
+                "[class*='dropdown'] a[href*='/d/']",
+            ]:
+                try:
+                    links = driver.find_elements(By.CSS_SELECTOR, sel)
+                    if links:
+                        href = links[0].get_attribute("href") or ""
+                        if href and "tracxn.com" in href:
+                            return href
+                except Exception:
+                    pass
+
+    except Exception:
         pass
 
-    time.sleep(random.uniform(2, 3))
-    _dismiss_popup(driver)
-
-    for sel in [
-        "a[href*='/d/companies/']",
-        "[class*='companyName'] a",
-        "[class*='company-name'] a",
-        "h3 a[href*='/d/']",
-    ]:
-        try:
-            links = driver.find_elements(By.CSS_SELECTOR, sel)
-            if links:
-                href = links[0].get_attribute("href") or ""
-                if "tracxn.com" in href:
-                    return href
-        except Exception:
-            pass
-
+    # Strategy 2: direct search URL
     try:
+        search_url = SEARCH_URL.format(query=brand_name.replace(" ", "+"))
+        driver.get(search_url)
+        time.sleep(random.uniform(3, 5))
+        _dismiss_popup(driver)
+
+        for sel in [
+            "a[href*='/d/companies/']",
+            "[class*='companyName'] a",
+            "[class*='company-name'] a",
+            "[class*='result'] a",
+        ]:
+            try:
+                links = driver.find_elements(By.CSS_SELECTOR, sel)
+                if links:
+                    href = links[0].get_attribute("href") or ""
+                    if href and "tracxn.com" in href:
+                        return href
+            except Exception:
+                pass
+
+        # Scan all links on page
         for a in driver.find_elements(By.TAG_NAME, "a"):
             href = a.get_attribute("href") or ""
             if "/d/companies/" in href:
                 return href
+
+    except Exception:
+        pass
+
+    # Strategy 3: guess the slug directly
+    slug = brand_name.lower().replace(" ", "-").replace("'", "").replace("&", "and")
+    guessed_url = f"https://tracxn.com/d/companies/{slug}/"
+    try:
+        driver.get(guessed_url)
+        time.sleep(2)
+        if "404" not in driver.title.lower() and "not found" not in driver.title.lower():
+            if "tracxn.com/d/companies/" in driver.current_url:
+                return driver.current_url
     except Exception:
         pass
 
