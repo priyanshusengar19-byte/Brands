@@ -37,8 +37,8 @@ from webdriver_manager.chrome import ChromeDriverManager
 # =========================================================
 # CONFIG
 # =========================================================
-TRACXN_EMAIL    = os.environ.get("TRACXN_EMAIL", "")
-TRACXN_PASSWORD = os.environ.get("TRACXN_PASSWORD", "")
+TRACXN_EMAIL    = "your_university_email@college.edu"   # ← PUT YOUR EMAIL HERE
+TRACXN_PASSWORD = ""   # leave blank — login uses OTP sent to your email
 
 LOGIN_URL  = "https://tracxn.com/login"
 SEARCH_URL = "https://tracxn.com/d/search?q={query}&type=companies"
@@ -236,30 +236,106 @@ def _parse_cr_value(raw):
 
 
 # =========================================================
-# LOGIN
+# LOGIN  (OTP-based — no password needed)
 # =========================================================
 def login(driver):
-    if not TRACXN_EMAIL or not TRACXN_PASSWORD:
-        print("[WARN] No credentials — financial data will likely be blocked.")
+    if not TRACXN_EMAIL:
+        print("[WARN] TRACXN_EMAIL not set — financial data will be blocked.")
         return False
 
-    print(f"[INFO] Logging in as {TRACXN_EMAIL} ...")
+    print(f"[INFO] Opening Tracxn login for {TRACXN_EMAIL} ...")
     try:
         driver.get(LOGIN_URL)
+
+        # Step 1: enter email
         WebDriverWait(driver, 15).until(
             EC.presence_of_element_located((By.CSS_SELECTOR, "input[type='email']"))
         )
         driver.find_element(By.CSS_SELECTOR, "input[type='email']").send_keys(TRACXN_EMAIL)
-        driver.find_element(By.CSS_SELECTOR, "input[type='password']").send_keys(TRACXN_PASSWORD)
-        driver.find_element(
-            By.CSS_SELECTOR,
-            "button[type='submit'], input[type='submit']"
-        ).click()
-        WebDriverWait(driver, 20).until(EC.url_changes(LOGIN_URL))
-        print("[INFO] Login successful.")
-        return True
+
+        # Step 2: click the button that sends OTP / Continue
+        for sel in [
+            "button[type='submit']",
+            "input[type='submit']",
+            "//button[contains(text(),'Continue')]",
+            "//button[contains(text(),'Send')]",
+            "//button[contains(text(),'Get OTP')]",
+            "//button[contains(text(),'Login')]",
+        ]:
+            try:
+                btn = (driver.find_element(By.XPATH, sel)
+                       if sel.startswith("//")
+                       else driver.find_element(By.CSS_SELECTOR, sel))
+                btn.click()
+                break
+            except Exception:
+                pass
+
+        time.sleep(2)
+
+        # Step 3: check if OTP input field appeared
+        otp_field = None
+        for otp_sel in [
+            "input[name='otp']",
+            "input[placeholder*='OTP']",
+            "input[placeholder*='code']",
+            "input[placeholder*='verification']",
+            "input[type='number']",
+            "input[maxlength='6']",
+        ]:
+            try:
+                otp_field = driver.find_element(By.CSS_SELECTOR, otp_sel)
+                break
+            except Exception:
+                pass
+
+        if otp_field:
+            print("\n" + "=" * 50)
+            print(f"  OTP sent to: {TRACXN_EMAIL}")
+            print("  Check your email and enter the code below.")
+            print("=" * 50)
+            otp_code = input("  Enter OTP code: ").strip()
+
+            otp_field.clear()
+            otp_field.send_keys(otp_code)
+
+            # Submit OTP
+            for sel in [
+                "button[type='submit']",
+                "input[type='submit']",
+                "//button[contains(text(),'Verify')]",
+                "//button[contains(text(),'Login')]",
+                "//button[contains(text(),'Submit')]",
+            ]:
+                try:
+                    btn = (driver.find_element(By.XPATH, sel)
+                           if sel.startswith("//")
+                           else driver.find_element(By.CSS_SELECTOR, sel))
+                    btn.click()
+                    break
+                except Exception:
+                    pass
+        else:
+            # No OTP field — Tracxn may have used a password field instead
+            # Ask user to confirm they are logged in via the terminal
+            print("\n" + "=" * 50)
+            print("  Could not detect OTP field automatically.")
+            print("  If Tracxn sent a verification code to your email,")
+            print("  the browser may need manual input.")
+            print("=" * 50)
+            input("  Press ENTER once you have received the OTP (we will try to continue)...")
+
+        # Step 4: wait for login to complete (URL changes away from login page)
+        try:
+            WebDriverWait(driver, 60).until(EC.url_changes(LOGIN_URL))
+            print("[INFO] Login successful.")
+            return True
+        except TimeoutException:
+            print("[WARN] Login timeout — page did not redirect. Check credentials.")
+            return False
+
     except Exception as e:
-        print(f"[WARN] Login failed: {e}")
+        print(f"[WARN] Login error: {e}")
         return False
 
 
