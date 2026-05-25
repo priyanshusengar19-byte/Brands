@@ -24,6 +24,7 @@ from datetime import datetime
 import pandas as pd
 from selenium import webdriver
 from selenium.webdriver.chrome.options import Options
+from selenium.webdriver.chrome.service import Service
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
@@ -31,6 +32,7 @@ from selenium.common.exceptions import (
     TimeoutException, NoSuchElementException, WebDriverException,
     ElementClickInterceptedException,
 )
+from webdriver_manager.chrome import ChromeDriverManager
 
 # =========================================================
 # CONFIG
@@ -182,7 +184,10 @@ def make_driver():
     opts.add_argument("--disable-blink-features=AutomationControlled")
     opts.add_experimental_option("excludeSwitches", ["enable-automation"])
     opts.add_experimental_option("useAutomationExtension", False)
-    driver = webdriver.Chrome(options=opts)
+    driver = webdriver.Chrome(
+        service=Service(ChromeDriverManager().install()),
+        options=opts,
+    )
     driver.execute_cdp_cmd(
         "Page.addScriptToEvaluateOnNewDocument",
         {"source": "Object.defineProperty(navigator, 'webdriver', {get: () => undefined})"},
