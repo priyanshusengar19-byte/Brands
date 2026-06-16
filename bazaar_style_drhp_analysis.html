@@ -1,0 +1,1005 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Bazaar Style Retail — DRHP Research Digest</title>
+<style>
+  :root {
+    --ink: #111827;
+    --muted: #6B7280;
+    --border: #E5E7EB;
+    --bg-light: #F9FAFB;
+    --bg-white: #FFFFFF;
+    --accent1: #1E3A5F;   /* deep navy */
+    --accent2: #0F6B8E;   /* teal */
+    --accent3: #D97706;   /* amber */
+    --accent4: #065F46;   /* green */
+    --accent5: #7C3AED;   /* purple */
+    --highlight: #FEF3C7;
+    --tag-bg: #EFF6FF;
+    --tag-text: #1D4ED8;
+    --red: #DC2626;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: 'Georgia', serif; color: var(--ink); background: #F3F4F6; font-size: 13px; line-height: 1.6; }
+  
+  /* COVER */
+  .cover { background: var(--accent1); color: white; padding: 56px 64px; }
+  .cover .doc-type { font-family: 'Arial', sans-serif; font-size: 11px; letter-spacing: 2px; text-transform: uppercase; color: #93C5FD; margin-bottom: 16px; }
+  .cover h1 { font-size: 32px; font-weight: 700; line-height: 1.2; margin-bottom: 8px; }
+  .cover .sub { font-size: 16px; color: #BFDBFE; margin-bottom: 32px; }
+  .cover .meta-row { display: flex; gap: 40px; flex-wrap: wrap; margin-top: 24px; }
+  .cover .meta-item { }
+  .cover .meta-label { font-family: 'Arial', sans-serif; font-size: 10px; letter-spacing: 1px; text-transform: uppercase; color: #93C5FD; }
+  .cover .meta-val { font-size: 14px; color: white; font-weight: 600; }
+  .cover .divider { border-top: 1px solid rgba(255,255,255,0.2); margin: 32px 0; }
+  .cover .intro { font-size: 13px; color: #BFDBFE; max-width: 700px; line-height: 1.7; }
+
+  /* TOC */
+  .toc-wrap { background: white; padding: 36px 64px; border-bottom: 1px solid var(--border); }
+  .toc-wrap h2 { font-family: 'Arial', sans-serif; font-size: 11px; letter-spacing: 2px; text-transform: uppercase; color: var(--muted); margin-bottom: 20px; }
+  .toc-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px 32px; }
+  .toc-item { display: flex; align-items: center; gap: 8px; font-family: 'Arial', sans-serif; font-size: 12px; color: var(--ink); text-decoration: none; padding: 6px 0; border-bottom: 1px solid var(--border); }
+  .toc-item:hover { color: var(--accent2); }
+  .toc-num { font-size: 10px; color: var(--muted); width: 20px; flex-shrink: 0; }
+
+  /* WRAPPER */
+  .wrapper { max-width: 1100px; margin: 0 auto; padding: 0; }
+  .content { padding: 0 64px 64px; background: white; }
+
+  /* SECTION HEADERS */
+  .sec-header { padding: 36px 64px 0; background: white; }
+  .sec-label { font-family: 'Arial', sans-serif; font-size: 10px; letter-spacing: 2px; text-transform: uppercase; color: var(--muted); margin-bottom: 6px; }
+  .sec-title { font-size: 22px; font-weight: 700; color: var(--accent1); border-bottom: 3px solid var(--accent1); padding-bottom: 10px; margin-bottom: 4px; }
+  .sec-subtitle { font-size: 13px; color: var(--muted); padding: 0 0 24px; }
+  .sub-sec { margin: 28px 0 12px; font-size: 16px; font-weight: 700; color: var(--accent2); }
+  .sub-sub-sec { margin: 20px 0 8px; font-size: 13px; font-weight: 700; color: var(--ink); text-transform: uppercase; letter-spacing: 0.5px; }
+  p { margin-bottom: 10px; color: #374151; }
+
+  /* TABLES */
+  .tbl-wrap { overflow-x: auto; margin: 16px 0; }
+  table { width: 100%; border-collapse: collapse; font-family: 'Arial', sans-serif; font-size: 11.5px; }
+  th { background: var(--accent1); color: white; padding: 8px 10px; text-align: left; font-weight: 600; white-space: nowrap; }
+  th.center, td.center { text-align: center; }
+  td { padding: 7px 10px; border-bottom: 1px solid var(--border); color: #374151; }
+  tr:nth-child(even) td { background: var(--bg-light); }
+  tr:hover td { background: #EFF6FF; }
+  .tbl-note { font-family: 'Arial', sans-serif; font-size: 10.5px; color: var(--muted); margin-top: 6px; }
+  .tbl-title { font-family: 'Arial', sans-serif; font-size: 12px; font-weight: 700; color: var(--ink); margin-bottom: 6px; text-transform: uppercase; letter-spacing: 0.5px; }
+  td.bold { font-weight: 700; }
+  td.green { color: var(--accent4); font-weight: 600; }
+  td.amber { color: var(--accent3); font-weight: 600; }
+  td.red { color: var(--red); font-weight: 600; }
+  td.navy { color: var(--accent1); font-weight: 600; }
+  .hilight-row td { background: var(--highlight) !important; font-weight: 700; }
+
+  /* INSIGHT BOXES */
+  .insight-box { background: #EFF6FF; border-left: 4px solid var(--accent2); padding: 14px 18px; margin: 20px 0; border-radius: 0 6px 6px 0; }
+  .insight-box .ib-label { font-family: 'Arial', sans-serif; font-size: 10px; letter-spacing: 1.5px; text-transform: uppercase; color: var(--accent2); font-weight: 700; margin-bottom: 6px; }
+  .insight-box ul { padding-left: 18px; }
+  .insight-box li { margin-bottom: 5px; font-size: 12.5px; color: #1E3A5F; }
+
+  .thesis-box { background: var(--highlight); border-left: 4px solid var(--accent3); padding: 14px 18px; margin: 20px 0; border-radius: 0 6px 6px 0; }
+  .thesis-box .tb-label { font-family: 'Arial', sans-serif; font-size: 10px; letter-spacing: 1.5px; text-transform: uppercase; color: var(--accent3); font-weight: 700; margin-bottom: 6px; }
+  .thesis-box ul { padding-left: 18px; }
+  .thesis-box li { margin-bottom: 5px; font-size: 12.5px; color: #92400E; }
+
+  .warn-box { background: #FEF2F2; border-left: 4px solid var(--red); padding: 12px 16px; margin: 16px 0; border-radius: 0 6px 6px 0; }
+  .warn-box .wb-label { font-family: 'Arial', sans-serif; font-size: 10px; letter-spacing: 1.5px; text-transform: uppercase; color: var(--red); font-weight: 700; margin-bottom: 4px; }
+  .warn-box li { font-size: 12px; color: #7F1D1D; margin-bottom: 4px; }
+
+  /* KPI CARDS */
+  .kpi-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin: 16px 0; }
+  .kpi-card { background: var(--bg-light); border: 1px solid var(--border); border-radius: 8px; padding: 14px 16px; }
+  .kpi-card .kv-label { font-family: 'Arial', sans-serif; font-size: 10px; color: var(--muted); text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 4px; }
+  .kpi-card .kv-val { font-size: 20px; font-weight: 700; color: var(--accent1); }
+  .kpi-card .kv-sub { font-size: 11px; color: var(--muted); margin-top: 2px; }
+  .kpi-card.green-card { border-top: 3px solid var(--accent4); }
+  .kpi-card.amber-card { border-top: 3px solid var(--accent3); }
+  .kpi-card.navy-card { border-top: 3px solid var(--accent1); }
+  .kpi-card.teal-card { border-top: 3px solid var(--accent2); }
+
+  /* DIVIDERS */
+  .sec-divider { height: 32px; background: #F3F4F6; border-top: 1px solid var(--border); border-bottom: 1px solid var(--border); }
+  hr.light { border: none; border-top: 1px solid var(--border); margin: 20px 0; }
+
+  /* TAGS */
+  .tag { display: inline-block; background: var(--tag-bg); color: var(--tag-text); font-family: 'Arial', sans-serif; font-size: 10px; font-weight: 600; padding: 2px 8px; border-radius: 20px; margin-right: 4px; }
+  .tag.green { background: #ECFDF5; color: #065F46; }
+  .tag.amber { background: #FFFBEB; color: #92400E; }
+  .tag.red { background: #FEF2F2; color: #991B1B; }
+
+  /* FOOTER */
+  .footer { background: var(--accent1); color: #93C5FD; font-family: 'Arial', sans-serif; font-size: 11px; padding: 20px 64px; text-align: center; }
+
+  @media print { .toc-wrap { page-break-after: always; } }
+</style>
+</head>
+<body>
+<div class="wrapper">
+
+<!-- ============================================================ COVER ============================================================ -->
+<div class="cover">
+  <div class="doc-type">Research Digest · DRHP Analysis</div>
+  <h1>Bazaar Style Retail Limited<br>Indian Value Retail &amp; Apparel Market</h1>
+  <div class="sub">Comprehensive Synthesis from DRHP (Pages 134–208) · Technopak Industry Report</div>
+  <div class="divider"></div>
+  <div class="meta-row">
+    <div class="meta-item"><div class="meta-label">Document Source</div><div class="meta-val">DRHP — Bazaar Style Retail Ltd.</div></div>
+    <div class="meta-item"><div class="meta-label">Data As Of</div><div class="meta-val">FY 2023 / Dec 31, 2023</div></div>
+    <div class="meta-item"><div class="meta-label">Industry</div><div class="meta-val">Value Fashion Retail · Apparel</div></div>
+    <div class="meta-item"><div class="meta-label">Company Brand</div><div class="meta-val">Style Baazar (East India)</div></div>
+  </div>
+  <div class="divider"></div>
+  <div class="intro">This document synthesises all market data, competitive benchmarks, and company-level financials from the DRHP industry overview and business description sections. Sections are structured in order: India macro → retail market → apparel deep dive → footwear → home &amp; living → value retail landscape → Style Baazar company analysis → synthesis &amp; thesis angles. Use this as a reference base before overlaying your own scraped data.</div>
+</div>
+
+<!-- ============================================================ TOC ============================================================ -->
+<div class="toc-wrap">
+  <h2>Contents</h2>
+  <div class="toc-grid">
+    <div class="toc-item"><span class="toc-num">01</span>India Macro Overview</div>
+    <div class="toc-item"><span class="toc-num">02</span>Private Consumption &amp; Drivers</div>
+    <div class="toc-item"><span class="toc-num">03</span>India Retail Market</div>
+    <div class="toc-item"><span class="toc-num">04</span>Apparel Market Deep Dive</div>
+    <div class="toc-item"><span class="toc-num">05</span>Footwear Market</div>
+    <div class="toc-item"><span class="toc-num">06</span>Home &amp; Living + Other Categories</div>
+    <div class="toc-item"><span class="toc-num">07</span>Value Retail Landscape</div>
+    <div class="toc-item"><span class="toc-num">08</span>Competitive Benchmarking</div>
+    <div class="toc-item"><span class="toc-num">09</span>Style Baazar — Company Analysis</div>
+    <div class="toc-item"><span class="toc-num">10</span>Private Labels &amp; Financials</div>
+    <div class="toc-item"><span class="toc-num">11</span>Synthesis &amp; Thesis Angles</div>
+    <div class="toc-item"><span class="toc-num">12</span>Key Numbers Cheat Sheet</div>
+  </div>
+</div>
+
+<!-- ============================================================ SECTION 01: MACRO ============================================================ -->
+<div class="sec-header" id="s1">
+  <div class="sec-label">Section 01</div>
+  <div class="sec-title">India Macro Overview</div>
+  <div class="sec-subtitle">GDP trajectory, state-level growth, per capita income — the demand foundations</div>
+</div>
+<div class="content">
+
+  <div class="sub-sec">1.1 GDP at a Glance</div>
+  <p>India is the world's 5th largest economy by nominal GDP in FY 2023 and 3rd largest by PPP. Between FY 2014–2022 nominal GDP grew at a CAGR of 9.5%, faster than both the USA and China. Projected to reach ~USD 5.8 trillion by FY 2028 at a CAGR of 11% (FY 2022–28). India is expected to enter the global top 3 by FY 2030, surpassing Germany and Japan.</p>
+
+  <div class="tbl-title">Exhibit 1 — GDP at Current Prices (USD Tn) &amp; Key CAGRs</div>
+  <div class="tbl-wrap">
+    <table>
+      <tr>
+        <th>Country</th><th class="center">CY 2013</th><th class="center">CY 2018</th><th class="center">CY 2023P</th><th class="center">CY 2027P</th><th class="center">CAGR 2013–21</th><th class="center">CAGR 2021–27</th>
+      </tr>
+      <tr><td>USA</td><td class="center">16.8</td><td class="center">20.6</td><td class="center">26.9</td><td class="center">31.4</td><td class="center">4.0%</td><td class="center">5.3%</td></tr>
+      <tr><td>China</td><td class="center">9.6</td><td class="center">13.9</td><td class="center">19.4</td><td class="center">22.3</td><td class="center">7.8%</td><td class="center">4.1%</td></tr>
+      <tr class="hilight-row"><td>India</td><td class="center">1.4</td><td class="center">2.4</td><td class="center">3.7</td><td class="center">5.8</td><td class="center bold green">9.5%</td><td class="center bold green">12.3%</td></tr>
+      <tr><td>Germany</td><td class="center">3.7</td><td class="center">4.0</td><td class="center">4.3</td><td class="center">5.3</td><td class="center">1.6%</td><td class="center">4.1%</td></tr>
+      <tr><td>UK</td><td class="center">2.8</td><td class="center">2.9</td><td class="center">3.2</td><td class="center">4.3</td><td class="center">1.7%</td><td class="center">5.2%</td></tr>
+      <tr><td>Indonesia</td><td class="center">0.9</td><td class="center">1.0</td><td class="center">1.4</td><td class="center">2.0</td><td class="center">3.7%</td><td class="center">8.4%</td></tr>
+    </table>
+  </div>
+  <p class="tbl-note">Source: World Bank, IMF, RBI. India CY = FY (e.g., CY 2013 = FY 2014). 1 USD = INR 80.</p>
+
+  <div class="sub-sec">1.2 India GDP Milestones</div>
+  <div class="kpi-grid">
+    <div class="kpi-card navy-card"><div class="kv-label">Nominal GDP FY23</div><div class="kv-val">USD 3.7T</div><div class="kv-sub">+16.1% YoY (post-COVID recovery)</div></div>
+    <div class="kpi-card green-card"><div class="kv-label">Target FY28</div><div class="kv-val">~USD 5.4T</div><div class="kv-sub">CAGR 11% (FY22–28)</div></div>
+    <div class="kpi-card amber-card"><div class="kv-label">Real GDP CAGR FY23–30</div><div class="kv-val">6.6%</div><div class="kv-sub">Expected to rank top 3 globally</div></div>
+    <div class="kpi-card teal-card"><div class="kv-label">Per Capita GDP FY23</div><div class="kv-val">INR 1,96,983</div><div class="kv-sub">~76% rise vs FY15; CAGR 8.4%</div></div>
+  </div>
+
+  <div class="sub-sec">1.3 State-wise GDP — Eastern States Outperforming</div>
+  <p>Key insight for value retail: Eastern states (Bihar, Odisha, West Bengal) are growing faster than the national average — directly underpinning the Style Baazar opportunity.</p>
+  <div class="tbl-wrap">
+    <table>
+      <tr><th>State</th><th class="center">GSDP FY15 (USD Bn)</th><th class="center">GSDP FY23 (USD Bn)</th><th class="center">CAGR FY15–23</th><th>Relevance to Style Baazar</th></tr>
+      <tr class="hilight-row"><td>West Bengal</td><td class="center">90</td><td class="center">194</td><td class="center green">10.1%</td><td>Core market — 62 stores</td></tr>
+      <tr class="hilight-row"><td>Odisha</td><td class="center">39</td><td class="center">97</td><td class="center green">11.9%</td><td>Core market — 27 stores</td></tr>
+      <tr class="hilight-row"><td>Assam</td><td class="center">24</td><td class="center">62</td><td class="center green">12.2%</td><td>Core market — 21 stores</td></tr>
+      <tr class="hilight-row"><td>Bihar</td><td class="center">43</td><td class="center">94</td><td class="center green">10.3%</td><td>Core market — 16 stores</td></tr>
+      <tr><td>Andhra Pradesh</td><td class="center">66</td><td class="center">165</td><td class="center">12.2%</td><td>Focus market — 6 stores</td></tr>
+      <tr><td>UP</td><td class="center">126</td><td class="center">282</td><td class="center">10.6%</td><td>Focus market — 9 stores</td></tr>
+      <tr><td>India (National)</td><td class="center">1,530</td><td class="center">2,531</td><td class="center">9.9%</td><td>Benchmark</td></tr>
+    </table>
+  </div>
+  <p class="tbl-note">Source: RBI, Technopak. CAGR for some states calculated over 7 years (FY15–FY22) due to data availability.</p>
+
+  <div class="insight-box">
+    <div class="ib-label">Analyst Insight — Section 01</div>
+    <ul>
+      <li>Eastern India's 4 key states (WB, Odisha, Assam, Bihar) all grow above national GDP CAGR — this is the structural macro tailwind for value retail in the east.</li>
+      <li>India's per capita GDP CAGR of 10%+ from FY23–30 means the first-time branded apparel buyer cohort is expanding rapidly — exactly the Style Baazar customer.</li>
+      <li>India's GDP growth is nearly 2× the world average since FY 2005 — the absolute size of the demand pool is inflecting upward faster than other EMs.</li>
+    </ul>
+  </div>
+</div>
+
+<div class="sec-divider"></div>
+
+<!-- ============================================================ SECTION 02: CONSUMPTION ============================================================ -->
+<div class="sec-header" id="s2">
+  <div class="sec-label">Section 02</div>
+  <div class="sec-title">Private Consumption &amp; Structural Demand Drivers</div>
+  <div class="sec-subtitle">PFCE, demographics, urbanisation, middle class — why India's retail demand is durable</div>
+</div>
+<div class="content">
+
+  <div class="sub-sec">2.1 Private Final Consumption Expenditure (PFCE)</div>
+  <p>India's domestic consumption grew at a CAGR of 7.3% between FY 2016–2021, nearly 3× the USA's 2.8% and nearly 2× China's 4.7% in the same period. PFCE is ~60% of India's GDP vs. ~39% for China — this insulates India's economy from global volatility and directly translates GDP growth into consumer demand.</p>
+
+  <div class="tbl-wrap">
+    <table>
+      <tr><th>Metric</th><th class="center">India</th><th class="center">USA</th><th class="center">China</th><th class="center">Germany</th><th class="center">UK</th></tr>
+      <tr><td>PFCE % of GDP (FY/CY 2022)</td><td class="center bold green">~60%</td><td class="center">~68%</td><td class="center amber">~39%</td><td class="center">~50%</td><td class="center">~61%</td></tr>
+      <tr><td>Domestic Consumption CAGR (2015–20)</td><td class="center bold green">7.3%</td><td class="center">2.8%</td><td class="center">4.7%</td><td class="center">N/A</td><td class="center">N/A</td></tr>
+      <tr><td>Per Capita Consumption FY22 (USD)</td><td class="center">1,203</td><td class="center">43,130</td><td class="center">4,453</td><td class="center">N/A</td><td class="center">29,841</td></tr>
+      <tr><td>Per Capita Consumption FY23 (USD)</td><td class="center bold">1,285</td><td class="center">44,056</td><td class="center">4,465</td><td class="center">N/A</td><td class="center">N/A</td></tr>
+    </table>
+  </div>
+
+  <div class="sub-sec">2.2 Five Key Structural Growth Drivers</div>
+
+  <div class="sub-sub-sec">A. Demographics — Young Population</div>
+  <div class="tbl-wrap">
+    <table>
+      <tr><th>Country</th><th class="center">India</th><th class="center">China</th><th class="center">USA</th><th class="center">UK</th><th class="center">S. Korea</th></tr>
+      <tr><td>Median Age (CY 2023, yrs)</td><td class="center bold green">29.5</td><td class="center">39.8</td><td class="center">38.9</td><td class="center">40.6</td><td class="center">45.0</td></tr>
+    </table>
+  </div>
+  <p>~54% of India's 1.42 billion people are in the 15–49 age bracket. 80% are under 50. This demographic skew fuels premiumisation, brand adoption, and fashion consumption in the target Value retail price band.</p>
+
+  <div class="sub-sub-sec">B. Women in Workforce</div>
+  <p>Women's share in services sector employment rose from 17.5% (CY 2010) to 25.1% (CY 2021). Women's labour force participation rose from 22.6% (2016) to 24.0% (2022). More working women = higher household income + stronger fashion/apparel demand.</p>
+
+  <div class="sub-sub-sec">C. Urbanisation</div>
+  <div class="tbl-wrap">
+    <table>
+      <tr><th>Year</th><th class="center">2000</th><th class="center">2015</th><th class="center">2020</th><th class="center">2023</th><th class="center">2025P</th><th class="center">2030P</th><th class="center">2050P</th></tr>
+      <tr><td>Urban Population (%)</td><td class="center">27.7%</td><td class="center">32.8%</td><td class="center">35.0%</td><td class="center">35.8%</td><td class="center">37.0%</td><td class="center">40.9%</td><td class="center">50.0%</td></tr>
+      <tr><td>Urban Population (Mn)</td><td class="center">293</td><td class="center">433</td><td class="center">476</td><td class="center">508</td><td class="center">537</td><td class="center">601</td><td class="center">—</td></tr>
+    </table>
+  </div>
+  <p>India had the 2nd largest urban population globally (508 Mn in CY 2022), yet only 36% urbanised vs. global avg of 57%. Urban population contributes 63% of GDP today and is projected to contribute 75% by FY 2026.</p>
+
+  <div class="sub-sub-sec">D. Growing Middle Class</div>
+  <div class="tbl-wrap">
+    <table>
+      <tr><th>Year</th><th class="center">Total HHs (Mn)</th><th class="center">HHs &lt;USD 5K (Mn)</th><th class="center">HHs USD 5K–10K (Mn)</th><th class="center">HHs USD 10K–50K (Mn)</th><th class="center">HHs &gt;USD 50K (Mn)</th></tr>
+      <tr><td>FY 2010</td><td class="center">240</td><td class="center">181.8</td><td class="center">42.9</td><td class="center">14.0</td><td class="center">1.2</td></tr>
+      <tr><td>FY 2020</td><td class="center">310</td><td class="center">79.4</td><td class="center">131.8</td><td class="center">94.9</td><td class="center">4.0</td></tr>
+      <tr class="hilight-row"><td>FY 2030P</td><td class="center">386</td><td class="center">69.5</td><td class="center">142.8</td><td class="center">162.1</td><td class="center">11.6</td></tr>
+      <tr><td>CAGR 2010–30P</td><td class="center">2.4%</td><td class="center red">-4.7%</td><td class="center">6.2%</td><td class="center green">13.0%</td><td class="center green">12.0%</td></tr>
+    </table>
+  </div>
+  <p>USD 10K–50K households growing at CAGR 13% — this is the core value retail buying cohort. They were 5.8% of population in FY 2010, 30.6% in FY 2020, and projected to be 42% by FY 2030.</p>
+
+  <div class="sub-sub-sec">E. Nuclearisation</div>
+  <p>Average household size declining: 5.3 members in FY 2001 → 4.2 in FY 2021 → projected 3.9 by FY 2030. More, smaller households = more total decision-makers purchasing independently = larger absolute retail demand.</p>
+
+  <div class="insight-box">
+    <div class="ib-label">Analyst Insight — Section 02</div>
+    <ul>
+      <li>The target Style Baazar customer — aspiring middle class with annual income &lt;USD 5,000 — represents the largest single cohort by household count, but is rapidly transitioning upward. This both sustains current demand AND generates upgrade aspiration.</li>
+      <li>Rising women's workforce participation is a disproportionate driver for women's western wear and ethnic wear in Tier 2/3 cities — both strong categories for value retailers.</li>
+      <li>Urbanisation is still only 36% vs. 57% global average — the runway for organised retail expansion in India is extraordinarily long. Every 100bps increase in urban share = ~5 million more potential organised retail shoppers.</li>
+    </ul>
+  </div>
+</div>
+
+<div class="sec-divider"></div>
+
+<!-- ============================================================ SECTION 03: RETAIL MARKET ============================================================ -->
+<div class="sec-header" id="s3">
+  <div class="sec-label">Section 03</div>
+  <div class="sec-title">India Retail Market — Size, Structure &amp; Category Mix</div>
+  <div class="sec-subtitle">INR 76 lakh crore market; organised penetration rising from 16% to 23%</div>
+</div>
+<div class="content">
+
+  <div class="sub-sec">3.1 Total Retail Market Size</div>
+  <div class="tbl-wrap">
+    <table>
+      <tr><th>Metric</th><th class="center">FY18</th><th class="center">FY19</th><th class="center">FY20</th><th class="center">FY21</th><th class="center">FY22</th><th class="center">FY23</th><th class="center">FY27P</th><th class="center">CAGR FY23–27P</th></tr>
+      <tr><td>Total Retail (INR Cr)</td><td class="center">49,17,000</td><td class="center">54,48,100</td><td class="center">59,71,700</td><td class="center">57,75,700</td><td class="center">67,51,700</td><td class="center bold">76,06,600</td><td class="center bold green">1,13,39,900</td><td class="center bold green">10.5%</td></tr>
+      <tr><td>Organised Retail (INR Cr)</td><td class="center">4,95,100</td><td class="center">5,73,000</td><td class="center">7,28,300</td><td class="center">6,93,700</td><td class="center">8,73,500</td><td class="center bold">12,03,300</td><td class="center bold green">26,02,200</td><td class="center bold green">21.3%</td></tr>
+      <tr><td>Organised Penetration %</td><td class="center">10.1%</td><td class="center">10.5%</td><td class="center">12.2%</td><td class="center">12.0%</td><td class="center">12.9%</td><td class="center bold">15.8%</td><td class="center bold green">22.9%</td><td class="center">—</td></tr>
+    </table>
+  </div>
+  <p class="tbl-note">Source: Technopak Analysis. Year = FY. 1 USD = INR 80.</p>
+
+  <div class="sub-sec">3.2 Category Share in Retail Basket</div>
+  <div class="tbl-wrap">
+    <table>
+      <tr><th>Category</th><th class="center">FY19</th><th class="center">FY23</th><th class="center">FY27P</th><th class="center">CAGR FY23–27P</th><th>Type</th></tr>
+      <tr><td>Food &amp; Grocery</td><td class="center">65.0%</td><td class="center">65.1%</td><td class="center">59.4%</td><td class="center">8.0%</td><td>Need</td></tr>
+      <tr class="hilight-row"><td>Apparel &amp; Accessories</td><td class="center">7.4%</td><td class="center bold">7.2%</td><td class="center bold green">9.4%</td><td class="center bold green">18.2%</td><td><span class="tag">Fastest Growing</span></td></tr>
+      <tr><td>Jewellery</td><td class="center">7.5%</td><td class="center">7.3%</td><td class="center">8.7%</td><td class="center">15.5%</td><td>Non-Food</td></tr>
+      <tr><td>Consumer Electronics</td><td class="center">6.3%</td><td class="center">6.7%</td><td class="center">7.8%</td><td class="center">15.0%</td><td>Non-Food</td></tr>
+      <tr><td>Home &amp; Living</td><td class="center">4.3%</td><td class="center">4.0%</td><td class="center">4.6%</td><td class="center">14.2%</td><td>Non-Food</td></tr>
+      <tr><td>Pharmacy &amp; Wellness</td><td class="center">2.9%</td><td class="center">3.0%</td><td class="center">3.2%</td><td class="center">12.0%</td><td>Need</td></tr>
+      <tr><td>Footwear</td><td class="center">1.2%</td><td class="center">1.0%</td><td class="center">1.3%</td><td class="center">18.1%</td><td>Non-Food</td></tr>
+      <tr><td>Non-Apparel Accessories</td><td class="center">0.6%</td><td class="center">0.6%</td><td class="center">0.7%</td><td class="center">14.8%</td><td>Non-Food</td></tr>
+    </table>
+  </div>
+  <p class="tbl-note">Source: Technopak Analysis. Apparel &amp; Accessories is fastest-growing category in the basket.</p>
+
+  <div class="sub-sec">3.3 E-commerce Growth in Retail</div>
+  <div class="tbl-wrap">
+    <table>
+      <tr><th>Year</th><th class="center">FY18</th><th class="center">FY19</th><th class="center">FY20</th><th class="center">FY21</th><th class="center">FY22</th><th class="center">FY23</th><th class="center">FY27P</th><th class="center">CAGR FY23–27</th></tr>
+      <tr><td>E-commerce (INR Cr)</td><td class="center">1,79,600</td><td class="center">2,21,300</td><td class="center">2,71,200</td><td class="center">3,39,000</td><td class="center">3,93,500</td><td class="center bold">5,33,700</td><td class="center bold green">12,51,200</td><td class="center bold green">23.7%</td></tr>
+      <tr><td>E-comm % of Total Retail</td><td class="center">3.7%</td><td class="center">4.1%</td><td class="center">4.5%</td><td class="center">5.9%</td><td class="center">5.8%</td><td class="center bold">7.0%</td><td class="center bold green">11.0%</td><td class="center">—</td></tr>
+    </table>
+  </div>
+
+  <div class="sub-sec">3.4 Apparel Organised vs. Unorganised — Channel Share</div>
+  <div class="tbl-wrap">
+    <table>
+      <tr><th>Year</th><th class="center">FY19</th><th class="center">FY20</th><th class="center">FY21</th><th class="center">FY22</th><th class="center">FY23</th><th class="center">FY27P</th></tr>
+      <tr><td>Unorganised Retail %</td><td class="center">70.5%</td><td class="center">68.0%</td><td class="center">65.0%</td><td class="center">65.0%</td><td class="center">62.0%</td><td class="center amber">52.0%</td></tr>
+      <tr><td>Organised B&amp;M %</td><td class="center">15.5%</td><td class="center">14.5%</td><td class="center">7.1%</td><td class="center">13.0%</td><td class="center bold">17.5%</td><td class="center bold green">24.0%</td></tr>
+      <tr><td>Organised E-commerce %</td><td class="center">14.0%</td><td class="center">17.5%</td><td class="center">27.9%</td><td class="center">22.0%</td><td class="center">20.5%</td><td class="center">24.0%</td></tr>
+    </table>
+  </div>
+
+  <div class="insight-box">
+    <div class="ib-label">Analyst Insight — Section 03</div>
+    <ul>
+      <li>Apparel is the fastest-growing category in the retail basket at CAGR ~18.2% (FY23–27) — higher than electronics (15%), jewellery (15.5%), and even e-commerce overall (23.7% but starting from a smaller base per category).</li>
+      <li>Organised retail penetration moving from 15.8% → 22.9% means organised is growing at 2.2× the rate of total retail. This is a structural, multi-year shift — not cyclical.</li>
+      <li>E-commerce in apparel peaked during COVID (28% share in FY21) and has normalised to 20.5% in FY23. The alarmism around e-comm killing brick-and-mortar is overstated — B&amp;M organised apparel actually gained share from FY21→FY23.</li>
+    </ul>
+  </div>
+</div>
+
+<div class="sec-divider"></div>
+
+<!-- ============================================================ SECTION 04: APPAREL ============================================================ -->
+<div class="sec-header" id="s4">
+  <div class="sec-label">Section 04</div>
+  <div class="sec-title">Apparel Market Deep Dive</div>
+  <div class="sec-subtitle">INR 5.5 lakh crore market; growing at 18.2% CAGR; structural shift to organised and branded</div>
+</div>
+<div class="content">
+
+  <div class="sub-sec">4.1 Market Size — Overall &amp; by Price Segment</div>
+  <div class="tbl-wrap">
+    <table>
+      <tr><th>Segment</th><th class="center">FY18 (INR Cr)</th><th class="center">FY21 (INR Cr)</th><th class="center">FY23 (INR Cr)</th><th class="center">FY27P (INR Cr)</th><th class="center">CAGR FY23–27P</th></tr>
+      <tr class="hilight-row"><td><strong>Total Apparel Market</strong></td><td class="center">3,65,832</td><td class="center">3,06,261</td><td class="center bold">5,47,628</td><td class="center bold green">10,68,250</td><td class="center bold green">18.2%</td></tr>
+      <tr><td>Value — Mass</td><td class="center">1,02,433</td><td class="center">88,816</td><td class="center">1,53,336</td><td class="center">2,56,380</td><td class="center">13.7%</td></tr>
+      <tr><td>Value — Economy</td><td class="center">1,06,091</td><td class="center">94,941</td><td class="center">1,64,288</td><td class="center">2,77,745</td><td class="center">14.0%</td></tr>
+      <tr><td>Mid-Premium</td><td class="center">1,02,414</td><td class="center">82,690</td><td class="center">1,53,336</td><td class="center">3,36,499</td><td class="center green">21.7%</td></tr>
+      <tr><td>Premium</td><td class="center">43,892</td><td class="center">33,689</td><td class="center">65,715</td><td class="center">1,60,238</td><td class="center green">25.0%</td></tr>
+      <tr><td>Premium+</td><td class="center">10,973</td><td class="center">6,125</td><td class="center">10,953</td><td class="center">37,389</td><td class="center green">35.9%</td></tr>
+    </table>
+  </div>
+  <p class="tbl-note">Value Apparel (Mass + Economy) = ~58% of total market in FY23. Source: Technopak.</p>
+
+  <div class="sub-sec">4.2 Organised vs. Unorganised in Apparel</div>
+  <div class="tbl-wrap">
+    <table>
+      <tr><th>Year</th><th class="center">FY18</th><th class="center">FY19</th><th class="center">FY20</th><th class="center">FY21</th><th class="center">FY22</th><th class="center">FY23</th><th class="center">FY27P</th></tr>
+      <tr><td>Branded Apparel %</td><td class="center">38%</td><td class="center">43%</td><td class="center">45%</td><td class="center">47%</td><td class="center">48%</td><td class="center bold">50%</td><td class="center bold green">59%</td></tr>
+      <tr><td>Organised Retail %</td><td class="center">28%</td><td class="center">30%</td><td class="center">32%</td><td class="center">35%</td><td class="center">35%</td><td class="center bold">38%</td><td class="center bold green">48%</td></tr>
+      <tr><td>Unorganised Retail (INR Cr)</td><td class="center">2,63,399</td><td class="center">2,81,400</td><td class="center">3,04,470</td><td class="center">1,99,070</td><td class="center">2,67,638</td><td class="center bold">3,39,529</td><td class="center">5,55,490</td></tr>
+      <tr><td>Organised Retail (INR Cr)</td><td class="center">1,02,433</td><td class="center">1,20,600</td><td class="center">1,43,280</td><td class="center">1,07,191</td><td class="center">1,44,113</td><td class="center bold">2,08,098</td><td class="center green bold">5,12,760</td></tr>
+    </table>
+  </div>
+  <p class="tbl-note">Organised apparel grew 14% historically → projected share doubles to 48% by FY27. CAGR of organised retail 25.3% (FY23–27).</p>
+
+  <div class="sub-sec">4.3 Gender Segmentation</div>
+  <div class="tbl-wrap">
+    <table>
+      <tr><th>Segment</th><th class="center">FY18 (INR Cr)</th><th class="center">FY23 (INR Cr)</th><th class="center">FY27P (INR Cr)</th><th class="center">FY23 Share</th><th class="center">CAGR FY23–27P</th></tr>
+      <tr><td>Menswear</td><td class="center">1,51,588</td><td class="center">2,23,125</td><td class="center">4,31,710</td><td class="center bold">~41%</td><td class="center">17.9%</td></tr>
+      <tr class="hilight-row"><td>Womenswear</td><td class="center">1,34,371</td><td class="center">2,00,859</td><td class="center">3,98,724</td><td class="center bold">~37%</td><td class="center green">18.7%</td></tr>
+      <tr><td>Kidswear</td><td class="center">79,872</td><td class="center">1,23,644</td><td class="center">2,37,816</td><td class="center bold">~21%</td><td class="center">17.8%</td></tr>
+    </table>
+  </div>
+
+  <div class="sub-sec">4.4 Ethnic vs. Western Wear</div>
+  <div class="tbl-wrap">
+    <table>
+      <tr><th>Segment</th><th class="center">FY23 (INR Cr)</th><th class="center">FY27P (INR Cr)</th><th class="center">FY23 Share</th><th class="center">FY23 Organised %</th><th class="center">CAGR FY23–27P</th></tr>
+      <tr class="hilight-row"><td>Western Wear</td><td class="center">3,84,730</td><td class="center">7,51,529</td><td class="center bold">~70%</td><td class="center">36%</td><td class="center green">18.0%</td></tr>
+      <tr><td>Ethnic Wear</td><td class="center">1,62,898</td><td class="center">3,16,721</td><td class="center bold">~30%</td><td class="center">26%</td><td class="center">18.0%</td></tr>
+      <tr><td colspan="6" style="font-style:italic; color: var(--muted)">Women Ethnic = 67% of womenswear; Men Ethnic = only 6% of menswear → Women drive ethnic demand</td></tr>
+      <tr><td>Women's Ethnic Wear FY23</td><td class="center">1,34,547</td><td class="center">2,61,061</td><td class="center">—</td><td class="center">—</td><td class="center green">18.0%</td></tr>
+      <tr><td>Men's Ethnic Wear FY23</td><td class="center">13,992</td><td class="center">26,531</td><td class="center">—</td><td class="center">—</td><td class="center">17.3%</td></tr>
+    </table>
+  </div>
+
+  <div class="sub-sec">4.5 Channel Segmentation — Organised Apparel</div>
+  <div class="tbl-wrap">
+    <table>
+      <tr><th>Channel</th><th class="center">FY18 %</th><th class="center">FY23 %</th><th class="center">FY27P %</th><th class="center">CAGR FY23–27P</th></tr>
+      <tr><td>EBO (Excl. Brand Outlets)</td><td class="center">27%</td><td class="center">22%</td><td class="center">25%</td><td class="center">—</td></tr>
+      <tr class="hilight-row"><td><strong>LFS (Large Format Stores)</strong></td><td class="center">18%</td><td class="center bold">16%</td><td class="center bold green">18%</td><td class="center bold green">29.4%</td></tr>
+      <tr><td>MBO (Multi-Brand Outlets)</td><td class="center">8%</td><td class="center">7%</td><td class="center">6%</td><td class="center">—</td></tr>
+      <tr><td>E-commerce</td><td class="center">47%</td><td class="center">55%</td><td class="center">51%</td><td class="center">22.9%</td></tr>
+    </table>
+  </div>
+  <p class="tbl-note">LFS is fastest-growing brick-and-mortar format at 29.4% CAGR. Style Baazar operates as a Large Format Value Store.</p>
+
+  <div class="sub-sec">4.6 City-Tier Breakdown — Apparel Market</div>
+  <div class="tbl-wrap">
+    <table>
+      <tr><th>City Tier</th><th class="center">FY23 Urban Share</th><th class="center">FY27P Urban Share</th><th class="center">FY23 Value (INR Cr)</th><th class="center">CAGR FY23–27</th></tr>
+      <tr><td>Top 2 Cities (Delhi NCR, Mumbai)</td><td class="center">20.6%</td><td class="center">20.0%</td><td class="center">68,357</td><td class="center">18.4%</td></tr>
+      <tr><td>Tier 1 (State Capitals &amp; Metros)</td><td class="center">23.4%</td><td class="center">23.0%</td><td class="center">77,730</td><td class="center">18.0%</td></tr>
+      <tr class="hilight-row"><td>Tier 2 Cities (&gt;10L Census pop)</td><td class="center">18.0%</td><td class="center">18.0%</td><td class="center">59,731</td><td class="center green bold">21.0%</td></tr>
+      <tr class="hilight-row"><td><strong>Tier 3 &amp; 4 Cities</strong></td><td class="center bold">38.0%</td><td class="center bold">39.0%</td><td class="center bold">1,26,097</td><td class="center green bold">21.0%</td></tr>
+    </table>
+  </div>
+  <p class="tbl-note">Urban Apparel FY23 = INR 3,31,835 Cr; Tier 2/3/4 = 56% of urban market. CAGR highest in Tier 2–4. Rural = ~39% of total apparel.</p>
+
+  <div class="insight-box">
+    <div class="ib-label">Analyst Insight — Section 04</div>
+    <ul>
+      <li>LFS is the fastest-growing organised apparel channel at 29.4% CAGR — this directly validates Style Baazar's format choice. The format is a structural winner, not just a regional one.</li>
+      <li>Value segment (Mass + Economy) = 58% of the market in FY23 but growing slightly slower than mid-premium. The real opportunity is mid-market upgrade — consumers moving from Value to mid-premium within an LFS environment (trading up within the same store).</li>
+      <li>Tier 3 &amp; 4 cities already represent 38% of urban apparel demand and are growing faster than Tier 1 — this is where Style Baazar's 141 out of 153 stores in Tier 3/4 (77 stores in Tier 4) becomes a strong structural advantage, not a limitation.</li>
+      <li>Women's ethnic wear (INR 1.35L Cr market in FY23) growing at 18% is a critical category — Style Baazar's 'Awaya' private label (ethnic wear for women) directly addresses this.</li>
+    </ul>
+  </div>
+</div>
+
+<div class="sec-divider"></div>
+
+<!-- ============================================================ SECTION 05: FOOTWEAR ============================================================ -->
+<div class="sec-header" id="s5">
+  <div class="sec-label">Section 05</div>
+  <div class="sec-title">Footwear Market</div>
+  <div class="sec-subtitle">INR 76,111 Cr in FY23 → INR 1,48,120 Cr by FY27 at 18.1% CAGR</div>
+</div>
+<div class="content">
+
+  <div class="kpi-grid">
+    <div class="kpi-card navy-card"><div class="kv-label">Market Size FY23</div><div class="kv-val">₹76,111 Cr</div><div class="kv-sub">6th consecutive year of growth</div></div>
+    <div class="kpi-card green-card"><div class="kv-label">FY27P Target</div><div class="kv-val">₹1,48,120 Cr</div><div class="kv-sub">CAGR 18.1% (FY23–27)</div></div>
+    <div class="kpi-card amber-card"><div class="kv-label">Organised Share FY23</div><div class="kv-val">35%</div><div class="kv-sub">→ 42% by FY27</div></div>
+    <div class="kpi-card teal-card"><div class="kv-label">Branded Share FY23</div><div class="kv-val">48%</div><div class="kv-sub">→ 52% by FY27</div></div>
+  </div>
+
+  <div class="sub-sec">5.1 Customer Segmentation</div>
+  <div class="tbl-wrap">
+    <table>
+      <tr><th>Segment</th><th class="center">FY23 Share</th><th class="center">FY27P Share</th><th class="center">FY23 (INR Cr)</th><th class="center">FY27P (INR Cr)</th><th class="center">CAGR</th></tr>
+      <tr><td>Men</td><td class="center">48%</td><td class="center">44%</td><td class="center">36,533</td><td class="center">65,173</td><td class="center">15.6%</td></tr>
+      <tr class="hilight-row"><td>Women</td><td class="center bold">41%</td><td class="center bold green">44%</td><td class="center">31,205</td><td class="center green bold">65,173</td><td class="center bold green">20.2%</td></tr>
+      <tr><td>Kids</td><td class="center">11%</td><td class="center">12%</td><td class="center">8,372</td><td class="center">17,774</td><td class="center">20.7%</td></tr>
+    </table>
+  </div>
+
+  <div class="sub-sec">5.2 Usage Segmentation</div>
+  <div class="tbl-wrap">
+    <table>
+      <tr><th>Usage</th><th class="center">FY23 Share</th><th class="center">FY27P Share</th><th class="center">FY23 (INR Cr)</th><th class="center">CAGR FY23–27P</th></tr>
+      <tr><td>Casual</td><td class="center">66%</td><td class="center">62%</td><td class="center">50,233</td><td class="center">16.3%</td></tr>
+      <tr class="hilight-row"><td><strong>Sports &amp; Athleisure</strong></td><td class="center bold">20%</td><td class="center">22%</td><td class="center">14,842</td><td class="center bold green">21.7%</td></tr>
+      <tr><td>Formal</td><td class="center">10%</td><td class="center">10%</td><td class="center">7,611</td><td class="center">18.1%</td></tr>
+      <tr><td>Outdoor</td><td class="center">5%</td><td class="center">6%</td><td class="center">3,806</td><td class="center">26.9%</td></tr>
+    </table>
+  </div>
+
+  <div class="sub-sec">5.3 Urban-Rural Split</div>
+  <div class="tbl-wrap">
+    <table>
+      <tr><th></th><th class="center">FY23</th><th class="center">FY27P</th></tr>
+      <tr><td>Urban Share</td><td class="center">68%</td><td class="center">70%</td></tr>
+      <tr><td>Rural Share</td><td class="center">32%</td><td class="center">30%</td></tr>
+    </table>
+  </div>
+
+  <div class="insight-box">
+    <div class="ib-label">Analyst Insight — Section 05</div>
+    <ul>
+      <li>Women's footwear is the fastest-growing sub-segment and will reach parity with men's by FY27. Value retailers with a diversified footwear range benefit disproportionately.</li>
+      <li>Sports &amp; athleisure (21.7% CAGR) is being driven by health/fitness awareness post-COVID — a structural trend, not a fad. This is relevant for Style Baazar's 'Corenerzy' activewear brand and footwear assortment.</li>
+      <li>Footwear is 34% organised already — higher than apparel's 38% including e-commerce. The organised footwear market will reach INR 62,111 Cr by FY27, making it a meaningful category add-on for value LFS players.</li>
+    </ul>
+  </div>
+</div>
+
+<div class="sec-divider"></div>
+
+<!-- ============================================================ SECTION 06: HOME & LIVING ============================================================ -->
+<div class="sec-header" id="s6">
+  <div class="sec-label">Section 06</div>
+  <div class="sec-title">Home &amp; Living + Accessories Categories</div>
+  <div class="sec-subtitle">Adjacent market expansion — costume jewellery, bags &amp; luggage, home furnishing</div>
+</div>
+<div class="content">
+
+  <div class="sub-sec">6.1 Home &amp; Living Market</div>
+  <div class="tbl-wrap">
+    <table>
+      <tr><th>Year</th><th class="center">FY18</th><th class="center">FY20</th><th class="center">FY21</th><th class="center">FY22</th><th class="center">FY23</th><th class="center">FY27P</th><th class="center">CAGR FY23–27</th></tr>
+      <tr><td>Market Size (INR Cr)</td><td class="center">2,09,460</td><td class="center">2,54,600</td><td class="center">1,82,065</td><td class="center">2,52,700</td><td class="center bold">3,03,200</td><td class="center bold green">5,16,200</td><td class="center bold green">14.2%</td></tr>
+    </table>
+  </div>
+  <div class="tbl-wrap">
+    <table>
+      <tr><th>Channel</th><th class="center">CAGR FY18–20</th><th class="center">CAGR FY22–23</th><th class="center">CAGR FY23–27P</th></tr>
+      <tr><td>Traditional (Unorganised)</td><td class="center">7.4%</td><td class="center">15.4%</td><td class="center">11.5%</td></tr>
+      <tr class="hilight-row"><td>Organised B&amp;M</td><td class="center green bold">55.9%</td><td class="center green bold">39.4%</td><td class="center green bold">19.7%</td></tr>
+      <tr><td>E-Commerce</td><td class="center">17.9%</td><td class="center">34.7%</td><td class="center">22.5%</td></tr>
+    </table>
+  </div>
+
+  <div class="sub-sec">6.2 Costume Jewellery Market</div>
+  <div class="tbl-wrap">
+    <table>
+      <tr><th>Year</th><th class="center">FY18</th><th class="center">FY20</th><th class="center">FY23</th><th class="center">FY27P</th><th class="center">CAGR FY23–27</th></tr>
+      <tr><td>Market Size (INR Cr)</td><td class="center">17,800</td><td class="center">22,550</td><td class="center bold">27,900</td><td class="center bold green">49,600</td><td class="center bold green">15.5%</td></tr>
+    </table>
+  </div>
+
+  <div class="sub-sec">6.3 Bags &amp; Luggage Market</div>
+  <div class="tbl-wrap">
+    <table>
+      <tr><th>Year</th><th class="center">FY18</th><th class="center">FY20</th><th class="center">FY23</th><th class="center">FY27P</th><th class="center">CAGR FY23–27</th></tr>
+      <tr><td>Market Size (INR Cr)</td><td class="center">20,450</td><td class="center">25,400</td><td class="center bold">22,700</td><td class="center bold green">34,830</td><td class="center bold green">11.3%</td></tr>
+    </table>
+  </div>
+
+  <div class="insight-box">
+    <div class="ib-label">Analyst Insight — Section 06</div>
+    <ul>
+      <li>Home &amp; Living (14.2% CAGR) + Costume Jewellery (15.5% CAGR) are above the overall retail market CAGR of 10.5% — these adjacencies give value retailers a natural basket expansion play.</li>
+      <li>Style Baazar already carries these: Costume Jewellery (under general merchandise), Bags, Luggage, and a dedicated 'Home Focus' private label. These are margin-accretive relative to apparel.</li>
+      <li>Weddings &amp; festivals are key demand drivers for accessories — Style Baazar's store network in East India directly benefits from the higher frequency of festive purchasing in Bengal/Odisha.</li>
+    </ul>
+  </div>
+</div>
+
+<div class="sec-divider"></div>
+
+<!-- ============================================================ SECTION 07: VALUE RETAIL ============================================================ -->
+<div class="sec-header" id="s7">
+  <div class="sec-label">Section 07</div>
+  <div class="sec-title">Value Retail in Lifestyle &amp; Home</div>
+  <div class="sec-subtitle">INR 5.67 lakh crore market growing at 14.4% CAGR; organised share doubling to 36% by FY27</div>
+</div>
+<div class="content">
+
+  <div class="sub-sec">7.1 Value Retail Market Size</div>
+  <div class="tbl-wrap">
+    <table>
+      <tr><th>Year</th><th class="center">FY18</th><th class="center">FY19</th><th class="center">FY20</th><th class="center">FY21</th><th class="center">FY22</th><th class="center">FY23</th><th class="center">FY27P</th><th class="center">CAGR FY23–27</th></tr>
+      <tr><td>Total (INR Cr)</td><td class="center">3,90,213</td><td class="center">4,30,344</td><td class="center">4,75,775</td><td class="center">3,36,180</td><td class="center">4,63,503</td><td class="center bold">5,67,334</td><td class="center bold green">9,72,058</td><td class="center bold green">14.4%</td></tr>
+      <tr><td>Organised %</td><td class="center">18%</td><td class="center">20%</td><td class="center">22%</td><td class="center">17%</td><td class="center">26%</td><td class="center bold">28%</td><td class="center bold green">36%</td><td class="center">—</td></tr>
+    </table>
+  </div>
+
+  <div class="sub-sec">7.2 Value Retail by Category — FY23</div>
+  <div class="tbl-wrap">
+    <table>
+      <tr><th>Category</th><th class="center">FY23 (INR Cr)</th><th class="center">Organised %</th><th class="center">FY27P (INR Cr)</th><th class="center">Organised % FY27P</th><th class="center">CAGR</th></tr>
+      <tr class="hilight-row"><td>Apparel</td><td class="center bold">3,17,733</td><td class="center bold">34%</td><td class="center bold green">5,34,125</td><td class="center bold green">40%</td><td class="center bold green">13.9%</td></tr>
+      <tr><td>Home</td><td class="center">1,75,880</td><td class="center">16%</td><td class="center">3,04,549</td><td class="center">28%</td><td class="center">14.7%</td></tr>
+      <tr><td>Accessories + Watches</td><td class="center">~34,000</td><td class="center">32%</td><td class="center">~57,000</td><td class="center">40%</td><td class="center">13.4%</td></tr>
+      <tr><td>Footwear</td><td class="center">~39,721</td><td class="center">30%</td><td class="center">~76,384</td><td class="center">35%</td><td class="center">17.7%</td></tr>
+    </table>
+  </div>
+
+  <div class="sub-sec">7.3 Regional Value Retail Market — East India is the Fastest</div>
+  <div class="tbl-wrap">
+    <table>
+      <tr><th>Region</th><th class="center">FY23 (INR Cr)</th><th class="center">FY27P (INR Cr)</th><th class="center">CAGR FY23–27</th><th>Style Baazar Presence</th></tr>
+      <tr class="hilight-row"><td><strong>East India</strong></td><td class="center bold">1,19,508</td><td class="center bold green">2,20,802</td><td class="center bold green">16.6%</td><td><span class="tag green">92% of stores</span></td></tr>
+      <tr><td>North India</td><td class="center">1,46,074</td><td class="center">2,37,873</td><td class="center">12.8%</td><td><span class="tag">9 stores (UP)</span></td></tr>
+      <tr><td>South India</td><td class="center">1,56,777</td><td class="center">2,76,077</td><td class="center">15.2%</td><td><span class="tag">6 stores (AP)</span></td></tr>
+      <tr><td>West India</td><td class="center">1,44,997</td><td class="center">2,37,306</td><td class="center">13.1%</td><td><span class="tag amber">No presence</span></td></tr>
+    </table>
+  </div>
+
+  <div class="sub-sec">7.4 Value Retail Apparel — Regional Detail</div>
+  <div class="tbl-wrap">
+    <table>
+      <tr><th>Region</th><th class="center">FY23 Apparel Value (INR Cr)</th><th class="center">FY27P (INR Cr)</th><th class="center">CAGR FY23–27</th></tr>
+      <tr><td>North</td><td class="center">82,641</td><td class="center">1,33,325</td><td class="center">12.8%</td></tr>
+      <tr class="hilight-row"><td><strong>East</strong></td><td class="center bold">64,642</td><td class="center bold green">1,18,500</td><td class="center bold green">16.4%</td></tr>
+      <tr><td>South</td><td class="center">80,238</td><td class="center">1,29,700</td><td class="center">12.7%</td></tr>
+      <tr><td>West</td><td class="center">90,253</td><td class="center">1,52,600</td><td class="center">14.0%</td></tr>
+    </table>
+  </div>
+
+  <div class="sub-sec">7.5 Store Potential — North + East India</div>
+  <div class="tbl-wrap">
+    <table>
+      <tr><th>Region</th><th class="center">Total Market Potential by FY27</th><th class="center">No. of Value Retail Stores</th><th class="center">Per Player (800–1,000)</th></tr>
+      <tr class="hilight-row"><td>East India (incl. NE)</td><td class="center bold green">₹2,20,802 Cr</td><td class="center bold">~8,000 stores</td><td class="center bold green">800–1,000</td></tr>
+      <tr><td>North India</td><td class="center green">₹2,37,873 Cr</td><td class="center">~8,000 stores</td><td class="center">800–1,000</td></tr>
+    </table>
+  </div>
+  <p class="tbl-note">Style Baazar had 153 stores as of Dec 2023. The North+East market can support 800–1,000 stores per player by FY27. This is a 5–6× runway from current scale.</p>
+
+  <div class="thesis-box">
+    <div class="tb-label">Key Thesis Angle — Value Retail TAM</div>
+    <ul>
+      <li>East India Value Retail (Lifestyle + Home) = INR 1,19,508 Cr in FY23. Organised = 28%. That means the <strong>organised TAM = INR 33,462 Cr</strong> today, growing to INR 79,489 Cr by FY27.</li>
+      <li>Style Baazar's FY23 revenue = INR 787.9 Cr → 2.16% organised market share in East India. A company with 2% share in a 17% CAGR market, and a demonstrated ability to open stores profitably at Tier 3/4 level — that's the core of the opportunity.</li>
+      <li>The 8,000 store potential in East+North by FY27 is not a promotional number — it implies average store revenue of ~₹28–30 Cr each, consistent with current peer metrics.</li>
+    </ul>
+  </div>
+</div>
+
+<div class="sec-divider"></div>
+
+<!-- ============================================================ SECTION 08: COMPETITIVE BENCHMARKING ============================================================ -->
+<div class="sec-header" id="s8">
+  <div class="sec-label">Section 08</div>
+  <div class="sec-title">Competitive Benchmarking — Value Retail Peers</div>
+  <div class="sec-subtitle">Style Baazar vs. V Mart, V2 Retail, M Baazar, Citykart, Baazar Kolkata</div>
+</div>
+<div class="content">
+
+  <div class="sub-sec">8.1 Store Footprint &amp; Scale (as of Jan 2024)</div>
+  <div class="tbl-wrap">
+    <table>
+      <tr><th>Player</th><th class="center">Year Founded</th><th class="center">No. Stores</th><th class="center">States</th><th class="center">Cities</th><th>Focus</th></tr>
+      <tr class="hilight-row"><td><strong>Style Baazar</strong></td><td class="center">2013</td><td class="center bold green">153</td><td class="center">9</td><td class="center">140</td><td><span class="tag green">Regional — East</span></td></tr>
+      <tr><td>Baazar Kolkata</td><td class="center">2002</td><td class="center">155</td><td class="center">9</td><td class="center">103</td><td><span class="tag">Regional — East</span></td></tr>
+      <tr><td>M Baazar</td><td class="center">2009</td><td class="center">148</td><td class="center">9</td><td class="center">132</td><td><span class="tag">Regional — East</span></td></tr>
+      <tr><td>Citykart</td><td class="center">2016</td><td class="center">103</td><td class="center">7</td><td class="center">66</td><td><span class="tag">East &amp; Central</span></td></tr>
+      <tr><td>V2 Retail</td><td class="center">2001</td><td class="center">107</td><td class="center">16</td><td class="center">90</td><td><span class="tag amber">National</span></td></tr>
+      <tr><td>V Mart</td><td class="center">2003</td><td class="center bold">447</td><td class="center">26</td><td class="center">264</td><td><span class="tag amber">National</span></td></tr>
+    </table>
+  </div>
+
+  <div class="sub-sec">8.2 Store Growth CAGR (2017–2023)</div>
+  <div class="tbl-wrap">
+    <table>
+      <tr><th>Player</th><th class="center">FY17</th><th class="center">FY20</th><th class="center">FY21</th><th class="center">FY22</th><th class="center">FY23</th><th class="center">CAGR 2017–23</th></tr>
+      <tr class="hilight-row"><td><strong>Style Baazar</strong></td><td class="center">19</td><td class="center">84</td><td class="center">91</td><td class="center">135</td><td class="center bold">153</td><td class="center bold green">42% <span class="tag green">Fastest</span></td></tr>
+      <tr><td>Citykart</td><td class="center">18</td><td class="center">63</td><td class="center">79</td><td class="center">69</td><td class="center">103</td><td class="center">34%</td></tr>
+      <tr><td>Baazar Kolkata</td><td class="center">40</td><td class="center">106</td><td class="center">116</td><td class="center">115</td><td class="center">155</td><td class="center">25%</td></tr>
+      <tr><td>V Mart</td><td class="center">141</td><td class="center">266</td><td class="center">279</td><td class="center">429</td><td class="center">447</td><td class="center">21%</td></tr>
+      <tr><td>V2 Retail</td><td class="center">37</td><td class="center">76</td><td class="center">95</td><td class="center">83</td><td class="center">107</td><td class="center">19%</td></tr>
+    </table>
+  </div>
+
+  <div class="sub-sec">8.3 Revenue Comparison (INR Crore)</div>
+  <div class="tbl-wrap">
+    <table>
+      <tr><th>Player</th><th class="center">FY17</th><th class="center">FY20</th><th class="center">FY21</th><th class="center">FY22</th><th class="center">FY23</th><th class="center">CAGR FY17–23</th></tr>
+      <tr class="hilight-row"><td><strong>Style Baazar</strong></td><td class="center">181</td><td class="center">629</td><td class="center">427</td><td class="center">551</td><td class="center bold">788</td><td class="center bold green">27.8% <span class="tag green">Fastest</span></td></tr>
+      <tr><td>Citykart</td><td class="center">147</td><td class="center">359</td><td class="center">267</td><td class="center">375</td><td class="center">524</td><td class="center">23.6%</td></tr>
+      <tr><td>M Baazar</td><td class="center">345</td><td class="center">556</td><td class="center">371</td><td class="center">534</td><td class="center">716</td><td class="center">12.9%</td></tr>
+      <tr><td>V2 Retail</td><td class="center">472</td><td class="center">701</td><td class="center">539</td><td class="center">629</td><td class="center">839</td><td class="center">10.1%</td></tr>
+      <tr><td>V Mart</td><td class="center">1,002</td><td class="center">1,662</td><td class="center">1,075</td><td class="center">1,666</td><td class="center bold">2,465</td><td class="center">16.2%</td></tr>
+    </table>
+  </div>
+
+  <div class="sub-sec">8.4 Profitability Benchmarks — FY23</div>
+  <div class="tbl-wrap">
+    <table>
+      <tr><th>Player</th><th class="center">Revenue FY23 (INR Cr)</th><th class="center">EBITDA (INR Cr)</th><th class="center">EBITDA %</th><th class="center">PAT (INR Cr)</th><th class="center">PAT %</th></tr>
+      <tr class="hilight-row"><td><strong>Style Baazar</strong></td><td class="center bold">788</td><td class="center bold">101</td><td class="center bold green">12.9% <span class="tag green">Highest</span></td><td class="center bold green">5</td><td class="center bold green">0.6%</td></tr>
+      <tr><td>M Baazar</td><td class="center">716</td><td class="center">74</td><td class="center">10.3%</td><td class="center green">47</td><td class="center green">6.6%</td></tr>
+      <tr><td>Citykart</td><td class="center">524</td><td class="center">53</td><td class="center">10.1%</td><td class="center">0</td><td class="center">0.1%</td></tr>
+      <tr><td>V2 Retail</td><td class="center">839</td><td class="center">84</td><td class="center">10.0%</td><td class="center red">-13</td><td class="center red">-1.5%</td></tr>
+      <tr><td>V Mart</td><td class="center">2,465</td><td class="center">269</td><td class="center">10.9%</td><td class="center red">-8</td><td class="center red">-0.3%</td></tr>
+    </table>
+  </div>
+
+  <div class="sub-sec">8.5 Operational Metrics — FY23</div>
+  <div class="tbl-wrap">
+    <table>
+      <tr><th>Player</th><th class="center">SPSF (INR)</th><th class="center">Avg Inv/sq.ft</th><th class="center">EBITDA/sq.ft</th><th class="center">Inv/Store (INR Cr)</th><th class="center">Apparel % Rev</th><th class="center">ATV (INR)</th><th class="center">East India Footprint</th></tr>
+      <tr class="hilight-row"><td><strong>Style Baazar</strong></td><td class="center bold">7,445</td><td class="center">₹2,500–2,600</td><td class="center bold green">₹800–900</td><td class="center">2.1–2.3</td><td class="center">85%</td><td class="center bold green">1,041 <span class="tag green">Highest</span></td><td class="center bold">11.4–11.6 L sq.ft</td></tr>
+      <tr><td>M Baazar</td><td class="center">6,800–7,000</td><td class="center">₹1,400–1,500</td><td class="center">₹600–700</td><td class="center">1.1–1.3</td><td class="center">~70%</td><td class="center">N/A</td><td class="center">8.7–8.9 L sq.ft</td></tr>
+      <tr><td>Citykart</td><td class="center">7,100–7,300</td><td class="center">₹2,100–2,200</td><td class="center">₹600–700</td><td class="center">1.7–1.9</td><td class="center">~75%</td><td class="center">N/A</td><td class="center">3.3–3.5 L sq.ft</td></tr>
+      <tr><td>V2 Retail</td><td class="center">7,812</td><td class="center">₹2,600–2,700</td><td class="center">₹700–800</td><td class="center">2.7–2.9</td><td class="center">96%</td><td class="center">797</td><td class="center">4.7–4.9 L sq.ft</td></tr>
+      <tr><td>V Mart</td><td class="center">7,476</td><td class="center">₹2,000–2,100</td><td class="center">₹700–800</td><td class="center">1.7–1.9</td><td class="center">79%</td><td class="center">1,017</td><td class="center">10.7–10.9 L sq.ft</td></tr>
+    </table>
+  </div>
+
+  <div class="sub-sec">8.6 Store Closures (Operational Quality Signal)</div>
+  <div class="tbl-wrap">
+    <table>
+      <tr><th>Player</th><th class="center">FY21 Closures</th><th class="center">FY22 Closures</th><th class="center">FY23 Closures</th><th class="center">Total Closures (3 yrs)</th></tr>
+      <tr class="hilight-row"><td><strong>Style Baazar</strong></td><td class="center bold green">2</td><td class="center bold green">3</td><td class="center bold green">5</td><td class="center bold green">10 <span class="tag green">Lowest</span></td></tr>
+      <tr><td>V2 Retail</td><td class="center">8</td><td class="center">4</td><td class="center">11</td><td class="center">23</td></tr>
+      <tr><td>V Mart</td><td class="center">7</td><td class="center">12</td><td class="center">16</td><td class="center">35</td></tr>
+      <tr><td>Shoppers Stop</td><td class="center">20</td><td class="center">4</td><td class="center">1</td><td class="center">25</td></tr>
+      <tr><td>Westside</td><td class="center">2</td><td class="center">10</td><td class="center">6</td><td class="center">18</td></tr>
+    </table>
+  </div>
+
+  <div class="sub-sec">8.7 Market Share — East India (FY23)</div>
+  <div class="tbl-wrap">
+    <table>
+      <tr><th>Player</th><th class="center">Revenue FY23</th><th class="center">India Organised Value Retail %</th><th class="center">East India Value Retail %</th><th class="center">East India Organised %</th></tr>
+      <tr class="hilight-row"><td><strong>Style Baazar</strong></td><td class="center bold">787.9</td><td class="center">0.50%</td><td class="center">0.61%</td><td class="center bold green">2.16% <span class="tag green">#1 by Organised</span></td></tr>
+      <tr><td>V Mart</td><td class="center">2,447.9</td><td class="center bold">1.54%</td><td class="center">0.60%</td><td class="center">2.14%</td></tr>
+      <tr><td>M Baazar</td><td class="center">715.9</td><td class="center">0.45%</td><td class="center">0.47%</td><td class="center">1.69%</td></tr>
+      <tr><td>V2 Retail</td><td class="center">838.9</td><td class="center">0.53%</td><td class="center">0.36%</td><td class="center">1.28%</td></tr>
+      <tr><td>Citykart</td><td class="center">523.7</td><td class="center">0.33%</td><td class="center">0.19%</td><td class="center">0.68%</td></tr>
+    </table>
+  </div>
+
+  <div class="insight-box">
+    <div class="ib-label">Analyst Insight — Section 08</div>
+    <ul>
+      <li>Style Baazar has the HIGHEST EBITDA margin (12.9%) and the HIGHEST ATV (INR 1,041) among peers in FY23. This combination is unusual — typically high margins come at the cost of scale or ATV. The lean cost structure + private label mix explains this.</li>
+      <li>Store closures are the best indicator of site selection quality. Style Baazar's 10 closures in 3 years vs. V Mart's 35 shows significantly superior location evaluation discipline.</li>
+      <li>V Mart's national scale is the aspirational benchmark — but V Mart achieved part of its FY22 store count via acquisition (74 Unlimited stores). Style Baazar's CAGR of 42% is entirely organic.</li>
+      <li>M Baazar has the best PAT margins (6.6%) — this is worth benchmarking against as Style Baazar scales. The PAT gap (Style Baazar 0.6% vs M Baazar 6.6%) partly reflects depreciation/lease accounting on newer, rapidly added stores.</li>
+    </ul>
+  </div>
+</div>
+
+<div class="sec-divider"></div>
+
+<!-- ============================================================ SECTION 09: COMPANY ============================================================ -->
+<div class="sec-header" id="s9">
+  <div class="sec-label">Section 09</div>
+  <div class="sec-title">Style Baazar — Company Analysis</div>
+  <div class="sec-subtitle">153 stores · INR 788 Cr revenue · 12.9% EBITDA · Fastest growing value retailer 2017–2023</div>
+</div>
+<div class="content">
+
+  <div class="sub-sec">9.1 Core Financial &amp; Operating Metrics</div>
+  <div class="tbl-wrap">
+    <table>
+      <tr><th>Metric</th><th class="center">FY21</th><th class="center">FY22</th><th class="center">FY23</th><th class="center">9M Dec'22</th><th class="center">9M Dec'23</th></tr>
+      <tr><td>Store Count</td><td class="center">91</td><td class="center">106</td><td class="center">135</td><td class="center">130</td><td class="center bold">153</td></tr>
+      <tr><td>Retail Space (Mn sq.ft)</td><td class="center">0.92</td><td class="center">1.02</td><td class="center">1.25</td><td class="center">1.21</td><td class="center bold">1.39</td></tr>
+      <tr><td>Avg Store Size (sq.ft)</td><td class="center">10,056</td><td class="center">9,628</td><td class="center">9,289</td><td class="center">9,290</td><td class="center">9,114</td></tr>
+      <tr><td>Revenue from Ops (INR Mn)</td><td class="center">4,267.62</td><td class="center">5,511.18</td><td class="center bold">7,879.03</td><td class="center">6,280.57</td><td class="center bold green">7,493.62</td></tr>
+      <tr><td>Gross Profit Margin %</td><td class="center">29.29%</td><td class="center">31.81%</td><td class="center">32.24%</td><td class="center">33.69%</td><td class="center bold green">33.82%</td></tr>
+      <tr><td>EBITDA (INR Mn)</td><td class="center">465.91</td><td class="center">683.52</td><td class="center bold">1,014.84</td><td class="center">959.64</td><td class="center bold green">1,185.76</td></tr>
+      <tr><td>EBITDA Margin %</td><td class="center">10.92%</td><td class="center">12.40%</td><td class="center bold">12.88%</td><td class="center">15.28%</td><td class="center bold green">15.82%</td></tr>
+      <tr><td>PAT (INR Mn)</td><td class="center red">-182.71</td><td class="center red">-80.07</td><td class="center">51.02</td><td class="center">204.16</td><td class="center bold green">283.76</td></tr>
+      <tr><td>PAT Margin %</td><td class="center red">-4.13%</td><td class="center red">-1.43%</td><td class="center">0.64%</td><td class="center">3.23%</td><td class="center bold green">3.74%</td></tr>
+      <tr><td>SPSF (INR)</td><td class="center">5,226</td><td class="center">6,190</td><td class="center">7,445</td><td class="center">8,088</td><td class="center bold green">8,080</td></tr>
+      <tr><td>ATV (INR)</td><td class="center">984.34</td><td class="center">1,026.17</td><td class="center">1,040.88</td><td class="center">1,063.79</td><td class="center bold green">1,044.70</td></tr>
+      <tr><td>SSSG %</td><td class="center red">(35.26%)</td><td class="center green">17.04%</td><td class="center green">25.73%</td><td class="center green">37.71%</td><td class="center">5.23%</td></tr>
+      <tr><td>RoCE %</td><td class="center red">-1.03%</td><td class="center">6.59%</td><td class="center">13.77%</td><td class="center">17.81%</td><td class="center bold green">19.53%</td></tr>
+      <tr><td>RoE %</td><td class="center red">-18.54%</td><td class="center red">-6.86%</td><td class="center">3.02%</td><td class="center">12.82%</td><td class="center bold green">13.67%</td></tr>
+      <tr><td>Working Capital Days</td><td class="center red">(9.53)</td><td class="center">17.96</td><td class="center">25.69</td><td class="center">17.33</td><td class="center">20.56</td></tr>
+    </table>
+  </div>
+
+  <div class="sub-sec">9.2 State-wise Revenue Contribution (FY23 Full Year)</div>
+  <div class="tbl-wrap">
+    <table>
+      <tr><th>State</th><th class="center">Revenue FY23 (INR Mn)</th><th class="center">Revenue %</th><th class="center">CAGR FY21–23</th><th class="center">Stores FY23</th></tr>
+      <tr class="hilight-row"><td><strong>West Bengal</strong></td><td class="center bold">4,049.13</td><td class="center bold">51.4%</td><td class="center green">32.7%</td><td class="center">58</td></tr>
+      <tr><td>Odisha</td><td class="center">1,348.24</td><td class="center">17.1%</td><td class="center green">59.9%</td><td class="center">26</td></tr>
+      <tr><td>Assam</td><td class="center">800.27</td><td class="center">10.2%</td><td class="center green">42.3%</td><td class="center">15</td></tr>
+      <tr><td>Bihar</td><td class="center">941.59</td><td class="center">12.0%</td><td class="center">19.8%</td><td class="center">15</td></tr>
+      <tr><td>Jharkhand</td><td class="center">386.03</td><td class="center">4.9%</td><td class="center">23.9%</td><td class="center">8</td></tr>
+      <tr><td>Andhra Pradesh</td><td class="center">169.42</td><td class="center">2.2%</td><td class="center green">53.6%</td><td class="center">6</td></tr>
+      <tr><td>Tripura</td><td class="center">100.50</td><td class="center">1.3%</td><td class="center">23.3%</td><td class="center">2</td></tr>
+      <tr><td>Uttar Pradesh</td><td class="center">76.65</td><td class="center">1.0%</td><td class="center">—</td><td class="center">4</td></tr>
+      <tr><td>Chhattisgarh</td><td class="center">7.18</td><td class="center">0.1%</td><td class="center">—</td><td class="center">1</td></tr>
+      <tr class="hilight-row"><td><strong>Total</strong></td><td class="center bold">7,879.03</td><td class="center bold">100%</td><td class="center">35.9%</td><td class="center">135</td></tr>
+    </table>
+  </div>
+
+  <div class="sub-sec">9.3 Inventory &amp; Supply Chain Metrics</div>
+  <div class="tbl-wrap">
+    <table>
+      <tr><th>Metric</th><th class="center">FY21</th><th class="center">FY22</th><th class="center">FY23</th><th class="center">9M Dec'23</th><th>Trend</th></tr>
+      <tr><td>Inventory Turnover Days</td><td class="center amber">262</td><td class="center amber">234</td><td class="center">204</td><td class="center green bold">177</td><td><span class="tag green">↓ Improving</span></td></tr>
+      <tr><td>Trade Payable Days</td><td class="center">199</td><td class="center">145</td><td class="center">106</td><td class="center">83</td><td><span class="tag amber">↓ Normalising</span></td></tr>
+      <tr><td>Avg Inventory/sq.ft (INR)</td><td class="center">2,203</td><td class="center">2,256</td><td class="center">2,311</td><td class="center">2,322</td><td><span class="tag">Stable</span></td></tr>
+      <tr><td>Operational Efficiency %</td><td class="center">89.08%</td><td class="center">87.60%</td><td class="center">87.12%</td><td class="center">84.18%</td><td><span class="tag green">↑ Improving</span></td></tr>
+    </table>
+  </div>
+
+  <div class="insight-box">
+    <div class="ib-label">Analyst Insight — Section 09</div>
+    <ul>
+      <li>The EBITDA margin trajectory is very strong: 10.9% FY21 → 12.9% FY23 → 15.8% in 9M FY24. This is not just operating leverage — it reflects a deliberate mix shift toward private labels (higher GM) and better inventory management.</li>
+      <li>Inventory turnover days improved from 262 → 177 in 3 years — this is a 33% efficiency gain. Combined with rising SPSF (5,226 → 8,080), the same store asset is generating meaningfully more output per rupee of inventory.</li>
+      <li>SSSG in 9M FY24 slowed to 5.23% from 25.7% in FY23 — this is partly base effect (FY22/23 had post-COVID normalisation tailwind). Monitor this closely — SSSG sustainability is key for thesis validation.</li>
+      <li>RoCE improvement from -1% (FY21) to 19.5% (9M FY24) is dramatic. The business has crossed the profitability inflection point and returns are accelerating with scale.</li>
+    </ul>
+  </div>
+</div>
+
+<div class="sec-divider"></div>
+
+<!-- ============================================================ SECTION 10: PRIVATE LABELS ============================================================ -->
+<div class="sec-header" id="s10">
+  <div class="sec-label">Section 10</div>
+  <div class="sec-title">Private Labels &amp; Brand Portfolio</div>
+  <div class="sec-subtitle">10 private label brands · 36.78% revenue contribution · 88.76% CAGR (FY21–23)</div>
+</div>
+<div class="content">
+
+  <div class="sub-sec">10.1 Private Label Revenue Contribution</div>
+  <div class="tbl-wrap">
+    <table>
+      <tr><th>Metric</th><th class="center">FY21</th><th class="center">FY22</th><th class="center">FY23</th><th class="center">9M Dec'22</th><th class="center">9M Dec'23</th></tr>
+      <tr><td>PL Revenue (INR Mn)</td><td class="center">695.05</td><td class="center">1,362.47</td><td class="center bold">2,476.51</td><td class="center">1,987.47</td><td class="center bold green">2,756.13</td></tr>
+      <tr><td>PL % of Revenue</td><td class="center">16.29%</td><td class="center">24.72%</td><td class="center bold">31.43%</td><td class="center">31.64%</td><td class="center bold green">36.78%</td></tr>
+      <tr><td>Top 3 PL Brands % of Revenue</td><td class="center">10.48%</td><td class="center">16.68%</td><td class="center">21.18%</td><td class="center">21.57%</td><td class="center bold green">24.47%</td></tr>
+    </table>
+  </div>
+
+  <div class="sub-sec">10.2 Individual Private Label Brands</div>
+  <div class="tbl-wrap">
+    <table>
+      <tr><th>Brand</th><th>Target</th><th>Category</th><th class="center">FY21 Rev (INR Mn)</th><th class="center">FY23 Rev (INR Mn)</th><th class="center">9M Dec'23 (INR Mn)</th><th class="center">CAGR FY21–23</th></tr>
+      <tr class="hilight-row"><td><strong>Square Up</strong></td><td>Men/Boys</td><td>Casual wear &amp; accessories</td><td class="center">246.81</td><td class="center bold">764.88</td><td class="center">826.33</td><td class="center green bold">76%</td></tr>
+      <tr class="hilight-row"><td><strong>Awaya</strong></td><td>Ladies</td><td>Ethnic wear</td><td class="center">90.77</td><td class="center bold">409.06</td><td class="center">520.32</td><td class="center green bold">112%</td></tr>
+      <tr class="hilight-row"><td><strong>Miss19</strong></td><td>Ladies</td><td>Smart casuals</td><td class="center">109.85</td><td class="center bold">495.06</td><td class="center">486.72</td><td class="center green bold">112%</td></tr>
+      <tr><td>Miss12</td><td>Girls/Infants</td><td>Apparel &amp; accessories</td><td class="center">12.19</td><td class="center">158.85</td><td class="center">205.17</td><td class="center green">261%</td></tr>
+      <tr><td>Kirtle</td><td>Men/Boys</td><td>Apparel &amp; accessories</td><td class="center">86.41</td><td class="center">203.76</td><td class="center">200.49</td><td class="center">54%</td></tr>
+      <tr><td>Walsey</td><td>Men</td><td>Trendy apparel</td><td class="center">56.99</td><td class="center">112.99</td><td class="center">95.52</td><td class="center">41%</td></tr>
+      <tr><td>Miss Desi</td><td>Ladies</td><td>Ethnic + western wear</td><td class="center">42.05</td><td class="center">158.35</td><td class="center">85.28</td><td class="center">94%</td></tr>
+      <tr><td>Dozo</td><td>Girls/Infants</td><td>Apparel &amp; accessories</td><td class="center">25.45</td><td class="center">70.53</td><td class="center">68.90</td><td class="center">66%</td></tr>
+      <tr><td>Corenerzy</td><td>Men</td><td>Activewear</td><td class="center">—</td><td class="center">14.26</td><td class="center">5.37</td><td class="center">N/A</td></tr>
+      <tr><td><strong>Home Focus</strong></td><td>Family</td><td>Home Fashion &amp; Interiors</td><td class="center">24.53</td><td class="center bold green">88.77</td><td class="center">262.02</td><td class="center green bold">90%</td></tr>
+      <tr class="hilight-row"><td><strong>Total</strong></td><td></td><td></td><td class="center bold">695.05</td><td class="center bold">2,476.51</td><td class="center bold green">2,756.13</td><td class="center bold green">89%</td></tr>
+    </table>
+  </div>
+
+  <div class="sub-sec">10.3 Private Label Comparison vs. Peers</div>
+  <div class="tbl-wrap">
+    <table>
+      <tr><th>Player</th><th class="center">PL % Revenue FY22</th><th class="center">PL % Revenue FY23</th><th class="center">PL % Apparel FY23</th></tr>
+      <tr><td>V Mart</td><td class="center bold">45–48%</td><td class="center bold green">54%</td><td class="center bold green">53%</td></tr>
+      <tr><td>V2 Retail</td><td class="center">38%</td><td class="center">40%</td><td class="center">N/A</td></tr>
+      <tr class="hilight-row"><td><strong>Style Baazar</strong></td><td class="center">25%</td><td class="center">31%</td><td class="center green">35%</td></tr>
+    </table>
+  </div>
+  <p>Style Baazar's private label share is lower than peers but growing the fastest. Home Focus grew from INR 24.5 Mn in FY21 to INR 262 Mn in 9M Dec'23 — a 10× increase in under 3 years.</p>
+
+  <div class="insight-box">
+    <div class="ib-label">Analyst Insight — Section 10</div>
+    <ul>
+      <li>Private labels are a margin flywheel: higher gross margin + store loyalty + differentiation. Style Baazar's PL mix at 36.78% (9M FY24) is still below V Mart's 54% — every 500bps of PL share gain translates directly to ~100–150bps gross margin improvement.</li>
+      <li>Square Up (men casual) + Awaya (women ethnic) + Miss19 (women casual) — these three alone = ~24% of total revenue. This is an extremely concentrated top-3-brand dependency, but also shows focused brand-building rather than dilution.</li>
+      <li>Home Focus at 90% CAGR from a small base suggests the home category is winning disproportionately within the private label portfolio — consistent with the broader Home &amp; Living market trend of organised players gaining share rapidly.</li>
+      <li>Repeat customer rate of ~70% across all periods is exceptional for a value retailer. This suggests genuine brand loyalty, not just price-driven traffic — the loyalty programme and CRM are working.</li>
+    </ul>
+  </div>
+</div>
+
+<div class="sec-divider"></div>
+
+<!-- ============================================================ SECTION 11: SYNTHESIS ============================================================ -->
+<div class="sec-header" id="s11">
+  <div class="sec-label">Section 11</div>
+  <div class="sec-title">Synthesis &amp; Presentation Thesis Angles</div>
+  <div class="sec-subtitle">How to frame the big story — what data from this DRHP validates</div>
+</div>
+<div class="content">
+
+  <div class="sub-sec">11.1 The Three-Layer Market Thesis</div>
+
+  <div class="thesis-box">
+    <div class="tb-label">Layer 1 — Macro Tailwind</div>
+    <ul>
+      <li>India's GDP growing at 12%+ nominal CAGR → per capita income rising → 13% CAGR in "middle class" household formation (USD 10K–50K bracket).</li>
+      <li>Urbanisation at 36% (vs. 57% global avg) = decades of runway. Every 1% urbanisation adds ~14Mn urban consumers.</li>
+      <li>Eastern states (WB, Odisha, Assam, Bihar) growing GSDP at 10–12% CAGR — above national average. This is precisely where Style Baazar operates.</li>
+    </ul>
+  </div>
+
+  <div class="thesis-box">
+    <div class="tb-label">Layer 2 — Sectoral Shift</div>
+    <ul>
+      <li>Apparel is the fastest-growing retail category at 18.2% CAGR (FY23–27). Organised apparel share moving from 38% → 48% — structural formalisation.</li>
+      <li>LFS (Large Format Stores) growing at 29.4% CAGR — fastest among all organised formats. Style Baazar is directly in this channel.</li>
+      <li>Value retail organised penetration moving from 28% → 36% in 4 years = INR 1.08 lakh crore of incremental organised market opportunity.</li>
+    </ul>
+  </div>
+
+  <div class="thesis-box">
+    <div class="tb-label">Layer 3 — Company-Specific Alpha</div>
+    <ul>
+      <li>Fastest store growth (42% CAGR) AND revenue growth (27.8% CAGR) among peers — organic, not acquisition-driven.</li>
+      <li>Highest EBITDA margin (12.9%) AND ATV (INR 1,041) in peer set — proves the business model is not just growing fast but also running efficiently.</li>
+      <li>Private label mix rising 16% → 37% in 3 years — gross margin accretion flywheel just starting. If PL share reaches V Mart's 54%, gross margin expands by ~350–400bps from current levels.</li>
+      <li>Lowest store closure rate → best site selection → capital is being deployed correctly, not just aggressively.</li>
+    </ul>
+  </div>
+
+  <div class="sub-sec">11.2 Key Numbers to Anchor Your Presentation</div>
+  <div class="tbl-wrap">
+    <table>
+      <tr><th>Claim</th><th class="center">Data Point</th><th>Source</th></tr>
+      <tr><td>India Apparel market size FY23</td><td class="center">INR 5.48 lakh crore</td><td>Technopak/DRHP</td></tr>
+      <tr><td>Apparel CAGR FY23–27</td><td class="center">18.2%</td><td>Technopak</td></tr>
+      <tr><td>Organised apparel share FY23 → FY27</td><td class="center">38% → 48%</td><td>Technopak</td></tr>
+      <tr><td>LFS channel CAGR</td><td class="center">29.4%</td><td>Technopak</td></tr>
+      <tr><td>East India Value Retail CAGR</td><td class="center">16.6% (FY23–27)</td><td>Technopak</td></tr>
+      <tr><td>TAM per player (North+East)</td><td class="center">800–1,000 stores by FY27</td><td>Technopak</td></tr>
+      <tr><td>Value retail market FY23</td><td class="center">INR 5.67 lakh crore (56% of L&amp;H)</td><td>Technopak</td></tr>
+      <tr><td>Style Baazar revenue CAGR FY17–23</td><td class="center">27.8%</td><td>DRHP/Technopak</td></tr>
+      <tr><td>Style Baazar store CAGR FY17–23</td><td class="center">42%</td><td>DRHP/Technopak</td></tr>
+      <tr><td>EBITDA Margin FY23 / 9M FY24</td><td class="center">12.9% / 15.8%</td><td>DRHP Financials</td></tr>
+      <tr><td>Repeat customer rate</td><td class="center">~70–72%</td><td>DRHP Operations</td></tr>
+      <tr><td>Private label % of revenue (9M FY24)</td><td class="center">36.78%</td><td>DRHP Financials</td></tr>
+      <tr><td>RoCE 9M FY24</td><td class="center">19.53%</td><td>DRHP Financials</td></tr>
+    </table>
+  </div>
+
+  <div class="sub-sec">11.3 Things to Challenge / Risks to Flag</div>
+  <div class="warn-box">
+    <div class="wb-label">Watch Points</div>
+    <ul>
+      <li><strong>SSSG deceleration:</strong> SSSG slowed to 5.23% in 9M FY24 from 25.7% in FY23. Post-COVID tailwind is fading — what is the normalised SSSG? This is the single most important question to resolve with additional data.</li>
+      <li><strong>West Bengal concentration:</strong> 51% of revenue comes from West Bengal. Political/regulatory risk, consumer preference shifts, or regional competition intensification all pose outsized risk.</li>
+      <li><strong>PAT margin is low:</strong> FY23 PAT = only INR 51 Cr on INR 788 Cr revenue (0.6%). While EBITDA is strong, lease costs under Ind-AS are significant. The path to sustained 4–5% PAT margin needs modelling.</li>
+      <li><strong>Trade payable normalisation:</strong> Trade payable days dropped from 199 (FY21) to 83 (9M FY24) — while the working capital profile is improving, faster payment cycles can pressure cash flow if not offset by improved inventory turns.</li>
+      <li><strong>Private label dependency on top 3 brands:</strong> Square Up + Awaya + Miss19 = 24% of total revenue. Concentration at brand level within own-label portfolio is a risk if any of these brands lose consumer relevance.</li>
+      <li><strong>E-commerce as a future threat:</strong> Apparel e-comm expected to reach 24% of organised apparel by FY27. Currently at 20.5%. While B&amp;M and e-comm co-exist, monitoring whether e-comm growth comes at B&amp;M's expense is essential.</li>
+    </ul>
+  </div>
+
+  <div class="sub-sec">11.4 Suggested Presentation Structure</div>
+  <div class="insight-box">
+    <div class="ib-label">Presentation Flow Suggestion</div>
+    <ul>
+      <li><strong>Slide 1 — The India Consumption Story:</strong> GDP growth, per capita income, middle class expansion, urbanisation runway. Frame the "why India now" argument.</li>
+      <li><strong>Slide 2 — Apparel as the Fastest-Growing Retail Category:</strong> 18.2% CAGR, formalisation shift, LFS outperformance. Why apparel > electronics/food for organised retail.</li>
+      <li><strong>Slide 3 — East India Opportunity:</strong> Fastest-growing value retail region (16.6%), income levels, GSDP growth, density of target customer (aspirational middle class &lt;USD 5,000 HH income).</li>
+      <li><strong>Slide 4 — Value Retail Format is the Winner:</strong> B&amp;M LFS at 29.4% CAGR, e-comm stabilising, organised penetration rising. First-time branded buyers prefer touch-feel.</li>
+      <li><strong>Slide 5 — Competitive Landscape:</strong> Who the players are, market share table, what differentiates Style Baazar (EBITDA margin, ATV, site selection, PL trajectory).</li>
+      <li><strong>Slide 6 — Style Baazar Company Snapshot:</strong> KPI table, state-wise breakdown, store expansion trajectory, unit economics.</li>
+      <li><strong>Slide 7 — Private Label as Margin Driver:</strong> PL revenue trajectory, brand portfolio, how PL mix closing the gap to V Mart drives margin expansion.</li>
+      <li><strong>Slide 8 — Investment Thesis &amp; Key Risks:</strong> TAM of 800–1000 stores by FY27, RoCE trajectory, SSSG as the key variable to monitor.</li>
+    </ul>
+  </div>
+</div>
+
+<div class="sec-divider"></div>
+
+<!-- ============================================================ SECTION 12: CHEAT SHEET ============================================================ -->
+<div class="sec-header" id="s12">
+  <div class="sec-label">Section 12</div>
+  <div class="sec-title">Key Numbers Cheat Sheet</div>
+  <div class="sec-subtitle">Quick reference for your research — all critical metrics in one place</div>
+</div>
+<div class="content">
+  <div class="tbl-wrap">
+    <table>
+      <tr><th colspan="4" style="background: var(--accent2); text-align:center;">INDIA MACRO</th></tr>
+      <tr><td>India GDP FY23</td><td class="bold">USD 3.7T</td><td>India GDP FY27P</td><td class="bold green">USD 5.8T</td></tr>
+      <tr><td>Nominal GDP CAGR FY14–22</td><td class="bold">9.5%</td><td>Real GDP CAGR FY23–30P</td><td class="bold">6.6%</td></tr>
+      <tr><td>Per Capita GDP FY23</td><td class="bold">INR 1,96,983</td><td>Per Capita GDP CAGR FY23–30</td><td class="bold">10.0%</td></tr>
+      <tr><td>Urban Population 2023</td><td class="bold">35.8% / 508Mn</td><td>PFCE % of GDP</td><td class="bold">~60%</td></tr>
+      <tr><th colspan="4" style="background: var(--accent2); text-align:center;">INDIA RETAIL</th></tr>
+      <tr><td>Total Retail FY23</td><td class="bold">INR 76,06,600 Cr</td><td>Total Retail FY27P</td><td class="bold green">INR 1,13,39,900 Cr</td></tr>
+      <tr><td>Retail CAGR FY23–27</td><td class="bold">10.5%</td><td>Organised Retail FY23</td><td class="bold">15.8% → 22.9% FY27</td></tr>
+      <tr><td>E-commerce FY23</td><td class="bold">INR 5,33,700 Cr (7%)</td><td>E-commerce FY27P</td><td class="bold green">INR 12,51,200 Cr (11%)</td></tr>
+      <tr><th colspan="4" style="background: var(--accent2); text-align:center;">APPAREL MARKET</th></tr>
+      <tr><td>Apparel Market FY23</td><td class="bold">INR 5,47,628 Cr</td><td>Apparel Market FY27P</td><td class="bold green">INR 10,68,250 Cr</td></tr>
+      <tr><td>Apparel CAGR FY23–27</td><td class="bold green">18.2%</td><td>Organised Apparel FY23</td><td class="bold">38% → 48% FY27</td></tr>
+      <tr><td>Value Apparel FY23</td><td class="bold">INR 3,17,733 Cr (58%)</td><td>LFS CAGR FY23–27</td><td class="bold green">29.4%</td></tr>
+      <tr><td>Women Ethnic Wear FY23</td><td class="bold">INR 1,34,547 Cr</td><td>Women Ethnic CAGR</td><td class="bold">18.0%</td></tr>
+      <tr><th colspan="4" style="background: var(--accent2); text-align:center;">FOOTWEAR &amp; HOME</th></tr>
+      <tr><td>Footwear Market FY23</td><td class="bold">INR 76,111 Cr</td><td>Footwear CAGR FY23–27</td><td class="bold">18.1%</td></tr>
+      <tr><td>Home &amp; Living FY23</td><td class="bold">INR 3,03,200 Cr</td><td>Home &amp; Living CAGR</td><td class="bold">14.2%</td></tr>
+      <tr><th colspan="4" style="background: var(--accent2); text-align:center;">VALUE RETAIL</th></tr>
+      <tr><td>Value Retail (L&amp;H) FY23</td><td class="bold">INR 5,67,334 Cr</td><td>Value Retail FY27P</td><td class="bold green">INR 9,72,058 Cr</td></tr>
+      <tr><td>Value Retail Organised %</td><td class="bold">28% → 36% FY27</td><td>East India Value Retail CAGR</td><td class="bold green">16.6%</td></tr>
+      <tr><td>East India Value Retail FY23</td><td class="bold">INR 1,19,508 Cr</td><td>Stores potential per player</td><td class="bold green">800–1,000 (FY27)</td></tr>
+      <tr><th colspan="4" style="background: var(--accent1); text-align:center; color:white;">STYLE BAAZAR (as of Dec 31, 2023 / FY23)</th></tr>
+      <tr><td>Stores</td><td class="bold">153</td><td>Cities / States</td><td class="bold">140 / 9</td></tr>
+      <tr><td>Revenue FY23</td><td class="bold">INR 787.9 Cr</td><td>Revenue CAGR FY17–23</td><td class="bold green">27.8%</td></tr>
+      <tr><td>Gross Margin FY23 / 9M FY24</td><td class="bold">32.24% / 33.82%</td><td>EBITDA Margin FY23 / 9M FY24</td><td class="bold green">12.9% / 15.8%</td></tr>
+      <tr><td>SPSF FY23 / 9M FY24</td><td class="bold">INR 7,445 / 8,080</td><td>ATV FY23</td><td class="bold">INR 1,041</td></tr>
+      <tr><td>Private Label % FY23 / 9M FY24</td><td class="bold">31.43% / 36.78%</td><td>Repeat Customer Rate FY23</td><td class="bold green">70%</td></tr>
+      <tr><td>RoCE 9M FY24</td><td class="bold green">19.53%</td><td>Inventory Turnover Days (9M FY24)</td><td class="bold green">177 days</td></tr>
+      <tr><td>Store CAGR FY17–23</td><td class="bold green">42% (fastest)</td><td>East India Organised MS %</td><td class="bold green">2.16% (#1)</td></tr>
+    </table>
+  </div>
+</div>
+
+<div class="footer">
+  Bazaar Style Retail DRHP Research Digest · Source: Technopak Report &amp; DRHP (Pg 134–208) · Data as of FY2023 / Dec 31, 2023 · For internal research use only
+</div>
+
+</div>
+</body>
+</html>
