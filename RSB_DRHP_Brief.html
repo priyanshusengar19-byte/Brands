@@ -1,0 +1,1013 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>RSB Retail India — DRHP Industry & Business Brief</title>
+<style>
+  :root {
+    --bg:        #0B1628;
+    --surface:   #111E35;
+    --card:      #16243E;
+    --card2:     #1A2A46;
+    --border:    #1E3356;
+    --border2:   #253d6a;
+    --txt1:      #F1F5F9;
+    --txt2:      #94A3B8;
+    --txt3:      #64748B;
+    --sec-a:     #2563EB;
+    --sec-a-l:   #1E3A8A;
+    --sec-a-lt:  rgba(37,99,235,0.12);
+    --sec-b:     #0F766E;
+    --sec-b-l:   #134E4A;
+    --sec-b-lt:  rgba(15,118,110,0.12);
+    --sec-c:     #7C3AED;
+    --sec-c-l:   #4C1D95;
+    --sec-c-lt:  rgba(124,58,237,0.12);
+    --thesis:    #14B8A6;
+    --thesis-lt: rgba(20,184,166,0.14);
+    --rsb:       #A78BFA;
+    --rsb-lt:    rgba(167,139,250,0.14);
+    --risk:      #F87171;
+    --risk-lt:   rgba(248,113,113,0.14);
+    --model:     #FBBF24;
+    --model-lt:  rgba(251,191,36,0.14);
+    --green:     #34D399;
+    --red-neg:   #F87171;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html { scroll-behavior: smooth; }
+  body { background: var(--bg); color: var(--txt1); font-family: 'Segoe UI', system-ui, -apple-system, sans-serif; font-size: 13px; line-height: 1.6; }
+
+  /* ── HEADER ── */
+  .site-header {
+    background: linear-gradient(135deg, #060f22 0%, #0d1e3d 60%, #0a1a35 100%);
+    border-bottom: 1px solid var(--border2);
+    padding: 28px 40px 0;
+    position: sticky; top: 0; z-index: 100;
+  }
+  .header-top { display: flex; align-items: flex-start; justify-content: space-between; margin-bottom: 20px; }
+  .header-badge { background: var(--sec-b); color: #fff; font-size: 9px; font-weight: 700; letter-spacing: 1.2px; padding: 3px 8px; border-radius: 3px; text-transform: uppercase; margin-bottom: 8px; display: inline-block; }
+  .header-title { font-size: 22px; font-weight: 700; color: #fff; letter-spacing: -0.3px; line-height: 1.2; }
+  .header-sub { font-size: 12px; color: var(--txt2); margin-top: 4px; }
+  .header-meta { text-align: right; font-size: 11px; color: var(--txt3); }
+  .header-meta strong { color: var(--txt2); display: block; font-size: 12px; }
+
+  /* ── TABS ── */
+  .tabs { display: flex; gap: 2px; }
+  .tab {
+    padding: 10px 20px; font-size: 12px; font-weight: 600; cursor: pointer;
+    border-radius: 6px 6px 0 0; border: 1px solid transparent;
+    border-bottom: none; color: var(--txt3); background: transparent;
+    transition: all 0.18s; letter-spacing: 0.3px; user-select: none;
+  }
+  .tab:hover { color: var(--txt2); background: rgba(255,255,255,0.04); }
+  .tab.active-a { color: #fff; background: var(--sec-a-l); border-color: var(--sec-a); }
+  .tab.active-b { color: #fff; background: var(--sec-b-l); border-color: var(--sec-b); }
+  .tab.active-c { color: #fff; background: var(--sec-c-l); border-color: var(--sec-c); }
+  .tab.active-s { color: #fff; background: #1a2a40; border-color: var(--border2); }
+
+  /* ── LAYOUT ── */
+  .body-wrap { display: flex; min-height: calc(100vh - 120px); }
+  .sidebar {
+    width: 220px; flex-shrink: 0; background: var(--surface);
+    border-right: 1px solid var(--border); padding: 20px 0;
+    position: sticky; top: 120px; height: calc(100vh - 120px); overflow-y: auto;
+  }
+  .sidebar-title { font-size: 9px; font-weight: 700; letter-spacing: 1.2px; color: var(--txt3); text-transform: uppercase; padding: 0 16px 8px; }
+  .sidebar-link {
+    display: block; padding: 7px 16px; font-size: 12px; color: var(--txt2);
+    text-decoration: none; border-left: 2px solid transparent; transition: all 0.15s;
+  }
+  .sidebar-link:hover { color: var(--txt1); background: rgba(255,255,255,0.04); }
+  .sidebar-link.active { color: #fff; border-left-color: var(--sec-a); background: var(--sec-a-lt); }
+  .sidebar-link.active-b { color: #fff; border-left-color: var(--sec-b); background: var(--sec-b-lt); }
+  .sidebar-link.active-c { color: #fff; border-left-color: var(--sec-c); background: var(--sec-c-lt); }
+  .sidebar-group { margin-bottom: 16px; }
+
+  .main-content { flex: 1; padding: 32px 36px; max-width: 960px; }
+
+  /* ── PANELS ── */
+  .panel { display: none; }
+  .panel.active { display: block; }
+
+  /* ── SECTION BANNER ── */
+  .sec-banner {
+    border-radius: 8px; padding: 20px 24px; margin-bottom: 28px;
+    position: relative; overflow: hidden;
+  }
+  .sec-banner.a { background: linear-gradient(135deg, var(--sec-a-l) 0%, #1e3f9e 100%); border: 1px solid var(--sec-a); }
+  .sec-banner.b { background: linear-gradient(135deg, var(--sec-b-l) 0%, #0d5c56 100%); border: 1px solid var(--sec-b); }
+  .sec-banner.c { background: linear-gradient(135deg, var(--sec-c-l) 0%, #3d1a8c 100%); border: 1px solid var(--sec-c); }
+  .sec-banner-num { position: absolute; right: 20px; top: 50%; transform: translateY(-50%); font-size: 72px; font-weight: 900; opacity: 0.08; letter-spacing: -4px; }
+  .sec-banner-tag { font-size: 9px; font-weight: 700; letter-spacing: 1.5px; text-transform: uppercase; opacity: 0.7; margin-bottom: 5px; }
+  .sec-banner-title { font-size: 18px; font-weight: 700; color: #fff; margin-bottom: 4px; }
+  .sec-banner-sub { font-size: 11.5px; color: rgba(255,255,255,0.65); }
+
+  /* ── SECTION HEADINGS ── */
+  .h2 { font-size: 15px; font-weight: 700; color: var(--txt1); margin: 28px 0 6px; display: flex; align-items: center; gap: 10px; }
+  .h2-dot { width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0; }
+  .h2-dot.a { background: var(--sec-a); }
+  .h2-dot.b { background: var(--sec-b); }
+  .h2-dot.c { background: var(--sec-c); }
+  .h3 { font-size: 12.5px; font-weight: 700; color: var(--txt2); margin: 18px 0 8px; text-transform: uppercase; letter-spacing: 0.5px; }
+  .divider { height: 1px; background: var(--border); margin: 6px 0 16px; }
+  .divider.a { background: linear-gradient(90deg, var(--sec-a) 0%, transparent 60%); height: 1.5px; }
+  .divider.b { background: linear-gradient(90deg, var(--sec-b) 0%, transparent 60%); height: 1.5px; }
+  .divider.c { background: linear-gradient(90deg, var(--sec-c) 0%, transparent 60%); height: 1.5px; }
+
+  /* ── BODY TEXT ── */
+  p.body { color: var(--txt2); font-size: 13px; line-height: 1.7; margin-bottom: 12px; }
+  p.body strong { color: var(--txt1); }
+
+  /* ── CALLOUT BOX ── */
+  .callout {
+    border-radius: 6px; padding: 14px 16px; margin: 14px 0;
+    border-left: 3px solid; font-size: 12.5px; line-height: 1.65;
+  }
+  .callout.a { background: var(--sec-a-lt); border-color: var(--sec-a); color: var(--txt1); }
+  .callout.b { background: var(--sec-b-lt); border-color: var(--sec-b); color: var(--txt1); }
+  .callout.c { background: var(--sec-c-lt); border-color: var(--sec-c); color: var(--txt1); }
+  .callout.synth { background: rgba(255,255,255,0.04); border-color: var(--border2); color: var(--txt2); }
+  .callout strong { color: #fff; }
+
+  /* ── INSIGHT BADGES ── */
+  .insight { display: flex; align-items: flex-start; gap: 10px; background: rgba(255,255,255,0.03); border: 1px solid var(--border); border-radius: 6px; padding: 10px 12px; margin: 8px 0; }
+  .badge { flex-shrink: 0; font-size: 8px; font-weight: 800; letter-spacing: 1px; padding: 3px 7px; border-radius: 3px; margin-top: 1px; text-transform: uppercase; white-space: nowrap; }
+  .badge.thesis { background: var(--thesis-lt); color: var(--thesis); border: 1px solid rgba(20,184,166,0.3); }
+  .badge.rsb    { background: var(--rsb-lt);   color: var(--rsb);   border: 1px solid rgba(167,139,250,0.3); }
+  .badge.risk   { background: var(--risk-lt);  color: var(--risk);  border: 1px solid rgba(248,113,113,0.3); }
+  .badge.model  { background: var(--model-lt); color: var(--model); border: 1px solid rgba(251,191,36,0.3); }
+  .insight-text { font-size: 12.5px; color: var(--txt2); line-height: 1.6; }
+  .insight-text strong { color: var(--txt1); }
+
+  /* ── TABLES ── */
+  .tbl-wrap { overflow-x: auto; margin: 12px 0 6px; border-radius: 6px; border: 1px solid var(--border); }
+  table { width: 100%; border-collapse: collapse; font-size: 12px; }
+  thead tr { background: var(--card2); }
+  thead th { padding: 9px 12px; text-align: left; font-weight: 700; color: var(--txt1); font-size: 11px; letter-spacing: 0.3px; border-bottom: 1px solid var(--border2); white-space: nowrap; }
+  thead th.th-a { color: #93C5FD; }
+  thead th.th-b { color: #6EE7B7; }
+  thead th.th-c { color: #C4B5FD; }
+  tbody tr { border-bottom: 1px solid var(--border); transition: background 0.1s; }
+  tbody tr:last-child { border-bottom: none; }
+  tbody tr:nth-child(odd) { background: var(--card); }
+  tbody tr:nth-child(even) { background: var(--surface); }
+  tbody tr:hover { background: rgba(255,255,255,0.05); }
+  td { padding: 8px 12px; color: var(--txt2); vertical-align: top; }
+  td.td-bold { color: var(--txt1); font-weight: 600; }
+  td.td-pos { color: var(--green); font-weight: 600; }
+  td.td-neg { color: var(--red-neg); font-weight: 600; }
+  td.td-hl  { color: #FBBF24; font-weight: 600; }
+  .tbl-caption { font-size: 10.5px; color: var(--txt3); font-style: italic; margin-bottom: 16px; padding: 0 2px; }
+
+  /* ── STAT CARDS ── */
+  .stat-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); gap: 10px; margin: 16px 0; }
+  .stat-card { background: var(--card); border: 1px solid var(--border); border-radius: 8px; padding: 14px 16px; }
+  .stat-val { font-size: 22px; font-weight: 800; color: var(--txt1); line-height: 1; margin-bottom: 4px; }
+  .stat-val.a { color: #93C5FD; }
+  .stat-val.b { color: #6EE7B7; }
+  .stat-val.c { color: #C4B5FD; }
+  .stat-label { font-size: 10.5px; color: var(--txt3); line-height: 1.4; }
+  .stat-sub { font-size: 11px; color: var(--txt3); margin-top: 5px; }
+  .stat-delta { font-size: 11px; font-weight: 700; margin-top: 6px; }
+  .stat-delta.up { color: var(--green); }
+  .stat-delta.dn { color: var(--red-neg); }
+
+  /* ── FORMAT CARDS ── */
+  .format-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin: 14px 0; }
+  .format-card { background: var(--card); border: 1px solid var(--border); border-radius: 8px; padding: 14px 16px; }
+  .format-brand { font-size: 13px; font-weight: 700; color: var(--txt1); margin-bottom: 2px; }
+  .format-seg { display: inline-block; font-size: 9px; font-weight: 700; letter-spacing: 0.8px; text-transform: uppercase; padding: 2px 6px; border-radius: 3px; margin-bottom: 8px; }
+  .seg-mid  { background: rgba(37,99,235,0.2); color: #93C5FD; }
+  .seg-prem { background: rgba(124,58,237,0.2); color: #C4B5FD; }
+  .seg-val  { background: rgba(20,184,166,0.2); color: var(--thesis); }
+  .format-row { display: flex; justify-content: space-between; font-size: 11.5px; margin-bottom: 3px; }
+  .format-key { color: var(--txt3); }
+  .format-val { color: var(--txt1); font-weight: 600; }
+
+  /* ── COMPETITOR TABLE SPECIAL ── */
+  .check-y { color: var(--green); font-weight: 700; }
+  .check-n { color: var(--border2); }
+
+  /* ── SECTION DIVIDER ── */
+  .sec-divide { display: flex; align-items: center; gap: 12px; margin: 28px 0 20px; }
+  .sec-divide-line { flex: 1; height: 1px; background: var(--border); }
+  .sec-divide-label { font-size: 10px; font-weight: 700; letter-spacing: 1.2px; color: var(--txt3); text-transform: uppercase; white-space: nowrap; }
+
+  /* ── SYNTHESIS ── */
+  .thread-card { background: var(--card); border: 1px solid var(--border); border-radius: 8px; padding: 16px 18px; margin-bottom: 10px; }
+  .thread-num { display: inline-block; background: var(--sec-a); color: #fff; font-size: 10px; font-weight: 800; width: 22px; height: 22px; border-radius: 50%; text-align: center; line-height: 22px; margin-right: 8px; flex-shrink: 0; }
+  .thread-title { font-size: 13px; font-weight: 700; color: var(--txt1); display: flex; align-items: center; margin-bottom: 6px; }
+  .thread-body { font-size: 12px; color: var(--txt2); line-height: 1.65; padding-left: 30px; }
+
+  /* ── COVER ── */
+  .cover { background: linear-gradient(160deg, #060f22 0%, #0d1e3d 50%, #060d1c 100%); border-radius: 10px; padding: 36px 40px; margin-bottom: 28px; border: 1px solid var(--border2); position: relative; overflow: hidden; }
+  .cover::after { content: 'RSB'; position: absolute; right: -10px; bottom: -30px; font-size: 140px; font-weight: 900; color: rgba(255,255,255,0.02); letter-spacing: -8px; pointer-events: none; }
+  .cover-eyebrow { font-size: 10px; font-weight: 700; letter-spacing: 1.5px; color: var(--thesis); text-transform: uppercase; margin-bottom: 10px; }
+  .cover-title { font-size: 28px; font-weight: 800; color: #fff; letter-spacing: -0.5px; margin-bottom: 6px; line-height: 1.15; }
+  .cover-sub { font-size: 14px; color: rgba(255,255,255,0.5); margin-bottom: 20px; }
+  .cover-meta { display: flex; gap: 20px; flex-wrap: wrap; margin-bottom: 22px; }
+  .cover-meta-item { font-size: 11px; color: var(--txt3); }
+  .cover-meta-item strong { color: var(--txt2); display: block; font-size: 12px; }
+  .cover-divider { height: 1px; background: var(--border); margin-bottom: 20px; }
+  .badge-legend { display: flex; gap: 12px; flex-wrap: wrap; }
+  .legend-item { display: flex; align-items: center; gap: 6px; font-size: 11px; color: var(--txt3); }
+
+  /* ── TOC ── */
+  .toc-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 12px; margin: 8px 0 28px; }
+  .toc-sec { background: var(--card); border: 1px solid var(--border); border-radius: 7px; padding: 14px; }
+  .toc-sec-header { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.8px; padding: 4px 8px; border-radius: 4px; margin-bottom: 10px; display: inline-block; }
+  .toc-sec-header.a { background: var(--sec-a-lt); color: #93C5FD; }
+  .toc-sec-header.b { background: var(--sec-b-lt); color: #6EE7B7; }
+  .toc-sec-header.c { background: var(--sec-c-lt); color: #C4B5FD; }
+  .toc-item { font-size: 11.5px; color: var(--txt3); padding: 3px 0; }
+  .toc-item span { color: var(--txt2); font-weight: 600; margin-right: 5px; }
+
+  /* ── RESPONSIVE ── */
+  @media (max-width: 800px) {
+    .sidebar { display: none; }
+    .main-content { padding: 20px 16px; }
+    .site-header { padding: 18px 16px 0; }
+    .header-title { font-size: 16px; }
+    .format-grid { grid-template-columns: 1fr; }
+    .toc-grid { grid-template-columns: 1fr; }
+    .stat-grid { grid-template-columns: 1fr 1fr; }
+  }
+</style>
+</head>
+<body>
+
+<!-- HEADER -->
+<header class="site-header">
+  <div class="header-top">
+    <div>
+      <div class="header-badge">DRHP Industry Brief · Aug 2025</div>
+      <div class="header-title">RSB Retail India Limited</div>
+      <div class="header-sub">Apparel Market & Business Intelligence — Pages 142–204</div>
+    </div>
+    <div class="header-meta">
+      <strong>Source</strong>Technopak Report + Restated Financials FY23–25
+      <br><span>Prepared June 2026</span>
+    </div>
+  </div>
+  <div class="tabs">
+    <div class="tab active-a" onclick="switchTab('cover','a',this)">📋 Overview</div>
+    <div class="tab" onclick="switchTab('secA','a',this)">A — Macro India</div>
+    <div class="tab" onclick="switchTab('secB','b',this)">B — Apparel Market</div>
+    <div class="tab" onclick="switchTab('secC','c',this)">C — RSB Business</div>
+    <div class="tab" onclick="switchTab('synth','s',this)">⟳ Synthesis</div>
+  </div>
+</header>
+
+<div class="body-wrap">
+
+  <!-- SIDEBAR -->
+  <nav class="sidebar" id="sidebar">
+    <div class="sidebar-group">
+      <div class="sidebar-title">Overview</div>
+      <a class="sidebar-link" href="#cover-top">Cover</a>
+      <a class="sidebar-link" href="#toc">Table of Contents</a>
+      <a class="sidebar-link" href="#badge-guide">Badge Guide</a>
+    </div>
+    <div class="sidebar-group" id="toc-a" style="display:none">
+      <div class="sidebar-title">Section A</div>
+      <a class="sidebar-link" href="#a1">A.1 GDP & Growth</a>
+      <a class="sidebar-link" href="#a2">A.2 Per Capita Income</a>
+      <a class="sidebar-link" href="#a3">A.3 Demographics</a>
+      <a class="sidebar-link" href="#a4">A.4 Urbanisation & Digital</a>
+      <a class="sidebar-link" href="#a5">A.5 Growth Drivers</a>
+    </div>
+    <div class="sidebar-group" id="toc-b" style="display:none">
+      <div class="sidebar-title">Section B</div>
+      <a class="sidebar-link" href="#b1">B.1 India Retail Overview</a>
+      <a class="sidebar-link" href="#b2">B.2 Apparel Total Market</a>
+      <a class="sidebar-link" href="#b3">B.3 Organised vs Unorganised</a>
+      <a class="sidebar-link" href="#b4">B.4 Women's & Saree Market</a>
+      <a class="sidebar-link" href="#b5">B.5 Men's & Kids'</a>
+      <a class="sidebar-link" href="#b6">B.6 Price Segments</a>
+      <a class="sidebar-link" href="#b7">B.7 Drivers & Risks</a>
+    </div>
+    <div class="sidebar-group" id="toc-c" style="display:none">
+      <div class="sidebar-title">Section C</div>
+      <a class="sidebar-link" href="#c1">C.1 South India Market</a>
+      <a class="sidebar-link" href="#c2">C.2 LFS Market</a>
+      <a class="sidebar-link" href="#c3">C.3 Value Retail</a>
+      <a class="sidebar-link" href="#c4">C.4 RSB Business</a>
+      <a class="sidebar-link" href="#c5">C.5 RSB Financials</a>
+      <a class="sidebar-link" href="#c6">C.6 Peer Benchmarking</a>
+      <a class="sidebar-link" href="#c7">C.7 Strategy</a>
+    </div>
+  </nav>
+
+  <!-- MAIN -->
+  <main class="main-content">
+
+    <!-- ════ COVER PANEL ════ -->
+    <div class="panel active" id="cover">
+      <div class="cover" id="cover-top">
+        <div class="cover-eyebrow">RSB Retail India Limited · DRHP Research Brief</div>
+        <div class="cover-title">Apparel Market &<br>Business Intelligence</div>
+        <div class="cover-sub">Three-section deep-dive: Macro India · India Apparel · RSB Business & Benchmarking</div>
+        <div class="cover-divider"></div>
+        <div class="cover-meta">
+          <div class="cover-meta-item"><strong>Primary Source</strong>Technopak Report, Aug 12 2025</div>
+          <div class="cover-meta-item"><strong>Financials</strong>Restated Statements FY2023–25</div>
+          <div class="cover-meta-item"><strong>DRHP Pages</strong>142–204 (Industry Overview + Our Business)</div>
+          <div class="cover-meta-item"><strong>Prepared</strong>June 2026</div>
+        </div>
+        <div class="badge-legend" id="badge-guide">
+          <div class="legend-item"><span class="badge thesis">THESIS</span> Key insight for investment thesis</div>
+          <div class="legend-item"><span class="badge rsb">RSB</span> RSB-specific data point</div>
+          <div class="legend-item"><span class="badge risk">RISK</span> Risk or headwind to watch</div>
+          <div class="legend-item"><span class="badge model">MODEL</span> Benchmarking / modelling data</div>
+        </div>
+      </div>
+
+      <!-- STAT SNAPSHOT -->
+      <div class="h3" id="snapshot">Key Numbers at a Glance</div>
+      <div class="stat-grid">
+        <div class="stat-card"><div class="stat-val a">₹6,212 Bn</div><div class="stat-label">India Apparel Market FY2024</div><div class="stat-delta up">▲ 11.7% CAGR → ₹10,815 Bn by FY29</div></div>
+        <div class="stat-card"><div class="stat-val b">₹1,723 Bn</div><div class="stat-label">South India Apparel FY2024</div><div class="stat-delta up">▲ 12.1% CAGR → ₹3,050 Bn by FY29</div></div>
+        <div class="stat-card"><div class="stat-val a">₹26,939 Mn</div><div class="stat-label">RSB Revenue FY2025</div><div class="stat-delta up">▲ 12.55% CAGR FY23–25</div></div>
+        <div class="stat-card"><div class="stat-val c">13.88%</div><div class="stat-label">RSB EBITDA Margin FY2025</div><div class="stat-delta up">▲ from 10.31% in FY2023</div></div>
+        <div class="stat-card"><div class="stat-val b">37.59%</div><div class="stat-label">RSB Gross Margin FY2025</div><div class="stat-delta up">▲ 502 bps vs FY2023</div></div>
+        <div class="stat-card"><div class="stat-val c">73</div><div class="stat-label">RSB Stores (Mar 2025)</div><div class="stat-sub">22 cities · 3 states</div></div>
+        <div class="stat-card"><div class="stat-val a">25.83%</div><div class="stat-label">RSB ROE FY2025</div><div class="stat-sub">ROCE: 28.95%</div></div>
+        <div class="stat-card"><div class="stat-val b">49.3%</div><div class="stat-label">South India's share of India Saree Market</div><div class="stat-sub">RSB's home geography</div></div>
+      </div>
+
+      <!-- TOC -->
+      <div class="sec-divide" id="toc"><div class="sec-divide-line"></div><div class="sec-divide-label">Table of Contents</div><div class="sec-divide-line"></div></div>
+      <div class="toc-grid">
+        <div class="toc-sec">
+          <div class="toc-sec-header a">Section A · Macro India</div>
+          <div class="toc-item"><span>A.1</span>GDP & Growth Trajectory</div>
+          <div class="toc-item"><span>A.2</span>Per Capita Income & NSDP</div>
+          <div class="toc-item"><span>A.3</span>Demographics & Age Structure</div>
+          <div class="toc-item"><span>A.4</span>Urbanisation & Digital</div>
+          <div class="toc-item"><span>A.5</span>Key Growth Drivers</div>
+        </div>
+        <div class="toc-sec">
+          <div class="toc-sec-header b">Section B · Apparel Market</div>
+          <div class="toc-item"><span>B.1</span>India Retail Overview</div>
+          <div class="toc-item"><span>B.2</span>Total Apparel & By Gender</div>
+          <div class="toc-item"><span>B.3</span>Organised vs Unorganised</div>
+          <div class="toc-item"><span>B.4</span>Women's Apparel & Saree</div>
+          <div class="toc-item"><span>B.5</span>Men's & Kids' Market</div>
+          <div class="toc-item"><span>B.6</span>Price Segments</div>
+          <div class="toc-item"><span>B.7</span>Drivers & Risks</div>
+        </div>
+        <div class="toc-sec">
+          <div class="toc-sec-header c">Section C · RSB Business</div>
+          <div class="toc-item"><span>C.1</span>South India Market</div>
+          <div class="toc-item"><span>C.2</span>LFS Market</div>
+          <div class="toc-item"><span>C.3</span>Value Retail</div>
+          <div class="toc-item"><span>C.4</span>RSB Business Overview</div>
+          <div class="toc-item"><span>C.5</span>RSB Financials</div>
+          <div class="toc-item"><span>C.6</span>Peer Benchmarking</div>
+          <div class="toc-item"><span>C.7</span>Competitive Position</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ════ SECTION A ════ -->
+    <div class="panel" id="secA">
+      <div class="sec-banner a"><div class="sec-banner-num">A</div><div class="sec-banner-tag">Section A</div><div class="sec-banner-title">Macro India Context</div><div class="sec-banner-sub">Indian Economy · Per Capita Income · Demographics · Urbanisation · Growth Drivers</div></div>
+
+      <div class="callout a"><strong>Why this matters for apparel:</strong> India is the fastest-growing major economy globally, projected to be a USD 6.5T economy by FY29. A young, urbanising, increasingly affluent population with rising women workforce participation creates a structurally supportive backdrop for organised apparel retail — particularly South India where incomes and ethnic wear affinity are both high.</div>
+
+      <!-- A.1 -->
+      <div class="h2" id="a1"><div class="h2-dot a"></div>A.1 — Indian Economy: GDP & Growth</div>
+      <div class="divider a"></div>
+      <p class="body">India has consistently outpaced major global economies in GDP growth, peaking at <strong>18.9% in FY2022</strong> post-COVID. Despite a brief contraction in FY2021 (-1.2%), the economy rebounded sharply. India is ranked <strong>5th globally by nominal GDP (FY2024)</strong> and is projected to become <strong>3rd largest by FY2029</strong>, surpassing Germany and Japan.</p>
+      <div class="stat-grid">
+        <div class="stat-card"><div class="stat-val a">USD 3.8T</div><div class="stat-label">Nominal GDP FY2024</div><div class="stat-delta up">▲ CAGR 10.3% since FY2015</div></div>
+        <div class="stat-card"><div class="stat-val a">USD 5.7T</div><div class="stat-label">Nominal GDP FY2029P</div><div class="stat-delta up">▲ CAGR ~8.7% (FY24–29)</div></div>
+        <div class="stat-card"><div class="stat-val a">6.5%</div><div class="stat-label">Real GDP CAGR FY24–29P</div><div class="stat-sub">RBI / IMF Projections</div></div>
+        <div class="stat-card"><div class="stat-val a">8–10%</div><div class="stat-label">Sustained growth (FY29)</div><div class="stat-sub">Fastest major economy</div></div>
+      </div>
+      <div class="tbl-wrap">
+        <table>
+          <thead><tr><th class="th-a">Metric</th><th class="th-a">FY2024 (Actual)</th><th class="th-a">FY2029 (Projected)</th><th class="th-a">CAGR</th></tr></thead>
+          <tbody>
+            <tr><td class="td-bold">Nominal GDP</td><td>USD 3.8 Trillion</td><td>USD 5.7 Trillion</td><td class="td-pos">~8.7% (FY24–29)</td></tr>
+            <tr><td class="td-bold">Nominal GDP CAGR FY15–24</td><td>10.3%</td><td>—</td><td>—</td></tr>
+            <tr><td class="td-bold">Real GDP CAGR FY24–29</td><td>—</td><td>USD 3.0 Trillion</td><td class="td-pos">~6.5%</td></tr>
+            <tr><td class="td-bold">Global GDP Ranking (Nominal)</td><td>5th</td><td>3rd (projected)</td><td>—</td></tr>
+            <tr><td class="td-bold">PFCE as % of GDP (FY2025)</td><td>61.4%</td><td>58.5% (FY28P)</td><td>Stable</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <p class="tbl-caption">Source: RBI, IMF Projections, Technopak Analysis (Aug 2025) · Note: USD 1 = INR 80</p>
+      <div class="insight"><span class="badge thesis">THESIS</span><div class="insight-text"><strong>Macro tailwind:</strong> India growing at 2x the world average GDP rate since FY2005. Even assuming PFCE share stays flat at ~60% of GDP, the absolute consumption pool will nearly double by FY29 — directly expanding the addressable apparel market without requiring any share gain.</div></div>
+      <div class="insight"><span class="badge model">MODEL</span><div class="insight-text"><strong>Benchmarking:</strong> China GDP slowing from 7.8% (2012) to projected 3.3% (2029) vs India sustaining 8–10%. Among India-comparable consumer markets — China 5%, Vietnam 4.8%, USA 1.7%, Germany 0.5% on per capita GNI CAGR 2018–23. India is the fastest income-growth story globally.</div></div>
+
+      <!-- A.2 -->
+      <div class="h2" id="a2"><div class="h2-dot a"></div>A.2 — Per Capita Consumption & Income</div>
+      <div class="divider a"></div>
+      <p class="body">India's per capita final consumption expenditure (PFCE) has grown strongly, recovering from the COVID dip. GNI per capita reached <strong>INR 208,633 in FY2024</strong> — up ~47.5% from FY2019 (CAGR 8.1%), outpacing USA (4.7%), UK (2.6%), and China (5.0%).</p>
+      <div class="tbl-wrap">
+        <table>
+          <thead><tr><th class="th-a">Indicator</th><th class="th-a">FY2018</th><th class="th-a">FY2020</th><th class="th-a">FY2021</th><th class="th-a">FY2023</th><th class="th-a">FY2025</th><th class="th-a">FY2029P</th></tr></thead>
+          <tbody>
+            <tr><td class="td-bold">Per Capita PFCE (INR)</td><td>76,794</td><td>91,254</td><td>88,775</td><td>1,18,755</td><td>1,35,762</td><td>1,77,956</td></tr>
+            <tr><td class="td-bold">YoY PFCE Growth</td><td>—</td><td>—</td><td class="td-neg">-2.0%</td><td class="td-pos">+13.0%</td><td class="td-pos">+7.0%</td><td class="td-pos">+7.0%</td></tr>
+            <tr><td class="td-bold">GNI Per Capita (INR)</td><td>1,28,718</td><td>1,48,261</td><td>1,44,120</td><td>1,92,201</td><td>2,42,819P</td><td>—</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <p class="tbl-caption">Source: Ministry of Statistics & Programme Implementation, Technopak Analysis</p>
+      <div class="h3">South Indian States — Per Capita NSDP (FY2024)</div>
+      <div class="tbl-wrap">
+        <table>
+          <thead><tr><th class="th-a">State</th><th class="th-a">Per Capita NSDP (INR)</th><th class="th-a">Note</th></tr></thead>
+          <tbody>
+            <tr><td class="td-bold">Karnataka</td><td class="td-pos">1,86,038</td><td>RSB expanding here (De Royal, Bengaluru)</td></tr>
+            <tr><td class="td-bold">Telangana</td><td class="td-pos">1,83,854</td><td class="td-hl">RSB primary market — 61.9% of revenue</td></tr>
+            <tr><td class="td-bold">Tamil Nadu</td><td>1,79,732</td><td>Target expansion state</td></tr>
+            <tr><td class="td-bold">Kerala</td><td>1,61,957</td><td>High remittance-driven income</td></tr>
+            <tr><td class="td-bold">Andhra Pradesh</td><td>1,35,806</td><td class="td-hl">RSB second market — 38.0% of revenue</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <p class="tbl-caption">Source: Secondary Research · RSB operates primarily in Telangana & AP, both above many other states</p>
+      <div class="insight"><span class="badge thesis">THESIS</span><div class="insight-text"><strong>South India income advantage:</strong> Karnataka, Telangana and Tamil Nadu all have per capita NSDP well above the national average — supporting higher willingness-to-pay for branded and quality apparel. This underpins RSB's ability to maintain AOV of INR 2,500+ vs value peers at INR 1,000–1,100.</div></div>
+
+      <!-- A.3 -->
+      <div class="h2" id="a3"><div class="h2-dot a"></div>A.3 — Demographics & Age Structure</div>
+      <div class="divider a"></div>
+      <p class="body">India became the world's most populous nation in 2023 (~1,430 million). <strong>74% of population is aged 15–45</strong>, with median age of just <strong>29.5 years</strong> (vs 38.5 USA, 39.8 China). Millennials + Gen Z comprise <strong>50%+ of total population</strong>.</p>
+      <div class="tbl-wrap">
+        <table>
+          <thead><tr><th class="th-a">Age Group</th><th class="th-a">Share</th><th class="th-a">Apparel Relevance</th></tr></thead>
+          <tbody>
+            <tr><td class="td-bold">Under 15</td><td>25%</td><td>Kids wear market</td></tr>
+            <tr><td class="td-bold">15–24 (Gen Z)</td><td>18%</td><td>Fast fashion, athleisure, D2C digital-first</td></tr>
+            <tr><td class="td-bold">25–34 (Millennial)</td><td>17%</td><td>Core buyer — ethnic + western, brand-aware</td></tr>
+            <tr><td class="td-bold">35–44</td><td>14%</td><td>Premium ethnic, occasion wear, higher AOV</td></tr>
+            <tr><td class="td-bold">45–54</td><td>11%</td><td>Festive & wedding wear demand</td></tr>
+            <tr><td class="td-bold">55–70</td><td>11%</td><td>Traditional ethnic wear buyers</td></tr>
+            <tr><td class="td-bold">70+</td><td>4%</td><td>Smaller segment</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <p class="tbl-caption">Source: UN DESA Population Division 2024, Technopak Estimates</p>
+      <div class="h3">Median Age — Key Global Economies (2023)</div>
+      <div class="tbl-wrap">
+        <table>
+          <thead><tr><th class="th-a">Country</th><th class="th-a">India</th><th class="th-a">Brazil</th><th class="th-a">Australia</th><th class="th-a">USA</th><th class="th-a">China</th><th class="th-a">UK</th><th class="th-a">Germany</th><th class="th-a">Japan</th></tr></thead>
+          <tbody><tr><td class="td-bold">Median Age</td><td class="td-hl">29.5</td><td>34.7</td><td>37.9</td><td>38.5</td><td>39.8</td><td>40.6</td><td>46.7</td><td>49.5</td></tr></tbody>
+        </table>
+      </div>
+      <p class="tbl-caption">Source: World Population Review 2023</p>
+      <div class="insight"><span class="badge thesis">THESIS</span><div class="insight-text"><strong>Demographic dividend:</strong> India remains under-30 median age until 2030. The 18–44 cohort (55%+ of population) is both the primary apparel buyer and the fastest adopter of organised retail — structurally supporting RSB's store rollout into Tier I and Tier II cities where this cohort is concentrating.</div></div>
+
+      <!-- A.4 -->
+      <div class="h2" id="a4"><div class="h2-dot a"></div>A.4 — Urbanisation & Digital Economy</div>
+      <div class="divider a"></div>
+      <p class="body">India's urban population stands at <strong>519 million (36%)</strong> vs global average of 57%. Projected to reach 613 million (41%) by 2030. Urban population contributes <strong>63% of GDP</strong>. Digital India has driven internet users from 350M (2015) to <strong>881M (2024)</strong> — CAGR 12%.</p>
+      <div class="tbl-wrap">
+        <table>
+          <thead><tr><th class="th-a">Digital Metric</th><th class="th-a">2010</th><th class="th-a">2015</th><th class="th-a">2020</th><th class="th-a">2023</th><th class="th-a">2025P</th><th class="th-a">CAGR 15–20</th><th class="th-a">CAGR 20–25</th></tr></thead>
+          <tbody>
+            <tr><td class="td-bold">Internet Users (mn)</td><td>72</td><td>350</td><td>662</td><td>881</td><td>900–1,000</td><td class="td-pos">14%</td><td class="td-pos">6–8%</td></tr>
+            <tr><td class="td-bold">Mobile Internet Users (mn)</td><td>24</td><td>159</td><td>480</td><td>651</td><td>730–820</td><td class="td-pos">25%</td><td class="td-pos">9–11%</td></tr>
+            <tr><td class="td-bold">Mobile % of Internet Users</td><td>34%</td><td>45%</td><td>73%</td><td>74%</td><td>82%</td><td>—</td><td>—</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <p class="tbl-caption">Source: Secondary Research, Technopak Analysis</p>
+      <div class="insight"><span class="badge model">MODEL</span><div class="insight-text"><strong>E-commerce context:</strong> 881M internet users with 74% on mobile. E-commerce in apparel growing at ~17.4% CAGR (FY24–29). For RSB (no marketplace presence per DRHP), this is both a risk (digital competition) and an opportunity (own website expansion, social commerce). Organised B&M + e-commerce together driving share increase from 18.2% to 24.2% by FY29.</div></div>
+
+      <!-- A.5 -->
+      <div class="h2" id="a5"><div class="h2-dot a"></div>A.5 — Key Growth Drivers</div>
+      <div class="divider a"></div>
+      <div class="tbl-wrap">
+        <table>
+          <thead><tr><th class="th-a">Driver</th><th class="th-a">Key Stat</th><th class="th-a">Apparel Implication for RSB</th></tr></thead>
+          <tbody>
+            <tr><td class="td-bold">Growing Middle Class</td><td>Households earning USD 10–50K: 5.8% (FY10) → 34.5% (FY23) → 42% by FY30</td><td>Expanding addressable market for mid-premium format (RS Brothers, SISM)</td></tr>
+            <tr><td class="td-bold">Women Workforce</td><td>Female LFPR: 23.3% (FY18) → 41.7% (FY24) — +8.9pp in 2 years</td><td>Working women drive branded ethnic + fashion purchases — RSB's 54% women revenue benefits directly</td></tr>
+            <tr><td class="td-bold">Nuclearisation</td><td>Avg household size: 5.3 (FY01) → 4.2 (FY23) → 3.9 by FY30</td><td>More buying units per capita; drives discretionary apparel spend</td></tr>
+            <tr><td class="td-bold">Remittances</td><td>USD 129.5 Bn received in 2024 (+8% YoY). Key states: Kerala, Maharashtra, TN, Karnataka</td><td>Directly fuels festive & ethnic wear buying in RSB's geographic zone</td></tr>
+            <tr><td class="td-bold">Digital Economy</td><td>881M internet users. Tier 2/3 connectivity opening new markets</td><td>RSB operates in 22 cities — digital penetration supports discovery and omnichannel</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="callout a"><strong>Structural thesis in one line:</strong> Rising incomes + young demographics + urbanisation + women empowerment + nuclearisation = sustained multi-year demand for organised apparel retail, especially in South India where cultural affinity for ethnic wear adds a durable, non-cyclical demand layer.</div>
+    </div>
+
+    <!-- ════ SECTION B ════ -->
+    <div class="panel" id="secB">
+      <div class="sec-banner b"><div class="sec-banner-num">B</div><div class="sec-banner-tag">Section B</div><div class="sec-banner-title">India Apparel Market</div><div class="sec-banner-sub">Total Market · Gender Segments · Women's & Saree · Men's & Kids' · Price Segments · Drivers & Risks</div></div>
+
+      <div class="callout b"><strong>Market in summary:</strong> India apparel market = INR 6,212 Bn (FY2024) → INR 10,815 Bn (FY2029), CAGR 11.7%. Organised share rising fast — 41% to 49% in womenswear. Value segment dominates (57% share) but premium (CAGR 16.2%) is fastest growing. Activewear (18.3%) and denim (14.2%) lead subcategory growth.</div>
+
+      <!-- B.1 -->
+      <div class="h2" id="b1"><div class="h2-dot b"></div>B.1 — India Retail Market: Context</div>
+      <div class="divider b"></div>
+      <p class="body">The India retail market grew from INR 54,272 Bn (FY2019) to INR 84,662 Bn (FY2024) at 9.3% CAGR, projected to reach INR 1,35,383 Bn by FY2029 (9.8% CAGR). Apparel & Accessories = <strong>3.5% of total household spend</strong>, with its retail share set to rise from 7.3% to 8.0% by FY29.</p>
+      <div class="tbl-wrap">
+        <table>
+          <thead><tr><th class="th-b">Segment</th><th class="th-b">FY2019</th><th class="th-b">FY2024</th><th class="th-b">FY2025E</th><th class="th-b">FY2029P</th><th class="th-b">CAGR 19–24</th><th class="th-b">CAGR 24–29P</th></tr></thead>
+          <tbody>
+            <tr><td>Unorganised</td><td>48,421</td><td>69,251</td><td>74,453</td><td>1,02,666</td><td>7.4%</td><td>8.2%</td></tr>
+            <tr><td>Organised B&M</td><td>3,641</td><td>8,578</td><td>9,779</td><td>16,926</td><td class="td-pos">18.7%</td><td class="td-pos">14.6%</td></tr>
+            <tr><td>E-commerce</td><td>2,209</td><td>6,833</td><td>8,365</td><td>15,792</td><td class="td-pos">25.3%</td><td class="td-pos">18.2%</td></tr>
+            <tr><td class="td-bold">Total Retail</td><td class="td-bold">54,272</td><td class="td-bold">84,662</td><td class="td-bold">92,597</td><td class="td-bold">1,35,383</td><td class="td-bold">9.3%</td><td class="td-bold">9.8%</td></tr>
+            <tr><td class="td-bold">Organised Share</td><td>10.8%</td><td>18.2%</td><td>19.6%</td><td class="td-hl">24.2%</td><td>—</td><td>—</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <p class="tbl-caption">Source: Secondary Research, Technopak Analysis · All values INR Billion</p>
+      <div class="h3">India Retail Basket — Key Categories (INR Bn)</div>
+      <div class="tbl-wrap">
+        <table>
+          <thead><tr><th class="th-b">Category</th><th class="th-b">FY2019</th><th class="th-b">FY2024</th><th class="th-b">FY2029P</th><th class="th-b">Share FY24</th><th class="th-b">CAGR 24–29P</th></tr></thead>
+          <tbody>
+            <tr><td>Food & Grocery</td><td>35,378</td><td>53,946</td><td>80,883</td><td>63.8%</td><td>8.4%</td></tr>
+            <tr><td>Jewellery</td><td>3,935</td><td>6,764</td><td>13,538</td><td>8.0%</td><td>14.9%</td></tr>
+            <tr><td>Consumer Electronics</td><td>3,450</td><td>6,059</td><td>10,821</td><td>7.2%</td><td>12.3%</td></tr>
+            <tr><td class="td-bold">Apparel & Accessories</td><td class="td-bold">4,024</td><td class="td-bold">6,212</td><td class="td-bold">10,815</td><td class="td-hl">7.3% → 8.0%</td><td class="td-pos">11.7%</td></tr>
+            <tr><td>Pharmacy & Wellness</td><td>1,572</td><td>2,545</td><td>4,525</td><td>3.0%</td><td>12.2%</td></tr>
+            <tr><td>Home & Living</td><td>2,325</td><td>3,558</td><td>5,941</td><td>4.2%</td><td>10.8%</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <p class="tbl-caption">Source: Secondary Research, Technopak Analysis</p>
+      <div class="insight"><span class="badge thesis">THESIS</span><div class="insight-text"><strong>Apparel gaining wallet share:</strong> Apparel & Accessories share in total retail rising from 7.3% (FY24) to 8.0% (FY29) — one of the few categories gaining share. Driven by premiumisation, brand awareness and rising discretionary income. Organised share growing from 18.2% to 24.2% of total retail.</div></div>
+
+      <!-- B.2 -->
+      <div class="h2" id="b2"><div class="h2-dot b"></div>B.2 — Total Apparel Market by Gender</div>
+      <div class="divider b"></div>
+      <div class="tbl-wrap">
+        <table>
+          <thead><tr><th class="th-b">Category</th><th class="th-b">FY2019</th><th class="th-b">FY2024</th><th class="th-b">FY2025E</th><th class="th-b">FY2029P</th><th class="th-b">CAGR 19–24</th><th class="th-b">CAGR 24–29P</th><th class="th-b">Share FY24</th></tr></thead>
+          <tbody>
+            <tr><td class="td-bold">Menswear</td><td>1,654</td><td>2,513</td><td>2,783</td><td>4,312</td><td>8.7%</td><td class="td-pos">11.4%</td><td>40.5%</td></tr>
+            <tr><td class="td-bold">Womenswear</td><td>1,477</td><td>2,298</td><td>2,560</td><td>4,029</td><td>9.2%</td><td class="td-pos">11.9%</td><td>37.0%</td></tr>
+            <tr><td class="td-bold">Kidswear</td><td>892</td><td>1,401</td><td>1,560</td><td>2,474</td><td>9.4%</td><td class="td-pos">12.0%</td><td>22.5%</td></tr>
+            <tr><td class="td-bold">Total</td><td class="td-bold">4,024</td><td class="td-bold">6,212</td><td class="td-bold">6,903</td><td class="td-bold">10,815</td><td class="td-bold">9.1%</td><td class="td-hl">11.7%</td><td class="td-bold">100%</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <p class="tbl-caption">Source: Secondary Research, Technopak Analysis · Values in INR Billion</p>
+
+      <!-- B.3 -->
+      <div class="h2" id="b3"><div class="h2-dot b"></div>B.3 — Organised vs Unorganised by Segment</div>
+      <div class="divider b"></div>
+      <div class="tbl-wrap">
+        <table>
+          <thead><tr><th class="th-b">Segment</th><th class="th-b">Org% FY19</th><th class="th-b">Org% FY24</th><th class="th-b">Org% FY25E</th><th class="th-b">Org% FY29P</th><th class="th-b">Org CAGR 24–29</th><th class="th-b">Unorg CAGR 24–29</th></tr></thead>
+          <tbody>
+            <tr><td class="td-bold">Womenswear</td><td>30.0%</td><td>41.0%</td><td>41.5%</td><td class="td-hl">49.0%</td><td class="td-pos">15.9%</td><td>8.7%</td></tr>
+            <tr><td class="td-bold">Menswear</td><td>40.0%</td><td>52.0%</td><td>54.1%</td><td class="td-hl">59.0%</td><td class="td-pos">14.3%</td><td>7.9%</td></tr>
+            <tr><td class="td-bold">Kidswear</td><td>12.0%</td><td>29.0%</td><td>31.5%</td><td class="td-hl">40.2%</td><td class="td-pos">19.6%</td><td>8.3%</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <p class="tbl-caption">Source: Secondary Research, Technopak Analysis</p>
+      <div class="insight"><span class="badge thesis">THESIS</span><div class="insight-text"><strong>Organised shift accelerating — 2x faster than unorganised:</strong> In all three gender segments, organised retail CAGR (14–20%) running at ~2x unorganised CAGR (8–9%). Kidswear at only 29% organised in FY24 vs menswear at 52% — kidswear represents the largest absolute headroom for RSB to capture.</div></div>
+      <div class="insight"><span class="badge rsb">RSB</span><div class="insight-text"><strong>RSB revenue mix:</strong> Women (54%), Men (22%), Kids (18%), FMCG (6%) in FY2025. Women-heavy mix is well-aligned with the fastest-growing organised segment — particularly ethnic wear in South India. Women's organised CAGR of 15.9% vs RSB's women revenue growth baseline to triangulate.</div></div>
+
+      <!-- B.4 -->
+      <div class="h2" id="b4"><div class="h2-dot b"></div>B.4 — Women's Apparel & Saree Market</div>
+      <div class="divider b"></div>
+      <p class="body">Women's apparel = INR 2,298 Bn (FY2024), growing at CAGR 11.9% to INR 4,029 Bn by FY2029. Ethnic/Indian wear dominates at <strong>65.4% share</strong>. Activewear (CAGR 17.7%) and western wear (CAGR 16.2%) are fastest growing sub-segments.</p>
+      <div class="h3">Women's Apparel Sub-Category Split</div>
+      <div class="tbl-wrap">
+        <table>
+          <thead><tr><th class="th-b">Sub-Category</th><th class="th-b">FY2019</th><th class="th-b">FY2024</th><th class="th-b">FY2025E</th><th class="th-b">FY2029P</th><th class="th-b">CAGR 19–24</th><th class="th-b">CAGR 24–29P</th></tr></thead>
+          <tbody>
+            <tr><td class="td-bold">Ethnic/Indian Wear</td><td>1,051</td><td>1,503</td><td>1,657</td><td>2,540</td><td>7.4%</td><td class="td-pos">11.1%</td></tr>
+            <tr><td>Innerwear</td><td>215</td><td>428</td><td>474</td><td>755</td><td>14.8%</td><td class="td-pos">12.0%</td></tr>
+            <tr><td>Westernwear</td><td>113</td><td>200</td><td>233</td><td>424</td><td>12.1%</td><td class="td-pos">16.2%</td></tr>
+            <tr><td>Denim</td><td>30</td><td>62</td><td>77</td><td>122</td><td>15.4%</td><td class="td-pos">14.4%</td></tr>
+            <tr><td>Activewear</td><td>8</td><td>30</td><td>37</td><td>69</td><td class="td-hl">30.1%</td><td class="td-pos">17.7%</td></tr>
+            <tr><td>Winterwear</td><td>46</td><td>57</td><td>62</td><td>92</td><td>4.3%</td><td>10.2%</td></tr>
+            <tr><td class="td-bold">Total Women's</td><td class="td-bold">1,477</td><td class="td-bold">2,298</td><td class="td-bold">2,560</td><td class="td-bold">4,029</td><td class="td-bold">9.2%</td><td class="td-hl">11.9%</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <p class="tbl-caption">Source: Secondary Research, Technopak Analysis · Values in INR Billion</p>
+      <div class="h3">Women's Indian Wear — by Product Type (INR Bn)</div>
+      <div class="tbl-wrap">
+        <table>
+          <thead><tr><th class="th-b">Product</th><th class="th-b">FY2019</th><th class="th-b">FY2024</th><th class="th-b">FY2025E</th><th class="th-b">FY2029P</th><th class="th-b">Share FY24</th></tr></thead>
+          <tbody>
+            <tr><td class="td-bold">Saree</td><td>440</td><td>564</td><td>608</td><td>841</td><td class="td-hl">~37.5%</td></tr>
+            <tr><td class="td-bold">Sets (Salwar/Kurta)</td><td>279</td><td>415</td><td>462</td><td>691</td><td>~27.6%</td></tr>
+            <tr><td>Mix & Match</td><td>162</td><td>297</td><td>338</td><td>611</td><td>~19.8%</td></tr>
+            <tr><td>Lehenga</td><td>147</td><td>198</td><td>225</td><td>369</td><td>~13.2%</td></tr>
+            <tr><td>Others</td><td>23</td><td>30</td><td>25</td><td>27</td><td>~2.0%</td></tr>
+            <tr><td class="td-bold">Total</td><td class="td-bold">1,051</td><td class="td-bold">1,503</td><td class="td-bold">1,657</td><td class="td-bold">2,540</td><td class="td-bold">100%</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <p class="tbl-caption">Source: Secondary Research, Technopak Analysis</p>
+      <div class="h3">Saree Market by Region (FY2024)</div>
+      <div class="tbl-wrap">
+        <table>
+          <thead><tr><th class="th-b">Region</th><th class="th-b">Share</th><th class="th-b">Key Saree Types</th></tr></thead>
+          <tbody>
+            <tr><td class="td-bold td-hl">South India</td><td class="td-hl">~49.3%</td><td>Kanjivaram, Mysore Silk, Venkatagiri, Mangalagiri</td></tr>
+            <tr><td>East India</td><td>~18.5%</td><td>Baluchari, Tant, Muslin</td></tr>
+            <tr><td>West India</td><td>~16.5%</td><td>Brocade, Gharchola, Patola</td></tr>
+            <tr><td>North India</td><td>~15.8%</td><td>Banarasi, Chanderi, Maheshwari</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <p class="tbl-caption">Saree Market = INR 564 Bn (FY2024), CAGR 8.3% → INR 841 Bn (FY2029)</p>
+      <div class="insight"><span class="badge thesis">THESIS</span><div class="insight-text"><strong>South India = epicentre of the saree market:</strong> With ~49.3% of a INR 564 Bn market centred in South India, and RSB's deep presence in AP + Telangana (expanding TN/Karnataka), the company sits squarely in the highest-density ethnic wear zone in India. This is a structural moat vs national LFS players with limited regional curation.</div></div>
+      <div class="insight"><span class="badge rsb">RSB</span><div class="insight-text"><strong>Format alignment:</strong> Kanchipuram Narayani Silks (AOV ₹7,211 — premium saree) + South India Shopping Mall (broad ethnic + western) + R.S. Brothers (mid-premium) collectively address the full saree price spectrum from ₹500 (value) to ₹10,000+ (premium). Narayani Silks AOV directly aligns with premium saree price points.</div></div>
+
+      <!-- B.5 -->
+      <div class="h2" id="b5"><div class="h2-dot b"></div>B.5 — Men's & Kids' Apparel</div>
+      <div class="divider b"></div>
+      <div class="h3">Men's Apparel — Sub-Category Split</div>
+      <div class="tbl-wrap">
+        <table>
+          <thead><tr><th class="th-b">Sub-Category</th><th class="th-b">FY2019</th><th class="th-b">FY2024</th><th class="th-b">FY2029P</th><th class="th-b">CAGR 19–24</th><th class="th-b">CAGR 24–29P</th></tr></thead>
+          <tbody>
+            <tr><td class="td-bold">Westernwear</td><td>1,031</td><td>1,499</td><td>2,474</td><td>7.8%</td><td>10.5%</td></tr>
+            <tr><td>Denim</td><td>213</td><td>371</td><td>715</td><td>11.7%</td><td class="td-pos">14.0%</td></tr>
+            <tr><td>Innerwear</td><td>115</td><td>209</td><td>351</td><td>12.7%</td><td>10.9%</td></tr>
+            <tr><td>Ethnic/Indian wear</td><td>114</td><td>157</td><td>266</td><td>6.5%</td><td>11.1%</td></tr>
+            <tr><td class="td-bold">Activewear</td><td>48</td><td>109</td><td>253</td><td class="td-hl">17.9%</td><td class="td-pos">18.4%</td></tr>
+            <tr><td class="td-bold">Total Men's</td><td class="td-bold">1,654</td><td class="td-bold">2,513</td><td class="td-bold">4,312</td><td class="td-bold">8.7%</td><td class="td-hl">11.4%</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <p class="tbl-caption">Menswear: Organised at ~52% in FY24 → ~57% by FY29; T-shirt fastest within western wear (CAGR ~14.5%)</p>
+      <div class="h3">Kids' Apparel — Sub-Category Split</div>
+      <div class="tbl-wrap">
+        <table>
+          <thead><tr><th class="th-b">Sub-Category</th><th class="th-b">FY2019</th><th class="th-b">FY2024</th><th class="th-b">FY2029P</th><th class="th-b">CAGR 19–24</th><th class="th-b">CAGR 24–29P</th></tr></thead>
+          <tbody>
+            <tr><td class="td-bold">Westernwear</td><td>602</td><td>989</td><td>1,756</td><td>10.4%</td><td class="td-pos">12.2%</td></tr>
+            <tr><td>Ethnic/Indian wear</td><td>115</td><td>164</td><td>300</td><td>7.3%</td><td>12.9%</td></tr>
+            <tr><td>Innerwear</td><td>73</td><td>112</td><td>190</td><td>9.0%</td><td>11.0%</td></tr>
+            <tr><td>Denim</td><td>15</td><td>23</td><td>51</td><td>9.1%</td><td class="td-hl">17.6%</td></tr>
+            <tr><td class="td-bold">Total Kids'</td><td class="td-bold">892</td><td class="td-bold">1,401</td><td class="td-bold">2,474</td><td class="td-bold">9.4%</td><td class="td-hl">12.0%</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <p class="tbl-caption">Kids: Lowest organised share at 29% in FY24 → 40.2% by FY29 — highest headroom for organised players</p>
+
+      <!-- B.6 -->
+      <div class="h2" id="b6"><div class="h2-dot b"></div>B.6 — Apparel by Price Segment</div>
+      <div class="divider b"></div>
+      <div class="tbl-wrap">
+        <table>
+          <thead><tr><th class="th-b">Segment</th><th class="th-b">FY2019</th><th class="th-b">FY2024</th><th class="th-b">FY2029P</th><th class="th-b">Share FY24</th><th class="th-b">CAGR 19–24</th><th class="th-b">CAGR 24–29P</th></tr></thead>
+          <tbody>
+            <tr><td class="td-bold">Value</td><td>2,291</td><td>3,541</td><td>5,732</td><td>57.0%</td><td>9.1%</td><td class="td-pos">10.1%</td></tr>
+            <tr><td class="td-bold">Mid</td><td>1,129</td><td>1,677</td><td>2,974</td><td>27.0%</td><td>8.2%</td><td class="td-pos">12.1%</td></tr>
+            <tr><td class="td-bold">Premium</td><td>604</td><td>994</td><td>2,109</td><td>16.0%</td><td>10.5%</td><td class="td-hl">16.2%</td></tr>
+            <tr><td class="td-bold">Total</td><td class="td-bold">4,024</td><td class="td-bold">6,212</td><td class="td-bold">10,815</td><td class="td-bold">100%</td><td class="td-bold">9.1%</td><td class="td-bold">11.7%</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <p class="tbl-caption">Fastest Selling Prices — Sarees: ₹500 (Value) · ₹3,700 (Mid) · ₹10,000 (Premium)</p>
+      <div class="insight"><span class="badge thesis">THESIS</span><div class="insight-text"><strong>Premium growing at 6pp CAGR premium over Value:</strong> RSB spans Value (ValueZone AOV ~₹1,998), Mid-Premium (RS Brothers/SISM AOV ~₹2,542), and Premium (Narayani Silks AOV ~₹7,211). The company captures both ends of a bifurcating market — and premium/mid-premium is where margin expansion is most accessible.</div></div>
+
+      <!-- B.7 -->
+      <div class="h2" id="b7"><div class="h2-dot b"></div>B.7 — Growth Drivers & Key Risks</div>
+      <div class="divider b"></div>
+      <div class="tbl-wrap">
+        <table>
+          <thead><tr><th class="th-b">Driver / Trend</th><th class="th-b">Detail</th><th class="th-b">RSB Relevance</th></tr></thead>
+          <tbody>
+            <tr><td class="td-bold">Regional Brands → National + D2C</td><td>Regional brands expanding footprint nationally; D2C brands leveraging e-commerce</td><td>RSB's inter-state expansion (AP→Telangana→Karnataka→TN/MH) fits this pattern</td></tr>
+            <tr><td class="td-bold">Athleisure — CAGR 18.3%</td><td>Fastest apparel sub-segment; driven by health-conscious urban consumers</td><td>RSB's current product mix under-indexed here; opportunity to build category</td></tr>
+            <tr><td class="td-bold">Value Retail Surge</td><td>Zudio (sub-₹999) catalysing value format expansion across India</td><td>RSB entered value through ValueZone (2 hypermarts); 6.87% of FY25 revenue</td></tr>
+            <tr><td class="td-bold">Omnichannel / Digital-First</td><td>E-commerce apparel growing ~17.4% CAGR (FY24–29)</td><td>RSB has website presence but no marketplace listings — potential gap vs peers</td></tr>
+            <tr><td class="td-bold">Sustainability & Ethnic Craft</td><td>Handloom, organic fabric demand growing; Gen Z sustainability-conscious</td><td>RSB's handloom ethnic offering (Kanjivaram, etc.) has embedded sustainability appeal</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="h3">Key Risks</div>
+      <div class="insight"><span class="badge risk">RISK</span><div class="insight-text"><strong>Price sensitivity & consumer value-seeking:</strong> Inflation squeezes mid-segment. Growing resale and off-price segments. RSB's multi-format (value + premium) model provides some hedge but mid-premium AOV declining (₹2,834 → ₹2,551 FY23–25) needs monitoring.</div></div>
+      <div class="insight"><span class="badge risk">RISK</span><div class="insight-text"><strong>National LFS & D2C competition:</strong> Trent (1,043 stores), Reliance (17,000+ stores), ABFRL expanding into South Indian Tier I/II cities. D2C brands capturing younger digital shoppers. RSB's regional depth is its moat but scale gap with national players is widening.</div></div>
+      <div class="insight"><span class="badge risk">RISK</span><div class="insight-text"><strong>Online clothing rental market:</strong> Platforms like Flyrobe, Rent an Attire growing in occasion-wear (directly competing with RSB's festive/ethnic segment). Currently urban-centric but could spread to Tier II cities over 3–5 years.</div></div>
+    </div>
+
+    <!-- ════ SECTION C ════ -->
+    <div class="panel" id="secC">
+      <div class="sec-banner c"><div class="sec-banner-num">C</div><div class="sec-banner-tag">Section C</div><div class="sec-banner-title">RSB Business & Benchmarking</div><div class="sec-banner-sub">South India Market · LFS & Value Retail · RSB Formats · Financials · Peer Comparison · Strategy</div></div>
+
+      <div class="callout c"><strong>RSB Retail at a glance:</strong> Multi-format retailer, 73 stores, 22 cities, 3 states. FY2025 Revenue = ₹26,939 Mn (CAGR 12.55%), EBITDA Margin = 13.88%, ROE = 25.83%. Second-highest average revenue per store (₹369 Mn) among regional peers. The only regional player with presence across all four formats: Value, LFS, Ethnic-Women, Ethnic-Men.</div>
+
+      <!-- C.1 -->
+      <div class="h2" id="c1"><div class="h2-dot c"></div>C.1 — South India Apparel Market</div>
+      <div class="divider c"></div>
+      <p class="body">South India apparel = INR 1,723 Bn (FY2024), <strong>28% of total India apparel</strong>. Growing at CAGR 12.1% to INR 3,050 Bn by FY2029. Organised retail already at <strong>51.3% share in FY2024</strong> — already majority organised, faster transition than national average.</p>
+      <div class="tbl-wrap">
+        <table>
+          <thead><tr><th class="th-c">Channel (INR Bn)</th><th class="th-c">FY2019</th><th class="th-c">FY2024</th><th class="th-c">FY2025E</th><th class="th-c">FY2029P</th><th class="th-c">CAGR 19–24</th><th class="th-c">CAGR 24–29P</th></tr></thead>
+          <tbody>
+            <tr><td>Unorganised</td><td>686</td><td>838</td><td>898</td><td>1,200</td><td>4.1%</td><td>7.4%</td></tr>
+            <tr><td class="td-bold">Organised Total</td><td>406</td><td>884</td><td>1,020</td><td>1,850</td><td class="td-pos">16.9%</td><td class="td-pos">15.9%</td></tr>
+            <tr><td>  ↳ Org. B&M</td><td>282</td><td>588</td><td>673</td><td>1,184</td><td class="td-pos">15.8%</td><td class="td-pos">15.0%</td></tr>
+            <tr><td>  ↳ Org. E-commerce</td><td>124</td><td>296</td><td>347</td><td>666</td><td class="td-pos">19.1%</td><td class="td-pos">17.6%</td></tr>
+            <tr><td class="td-bold">Total South Apparel</td><td class="td-bold">1,091</td><td class="td-bold">1,723</td><td class="td-bold">1,918</td><td class="td-bold">3,050</td><td class="td-bold">9.6%</td><td class="td-hl">12.1%</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <p class="tbl-caption">Source: Secondary Research, Technopak Analysis</p>
+      <div class="h3">State-wise Market Share (FY2024, Total South = ₹1,723 Bn)</div>
+      <div class="tbl-wrap">
+        <table>
+          <thead><tr><th class="th-c">State</th><th class="th-c">Share</th><th class="th-c">Market (INR Bn)</th><th class="th-c">RSB Presence</th></tr></thead>
+          <tbody>
+            <tr><td class="td-bold">AP + Telangana</td><td class="td-hl">31.6%</td><td>~545</td><td class="td-hl">Primary market — 100% of FY23 revenue</td></tr>
+            <tr><td>Tamil Nadu</td><td>29.2%</td><td>~503</td><td>Target expansion state (LOI signed)</td></tr>
+            <tr><td>Karnataka</td><td>26.9%</td><td>~463</td><td>1 De Royal store (Bengaluru)</td></tr>
+            <tr><td>Kerala</td><td>12.3%</td><td>~212</td><td>Not yet entered</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="h3">South India Women's Apparel — Sub-Category (INR Bn)</div>
+      <div class="tbl-wrap">
+        <table>
+          <thead><tr><th class="th-c">Sub-Category</th><th class="th-c">FY2019</th><th class="th-c">FY2024</th><th class="th-c">FY2029P</th><th class="th-c">Share FY24</th><th class="th-c">CAGR 24–29P</th></tr></thead>
+          <tbody>
+            <tr><td class="td-bold">Indian/Ethnic Wear</td><td>312</td><td>507</td><td>925</td><td class="td-hl">74%</td><td class="td-pos">12.8%</td></tr>
+            <tr><td>Western Wear</td><td>105</td><td>180</td><td>340</td><td>26%</td><td class="td-pos">13.6%</td></tr>
+            <tr><td class="td-bold">Total Women South</td><td class="td-bold">417</td><td class="td-bold">687</td><td class="td-bold">1,265</td><td class="td-bold">100%</td><td class="td-hl">13.0%</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <p class="tbl-caption">South India ethnic share = 74% vs national 65.4% — structurally higher cultural affinity</p>
+      <div class="insight"><span class="badge thesis">THESIS</span><div class="insight-text"><strong>South India = highest organised penetration + highest ethnic affinity:</strong> At 51.3% organised (vs ~37% in some markets), South India has crossed the organised tipping point. Combined with 74% ethnic wear share among women — RSB's core offering — this market is structurally tailor-made for RSB's format mix. Regional players here outperform because national LFS chains can't match the depth of ethnic curation.</div></div>
+
+      <!-- C.2 -->
+      <div class="h2" id="c2"><div class="h2-dot c"></div>C.2 — Large Format Store (LFS) Market</div>
+      <div class="divider c"></div>
+      <div class="tbl-wrap">
+        <table>
+          <thead><tr><th class="th-c">LFS Region (INR Bn)</th><th class="th-c">FY2019</th><th class="th-c">FY2024</th><th class="th-c">FY2025E</th><th class="th-c">FY2029P</th><th class="th-c">Share FY24</th><th class="th-c">CAGR 24–29P</th></tr></thead>
+          <tbody>
+            <tr><td class="td-bold td-hl">South</td><td>151</td><td>238</td><td>270</td><td>462</td><td class="td-hl">~38%</td><td class="td-hl">14.1%</td></tr>
+            <tr><td>West</td><td>105</td><td>158</td><td>176</td><td>277</td><td>~25%</td><td>11.9%</td></tr>
+            <tr><td>North</td><td>91</td><td>144</td><td>162</td><td>265</td><td>~23%</td><td>13.0%</td></tr>
+            <tr><td>East</td><td>66</td><td>88</td><td>99</td><td>150</td><td>~14%</td><td>11.1%</td></tr>
+            <tr><td class="td-bold">Total LFS</td><td class="td-bold">412</td><td class="td-bold">629</td><td class="td-bold">708</td><td class="td-bold">1,154</td><td class="td-bold">100%</td><td class="td-hl">13.0%</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <p class="tbl-caption">LFS = stores exceeding ~20,000 sqft. South India = largest LFS region, fastest CAGR at 14.1%</p>
+      <div class="h3">Regional LFS Players — Store Count Trend (FY in Fiscal)</div>
+      <div class="tbl-wrap">
+        <table>
+          <thead><tr><th class="th-c">Player</th><th class="th-c">FY18</th><th class="th-c">FY19</th><th class="th-c">FY20</th><th class="th-c">FY21</th><th class="th-c">FY22</th><th class="th-c">FY23</th><th class="th-c">FY24</th><th class="th-c">FY25</th></tr></thead>
+          <tbody>
+            <tr><td class="td-bold td-hl">RSB Retail India Ltd</td><td>18</td><td>20</td><td>28</td><td>25</td><td>32</td><td>32</td><td>37</td><td class="td-hl">47</td></tr>
+            <tr><td>Pothys Pvt. Ltd.</td><td>N/A</td><td>N/A</td><td>N/A</td><td>N/A</td><td>18</td><td>18</td><td>N/A</td><td>17</td></tr>
+            <tr><td>JC Brothers (Marri Retail)</td><td>17</td><td>N/A</td><td>19</td><td>N/A</td><td>N/A</td><td>N/A</td><td>N/A</td><td>14</td></tr>
+            <tr><td>Saravana Stores</td><td>4</td><td>4</td><td>4</td><td>4</td><td>4</td><td>5</td><td>N/A</td><td>6</td></tr>
+            <tr><td>Sai Silks (Kalamandir)</td><td>N/A</td><td>10</td><td>10</td><td>7</td><td>8</td><td>12</td><td>11</td><td>11</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <p class="tbl-caption">Source: Annual Reports, Brand Websites, Technopak Analysis (Jan 2025)</p>
+      <div class="insight"><span class="badge rsb">RSB</span><div class="insight-text"><strong>RSB is the only regional LFS player with consistent network expansion:</strong> RSB grew from 18 stores (FY2018) to 47 equivalent LFS stores (FY2025) — 2.6x in 7 years. Pothys (17→17), JC Brothers (17→14) and Sai Silks (10→11) have all stagnated. RSB is the only player with clear store-level momentum among South Indian peers.</div></div>
+
+      <!-- C.3 -->
+      <div class="h2" id="c3"><div class="h2-dot c"></div>C.3 — Value Retail Market</div>
+      <div class="divider c"></div>
+      <div class="tbl-wrap">
+        <table>
+          <thead><tr><th class="th-c">Category (Value Retail, INR Bn)</th><th class="th-c">FY2019</th><th class="th-c">FY2024</th><th class="th-c">FY2029P</th><th class="th-c">Share FY24</th><th class="th-c">CAGR 24–29P</th></tr></thead>
+          <tbody>
+            <tr><td class="td-bold">Apparel</td><td>2,298</td><td>3,556</td><td>5,744</td><td>73%</td><td class="td-pos">10.1%</td></tr>
+            <tr><td>Footwear</td><td>352</td><td>487</td><td>757</td><td>10%</td><td>9.5%</td></tr>
+            <tr><td>Non-Apparel Accessories + Watches</td><td>319</td><td>487</td><td>865</td><td>10%</td><td class="td-pos">12.2%</td></tr>
+            <tr><td>Home Furnishings</td><td>223</td><td>487</td><td>709</td><td>10%</td><td>8.4%</td></tr>
+            <tr><td class="td-bold">Total Value Retail</td><td class="td-bold">3,192</td><td class="td-bold">4,874</td><td class="td-bold">7,869</td><td class="td-bold">100%</td><td class="td-hl">10.1%</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <p class="tbl-caption">South India Value Retail = ₹1,380 Bn (28% of total), CAGR 10.3% → ₹2,252 Bn by FY29</p>
+      <div class="insight"><span class="badge thesis">THESIS</span><div class="insight-text"><strong>Value retail as customer acquisition funnel:</strong> RSB entered value retail in FY2023 with ValueZone (2 hypermarts). Revenue contribution grew from 0 → 6.87% (₹1,851 Mn) in FY2025. The strategy is customer funnel broadening — value shoppers cross-sell into apparel. This mirrors Trent's Zudio playbook: high footfall, lower ASP, broader demographic reach.</div></div>
+
+      <!-- C.4 -->
+      <div class="h2" id="c4"><div class="h2-dot c"></div>C.4 — RSB Business Overview & Store Formats</div>
+      <div class="divider c"></div>
+      <div class="format-grid">
+        <div class="format-card"><div class="format-brand">R.S. Brothers</div><span class="format-seg seg-mid">Mid-Premium</span><div class="format-row"><span class="format-key">First Store</span><span class="format-val">1999, Koti Hyd</span></div><div class="format-row"><span class="format-key">AOV (FY25)</span><span class="format-val">₹2,542</span></div><div class="format-row"><span class="format-key">Revenue FY25</span><span class="format-val">₹5,703 Mn (21.2%)</span></div><div class="format-row"><span class="format-key">Products</span><span class="format-val">Ethnic + Western, Family</span></div></div>
+        <div class="format-card"><div class="format-brand">South India Shopping Mall</div><span class="format-seg seg-mid">Mid-Premium</span><div class="format-row"><span class="format-key">First Store</span><span class="format-val">2010, Kothapet Hyd</span></div><div class="format-row"><span class="format-key">AOV (FY25)</span><span class="format-val">₹2,542 (combined)</span></div><div class="format-row"><span class="format-key">Revenue FY25</span><span class="format-val">₹18,407 Mn (68.3%)</span></div><div class="format-row"><span class="format-key">Products</span><span class="format-val">Full family, M+W+K+Accessories</span></div></div>
+        <div class="format-card"><div class="format-brand">Kanchipuram Narayani Silks</div><span class="format-seg seg-prem">Premium</span><div class="format-row"><span class="format-key">First Store</span><span class="format-val">2019, Ameerpet Hyd</span></div><div class="format-row"><span class="format-key">AOV (FY25)</span><span class="format-val">₹7,211</span></div><div class="format-row"><span class="format-key">Revenue FY25</span><span class="format-val">₹682 Mn (2.5%)</span></div><div class="format-row"><span class="format-key">Products</span><span class="format-val">Silk sarees, Kanjivaram, Designer</span></div></div>
+        <div class="format-card"><div class="format-brand">Dè Royal (Men's Ethnic)</div><span class="format-seg seg-prem">Premium</span><div class="format-row"><span class="format-key">First Store</span><span class="format-val">2022, Chandanagar Hyd</span></div><div class="format-row"><span class="format-key">AOV (FY25)</span><span class="format-val">₹6,337</span></div><div class="format-row"><span class="format-key">Revenue FY25</span><span class="format-val">₹154 Mn (0.6%)</span></div><div class="format-row"><span class="format-key">Products</span><span class="format-val">Sherwanis, Kurtas, Indo-western</span></div></div>
+        <div class="format-card"><div class="format-brand">ValueZone Hypermart</div><span class="format-seg seg-val">Value</span><div class="format-row"><span class="format-key">First Store</span><span class="format-val">2023, Patancheruvu</span></div><div class="format-row"><span class="format-key">AOV (FY25)</span><span class="format-val">₹1,998</span></div><div class="format-row"><span class="format-key">Revenue FY25</span><span class="format-val">₹1,851 Mn (6.9%)</span></div><div class="format-row"><span class="format-key">Products</span><span class="format-val">Fast fashion + FMCG + GM</span></div></div>
+        <div class="format-card"><div class="format-brand">Overall RSB (FY2025)</div><span class="format-seg seg-mid">All Formats</span><div class="format-row"><span class="format-key">Total Stores</span><span class="format-val">73</span></div><div class="format-row"><span class="format-key">Cities</span><span class="format-val">22</span></div><div class="format-row"><span class="format-key">States</span><span class="format-val">3 (AP, Telangana, KA)</span></div><div class="format-row"><span class="format-key">Total AOV</span><span class="format-val">₹2,551</span></div></div>
+      </div>
+      <div class="h3">Revenue by Product Category</div>
+      <div class="tbl-wrap">
+        <table>
+          <thead><tr><th class="th-c">Product</th><th class="th-c">FY2025 (₹Mn)</th><th class="th-c">FY2024 (₹Mn)</th><th class="th-c">FY2023 (₹Mn)</th><th class="th-c">% FY2025</th><th class="th-c">YoY FY25</th></tr></thead>
+          <tbody>
+            <tr><td class="td-bold">Women Apparel</td><td>14,586</td><td>14,143</td><td>12,131</td><td class="td-hl">54.1%</td><td class="td-pos">+3.1%</td></tr>
+            <tr><td class="td-bold">Men Apparel</td><td>6,028</td><td>5,279</td><td>4,646</td><td>22.4%</td><td class="td-pos">+14.2%</td></tr>
+            <tr><td class="td-bold">Kids Apparel</td><td>4,798</td><td>4,477</td><td>4,068</td><td>17.8%</td><td class="td-pos">+7.2%</td></tr>
+            <tr><td class="td-bold">General Merch & FMCG</td><td>1,527</td><td>681</td><td>422</td><td>5.7%</td><td class="td-hl">+124.3%</td></tr>
+            <tr><td class="td-bold">Total Revenue</td><td class="td-bold">26,939</td><td class="td-bold">24,580</td><td class="td-bold">21,267</td><td class="td-bold">100%</td><td class="td-pos">+9.6%</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="insight"><span class="badge rsb">RSB</span><div class="insight-text"><strong>Hyderabad concentration risk & opportunity:</strong> 39 of 73 stores (53%) and 52.1% of revenue from Hyderabad. RSB's growth strategy explicitly targets reducing this by expanding into AP/Telangana Tier-II cities and entering TN/Maharashtra. LOI signed for stores in Karnataka and Maharashtra post March 2025.</div></div>
+
+      <!-- C.5 -->
+      <div class="h2" id="c5"><div class="h2-dot c"></div>C.5 — RSB Financial Performance (FY2023–25)</div>
+      <div class="divider c"></div>
+      <div class="tbl-wrap">
+        <table>
+          <thead><tr><th class="th-c">P&L Metric</th><th class="th-c">FY2023</th><th class="th-c">FY2024</th><th class="th-c">FY2025</th><th class="th-c">CAGR FY23–25</th></tr></thead>
+          <tbody>
+            <tr><td class="td-bold">Revenue from Operations (₹Mn)</td><td>21,267</td><td>24,580</td><td>26,939</td><td class="td-pos">12.55%</td></tr>
+            <tr><td class="td-bold">Gross Profit (₹Mn)</td><td>6,923</td><td>8,711</td><td>10,126</td><td class="td-pos">20.94%</td></tr>
+            <tr><td class="td-bold">EBITDA (₹Mn)</td><td>2,193</td><td>2,661</td><td>3,738</td><td class="td-pos">30.56%</td></tr>
+            <tr><td class="td-bold">PAT (₹Mn)</td><td>678</td><td>617</td><td>1,044</td><td class="td-pos">24.08%</td></tr>
+            <tr><td class="td-bold">Gross Margin %</td><td>32.55%</td><td>35.44%</td><td class="td-hl">37.59%</td><td class="td-pos">+502 bps</td></tr>
+            <tr><td class="td-bold">EBITDA Margin %</td><td>10.31%</td><td>10.83%</td><td class="td-hl">13.88%</td><td class="td-pos">+357 bps</td></tr>
+            <tr><td class="td-bold">PAT Margin %</td><td>3.19%</td><td>2.51%</td><td>3.84%</td><td class="td-pos">+65 bps</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="h3">Key Financial Ratios</div>
+      <div class="tbl-wrap">
+        <table>
+          <thead><tr><th class="th-c">Ratio</th><th class="th-c">FY2023</th><th class="th-c">FY2024</th><th class="th-c">FY2025</th><th class="th-c">Trend</th></tr></thead>
+          <tbody>
+            <tr><td class="td-bold">Return on Equity (ROE)</td><td>26.55%</td><td>19.24%</td><td class="td-pos">25.83%</td><td class="td-pos">↑ Recovering</td></tr>
+            <tr><td class="td-bold">Return on Capital Employed (ROCE)</td><td>30.44%</td><td>24.39%</td><td class="td-pos">28.95%</td><td class="td-pos">↑ Recovering</td></tr>
+            <tr><td class="td-bold">Debt-to-Equity Ratio (incl. leases)</td><td>1.73x</td><td>2.04x</td><td class="td-neg">2.35x</td><td class="td-neg">↑ Rising</td></tr>
+            <tr><td class="td-bold">Inventory Turnover Ratio</td><td>3.72x</td><td>3.31x</td><td class="td-neg">3.09x</td><td class="td-neg">↓ Declining</td></tr>
+            <tr><td class="td-bold">Net Working Capital Days</td><td>20</td><td>23</td><td class="td-neg">28</td><td class="td-neg">↑ Elongating</td></tr>
+            <tr><td class="td-bold">Same Store Sales Growth (SSSG)</td><td class="td-pos">29.19%</td><td>0.34%</td><td class="td-neg">(4.38)%</td><td class="td-neg">↓ Negative</td></tr>
+            <tr><td class="td-bold">Average Order Value (₹)</td><td>2,834</td><td>2,705</td><td class="td-neg">2,551</td><td class="td-neg">↓ Declining</td></tr>
+            <tr><td class="td-bold">Avg Selling Price / Piece (₹)</td><td>864</td><td>760</td><td class="td-neg">723</td><td class="td-neg">↓ Declining</td></tr>
+            <tr><td class="td-bold">Number of Bills (Mn)</td><td>7.50</td><td>9.09</td><td class="td-pos">10.56</td><td class="td-pos">↑ Growing</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <p class="tbl-caption">Source: RSB Restated Financial Information FY2023–2025 · Debt-to-Equity includes lease liabilities</p>
+      <div class="insight"><span class="badge thesis">THESIS</span><div class="insight-text"><strong>Margin trajectory is the headline:</strong> Gross margin 32.6% → 37.6% and EBITDA 10.3% → 13.9% in just 2 years. Exceptional for a rapidly-expanding physical retailer. Driven by private label penetration (3.75% → 7.25% of revenue), improved supplier terms at scale, and operating leverage. This trajectory, if sustained, significantly changes the FY28–29 earnings outlook.</div></div>
+      <div class="insight"><span class="badge risk">RISK</span><div class="insight-text"><strong>SSSG turning negative (–4.38% FY25):</strong> SSSG fell from +29.2% (FY23) → +0.3% (FY24) → –4.4% (FY25). Partly explained by new store cannibalization, but AOV and ASP also declining YoY. Trading-down risk or market saturation at mature stores needs to be watched closely in FY26 data.</div></div>
+      <div class="insight"><span class="badge risk">RISK</span><div class="insight-text"><strong>Leverage rising:</strong> D/E ratio 1.73x → 2.35x (FY23–25) including lease liabilities. WC days expanding (20 → 28). Inventory turnover declining (3.72 → 3.09). Rapid store expansion is debt-funded. If growth moderates or SSSG stays negative, debt servicing headroom could tighten meaningfully.</div></div>
+
+      <!-- C.6 -->
+      <div class="h2" id="c6"><div class="h2-dot c"></div>C.6 — Peer Benchmarking</div>
+      <div class="divider c"></div>
+      <div class="h3">Revenue & CAGR Comparison</div>
+      <div class="tbl-wrap">
+        <table>
+          <thead><tr><th class="th-c">Company</th><th class="th-c">Category</th><th class="th-c">Rev FY23 (₹Mn)</th><th class="th-c">Rev FY24 (₹Mn)</th><th class="th-c">Rev FY25 (₹Mn)</th><th class="th-c">CAGR 23–25</th></tr></thead>
+          <tbody>
+            <tr><td class="td-bold td-hl">RSB Retail India Ltd</td><td>Regional LFS</td><td>21,267</td><td>24,580</td><td class="td-hl">26,939</td><td class="td-pos">12.55%</td></tr>
+            <tr><td>Pothys Pvt. Ltd.</td><td>Regional LFS</td><td>19,464</td><td>21,824</td><td>N/A</td><td class="td-pos">12.12%</td></tr>
+            <tr><td>Marri Retail (JC Brothers)</td><td>Regional LFS</td><td>19,008</td><td>22,171</td><td>N/A</td><td class="td-pos">16.64%</td></tr>
+            <tr><td>Sai Silk (Kalamandir)</td><td>Regional LFS</td><td>13,515</td><td>13,736</td><td>14,620</td><td>4.01%</td></tr>
+            <tr><td>V-Mart Retail</td><td>National Value</td><td>24,648</td><td>27,856</td><td>32,539</td><td class="td-pos">14.90%</td></tr>
+            <tr><td>Vishal Mega Mart</td><td>National Value</td><td>75,860</td><td>89,120</td><td>1,07,163</td><td class="td-pos">18.85%</td></tr>
+            <tr><td>Shoppers Stop</td><td>National LFS</td><td>40,221</td><td>43,166</td><td>46,276</td><td>7.26%</td></tr>
+            <tr><td>Trent Limited</td><td>National LFS</td><td>82,420</td><td>1,23,751</td><td>1,71,346</td><td class="td-hl">44.19%</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="h3">Margin Comparison (FY2025)</div>
+      <div class="tbl-wrap">
+        <table>
+          <thead><tr><th class="th-c">Company</th><th class="th-c">Gross Margin FY23</th><th class="th-c">Gross Margin FY25</th><th class="th-c">EBITDA Margin FY23</th><th class="th-c">EBITDA Margin FY25</th><th class="th-c">PAT Margin FY25</th></tr></thead>
+          <tbody>
+            <tr><td class="td-bold td-hl">RSB Retail India Ltd</td><td>32.55%</td><td class="td-hl">37.59%</td><td>10.31%</td><td class="td-hl">13.88%</td><td>3.84%</td></tr>
+            <tr><td>Baazar Style Retail</td><td>32.24%</td><td>33.67%</td><td>12.88%</td><td>14.11%</td><td>1.09%</td></tr>
+            <tr><td>V-Mart Retail</td><td>35.20%</td><td>34.55%</td><td>10.91%</td><td>11.59%</td><td>1.40%</td></tr>
+            <tr><td>V2 Retail</td><td>31.00%</td><td class="td-neg">29.25%</td><td>10.01%</td><td>13.68%</td><td>3.81%</td></tr>
+            <tr><td>Vishal Mega Mart</td><td>27.15%</td><td>28.49%</td><td>13.45%</td><td>14.28%</td><td>5.87%</td></tr>
+            <tr><td>Pothys Pvt. Ltd.</td><td>32.77%</td><td>N/A</td><td>14.45%</td><td>N/A</td><td>N/A</td></tr>
+            <tr><td>Sai Silk (Kalamandir)</td><td>39.13%</td><td>41.78%</td><td>15.73%</td><td>14.48%</td><td>5.75%</td></tr>
+            <tr><td>Trent Limited</td><td>42.74%</td><td>43.45%</td><td>13.03%</td><td class="td-hl">16.10%</td><td>8.84%</td></tr>
+            <tr><td>Shoppers Stop</td><td>42.11%</td><td>41.07%</td><td>17.29%</td><td>15.31%</td><td>0.23%</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="h3">Return Metrics & Efficiency (FY2025)</div>
+      <div class="tbl-wrap">
+        <table>
+          <thead><tr><th class="th-c">Company</th><th class="th-c">ROE FY25</th><th class="th-c">ROCE FY25</th><th class="th-c">D/E FY25</th><th class="th-c">Inv. Turn FY25</th><th class="th-c">WC Days FY25</th><th class="th-c">SSSG FY25</th></tr></thead>
+          <tbody>
+            <tr><td class="td-bold td-hl">RSB Retail India Ltd</td><td class="td-pos">25.83%</td><td class="td-pos">28.95%</td><td class="td-neg">2.35x</td><td>3.09x</td><td>28</td><td class="td-neg">(4.38)%</td></tr>
+            <tr><td>Baazar Style Retail</td><td>4.75%</td><td>15.71%</td><td>2.47x</td><td>1.87x</td><td>57</td><td class="td-pos">13.00%</td></tr>
+            <tr><td>V-Mart Retail</td><td>5.88%</td><td>15.03%</td><td>0.97x</td><td>2.36x</td><td>25</td><td class="td-pos">11.00%</td></tr>
+            <tr><td>V2 Retail</td><td class="td-pos">23.20%</td><td class="td-pos">34.46%</td><td>2.45x</td><td>2.73x</td><td>37</td><td class="td-pos">29.00%</td></tr>
+            <tr><td>Vishal Mega Mart</td><td>10.51%</td><td>14.68%</td><td>0.27x</td><td>4.62x</td><td>15</td><td class="td-pos">12.31%</td></tr>
+            <tr><td>Trent Limited</td><td class="td-hl">31.68%</td><td class="td-hl">30.63%</td><td>0.40x</td><td>5.34x</td><td>25</td><td class="td-pos">10.00%</td></tr>
+            <tr><td>Sai Silk (Kalamandir)</td><td>7.78%</td><td>12.24%</td><td>0.36x</td><td>1.13x</td><td>188</td><td>N/A</td></tr>
+            <tr><td>DMart (Avenue Supermart)</td><td>13.49%</td><td>16.88%</td><td>0.04x</td><td>11.27x</td><td>25</td><td class="td-pos">8.40%</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="h3">Operational KPIs (FY2025)</div>
+      <div class="tbl-wrap">
+        <table>
+          <thead><tr><th class="th-c">Company</th><th class="th-c">Stores</th><th class="th-c">Avg Store Size (sqft)</th><th class="th-c">Avg Rev/Store (₹Mn)</th><th class="th-c">Avg Rev/Sqft (₹)</th><th class="th-c">AOV (₹)</th></tr></thead>
+          <tbody>
+            <tr><td class="td-bold td-hl">RSB Retail India Ltd</td><td>73</td><td class="td-hl">25,409</td><td class="td-hl">369</td><td>14,524</td><td class="td-hl">2,551</td></tr>
+            <tr><td>Sai Silk (Kalamandir)</td><td>11</td><td>10,531</td><td>215</td><td>20,417</td><td>4,664</td></tr>
+            <tr><td>V-Mart Retail</td><td>497</td><td>8,652</td><td>65.5</td><td>~710</td><td>1,045</td></tr>
+            <tr><td>Vishal Mega Mart</td><td>696</td><td>17,474</td><td>154</td><td>—</td><td>N/A</td></tr>
+            <tr><td>Trent (Westside+Zudio)</td><td>1,043</td><td>12,469</td><td>147.9</td><td>16,000</td><td>N/A</td></tr>
+            <tr><td>Shoppers Stop</td><td>299</td><td>15,050</td><td>181.5</td><td>12,060</td><td>4,942</td></tr>
+            <tr><td>Baazar Style Retail</td><td>222</td><td>8,976</td><td>60.5</td><td>8,652</td><td>997</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <p class="tbl-caption">Source: Annual Reports, Industry Reports, Technopak Analysis</p>
+      <div class="insight"><span class="badge model">MODEL</span><div class="insight-text"><strong>RSB Gross Margin expansion is best-in-class:</strong> RSB margin went 32.6% → 37.6% (+502 bps in 2 years). V-Mart flat at 34–35%, V2 declining (31% → 29%), Baazar Style flat at 32–34%. Only Sai Silks (39% → 42%) and Trent (43% → 43.5%) have comparable or better margins. RSB's private label-led expansion is the structural driver of this.</div></div>
+      <div class="insight"><span class="badge rsb">RSB</span><div class="insight-text"><strong>Second-highest avg revenue per store (₹369 Mn):</strong> Among comparable-format retailers, RSB leads on this metric. Benchmark: Shoppers Stop (₹182 Mn), Baazar Style (₹60 Mn), V-Mart (₹65 Mn). RSB's large store format (avg 25,409 sqft) vs value peers (8,000–9,000 sqft) drives the per-store revenue advantage.</div></div>
+
+      <!-- C.7 -->
+      <div class="h2" id="c7"><div class="h2-dot c"></div>C.7 — Competitive Position & Strategy</div>
+      <div class="divider c"></div>
+      <div class="h3">Multi-Format Coverage vs Peers</div>
+      <div class="tbl-wrap">
+        <table>
+          <thead><tr><th class="th-c">Player</th><th class="th-c">Value Format</th><th class="th-c">LFS</th><th class="th-c">Ethnic-Women</th><th class="th-c">Ethnic-Men</th></tr></thead>
+          <tbody>
+            <tr><td class="td-bold td-hl">RSB Retail India Limited</td><td class="check-y">✓ ValueZone</td><td class="check-y">✓ RS Brothers + SISM</td><td class="check-y">✓ Narayani Silks</td><td class="check-y">✓ Dè Royal</td></tr>
+            <tr><td>Pothys Pvt. Ltd.</td><td class="check-n">—</td><td class="check-y">✓</td><td class="check-y">✓</td><td class="check-n">—</td></tr>
+            <tr><td>Marri Retail (JC Brothers)</td><td class="check-y">✓</td><td class="check-y">✓</td><td class="check-n">—</td><td class="check-n">—</td></tr>
+            <tr><td>Saravana Stores</td><td class="check-n">—</td><td class="check-y">✓</td><td class="check-n">—</td><td class="check-n">—</td></tr>
+            <tr><td>Sai Silk (Kalamandir)</td><td class="check-y">✓</td><td class="check-y">✓</td><td class="check-y">✓</td><td class="check-n">—</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <p class="tbl-caption">RSB is the only regional player with presence across all 4 format types — Source: Technopak Report</p>
+      <div class="h3">Strategic Priorities (Board-Approved Aug 2025)</div>
+      <div class="tbl-wrap">
+        <table>
+          <thead><tr><th class="th-c">Priority</th><th class="th-c">Detail</th><th class="th-c">Capital/Resource</th></tr></thead>
+          <tbody>
+            <tr><td class="td-bold">1. New Store Rollouts</td><td>14 new RS Brothers / SISM stores in AP & Telangana; enter TN and Maharashtra. 4 stores FY26, 7+7 in FY27–28. LOI for KA + MH signed.</td><td class="td-hl">₹1,181.81 Mn from IPO proceeds</td></tr>
+            <tr><td class="td-bold">2. Operational Efficiency</td><td>AI/ML for demand forecasting. Better supplier commercial terms. Performance incentives for staff. Wider product range → better basket size.</td><td>Operational / capex light</td></tr>
+            <tr><td class="td-bold">3. Private Label Growth</td><td>13 private labels (Adam Parker, Republican, HOSH, SISMO etc). Share: 3.75% → 7.25% FY23–25. Target further increase; possible dedicated PL stores.</td><td>Brand investment / sourcing</td></tr>
+            <tr><td class="td-bold">4. Reduce Hyd Concentration</td><td>52.1% revenue from Hyderabad (39 stores). Expand into AP/Telangana Tier-II + TN/MH entry to diversify revenue base.</td><td>New store capex from IPO</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="callout c"><strong>Investment thesis in one statement:</strong> RSB is a rare South India multi-format retailer with a proven 25-year playbook, clear format differentiation, growing private label mix driving margin expansion, and structurally advantaged positioning in the highest ethnic-wear-density region of India. IPO proceeds fund acceleration into underpenetrated Tier-II/III markets in AP & Telangana — where the unorganised-to-organised shift is fastest. Key risks to monitor: negative SSSG, rising leverage, AOV/ASP decline, and national LFS/D2C competition in digital channels.</div>
+    </div>
+
+    <!-- ════ SYNTHESIS PANEL ════ -->
+    <div class="panel" id="synth">
+      <div class="sec-banner" style="background:linear-gradient(135deg,#0d1e3d,#111e35);border:1px solid var(--border2)"><div class="sec-banner-num" style="opacity:0.04">⟳</div><div class="sec-banner-tag">Synthesis</div><div class="sec-banner-title">Threads to Align With Your Research Data</div><div class="sec-banner-sub">Seven questions your scraped / collected data should help answer — to triangulate against the DRHP</div></div>
+
+      <div class="callout synth"><strong>How to use this:</strong> Now that you have a structured view from the DRHP, the next step is overlaying your own scraped and collected data against each exhibit. The threads below are the key gaps, conflicts, and validation points where external data adds the most incremental signal.</div>
+
+      <div class="thread-card"><div class="thread-title"><div class="thread-num">1</div>Market Sizing Cross-Check</div><div class="thread-body">Technopak says India apparel = INR 6,212 Bn FY24, CAGR 11.7% to INR 10,815 Bn FY29. Does your scraped data from CRISIL, ICRA, McKinsey, Wazir, or IBEF triangulate with this number? Key conflict zones: total market size, women's ethnic share (65.4%), and organised penetration trajectory (41% → 49% in womenswear). Any divergence in CAGR assumptions is critical for your thesis modelling.</div></div>
+
+      <div class="thread-card"><div class="thread-title"><div class="thread-num">2</div>South India Ethnic Affinity Validation</div><div class="thread-body">Technopak says South India = 74% ethnic share in women's apparel vs 65% national — a significant differential. Can your primary/secondary research validate this gap? Consumer survey data, NPS/brand trackers, or social listening from South India vs other regions would strengthen or challenge this. This is the most critical structural assumption underpinning RSB's positioning advantage.</div></div>
+
+      <div class="thread-card"><div class="thread-title"><div class="thread-num">3</div>Competitive Store Count & Expansion Tracking</div><div class="thread-body">The DRHP uses Jan 2025 data for competitor store counts. Your scraped data may capture more recent openings by Pothys, Sai Silks, Marri Retail, and national players (Trent, Reliance, ABFRL) in AP/Telangana. Any material acceleration by competitors in RSB's home geography is a direct risk signal to overlay on the market share story.</div></div>
+
+      <div class="thread-card"><div class="thread-title"><div class="thread-num">4</div>RSB Peer Financial Benchmarking — Deeper Granularity</div><div class="thread-body">The DRHP benchmarks RSB vs 15+ peers on revenue, margins, ROE, ROCE, D/E, inventory turnover, working capital. Your data may include: (a) more recent quarterly results post-Aug 2025 DRHP filing, (b) EV/EBITDA and P/E multiples for listed peers for valuation framing, (c) store-level unit economics where disclosed. Layer these to update the benchmark tables.</div></div>
+
+      <div class="thread-card"><div class="thread-title"><div class="thread-num">5</div>Consumer Sentiment & Brand Perception</div><div class="thread-body">The DRHP only covers structural market data — no consumer voice. Your collected data may include Google Trends, social media sentiment, customer reviews, brand recall scores, or app ratings for RSB vs Pothys, Sai Silks, Lifestyle. This is the biggest whitespace in the DRHP analysis and the most differentiating input your research can add to a thesis.</div></div>
+
+      <div class="thread-card"><div class="thread-title"><div class="thread-num">6</div>RSB's E-Commerce & Digital Gap</div><div class="thread-body">Per Technopak data in the DRHP, RSB has no marketplace presence (only own website, no Myntra/Amazon/Ajio). All regional peers (Pothys, Sai Silks) also show no marketplace presence — but national LFS (Lifestyle, Shoppers Stop, Westside) are active on all major platforms. Your research may reveal whether RSB's digital absence is a deliberate strategy, near-term gap, or structural weakness — key for digital risk framing in your thesis.</div></div>
+
+      <div class="thread-card"><div class="thread-title"><div class="thread-num">7</div>IPO Valuation Context & Listed Peer Multiples</div><div class="thread-body">The DRHP sets out use of proceeds (₹1,181.81 Mn for new stores) and business plan but no valuation guidance. Your data should provide: (a) current EV/EBITDA, P/E, EV/Revenue for listed comparables (Trent, Shoppers Stop, V-Mart, Sai Silks), (b) recent IPO pricing multiples for similar companies, (c) implied valuation range for RSB at different EBITDA scenarios. This is the anchor for the final presentation thesis.</div></div>
+
+      <div class="callout synth" style="margin-top:24px"><strong>Recommended workflow:</strong> Start with Thread 4 (peer multiples) and Thread 7 (valuation) since those directly enable your presentation conclusion. Then Thread 2 (South India ethnic validation) since it's the single most important structural assumption. Threads 1, 3, 5, 6 are enrichment — useful but lower priority for the core thesis.</div>
+    </div>
+
+  </main>
+</div>
+
+<script>
+function switchTab(panel, sec, el) {
+  // Hide all panels
+  document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+  // Remove all active classes from tabs
+  document.querySelectorAll('.tab').forEach(t => {
+    t.classList.remove('active-a','active-b','active-c','active-s');
+  });
+  // Show target panel
+  document.getElementById(panel).classList.add('active');
+  // Add active class to clicked tab
+  el.classList.add('active-' + sec);
+  // Update sidebar visibility
+  document.getElementById('toc-a').style.display = sec === 'a' && panel !== 'cover' ? 'block' : 'none';
+  document.getElementById('toc-b').style.display = sec === 'b' ? 'block' : 'none';
+  document.getElementById('toc-c').style.display = sec === 'c' ? 'block' : 'none';
+  // Scroll to top
+  window.scrollTo(0, 0);
+}
+// Init
+document.querySelector('.tab').classList.add('active-a');
+</script>
+</body>
+</html>
+HTMLEOF
