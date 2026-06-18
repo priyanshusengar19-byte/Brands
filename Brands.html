@@ -1,0 +1,749 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>India Fashion Brand Segmentation</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600;700&family=DM+Mono:wght@400;500&display=swap');
+
+  :root {
+    --bg: #0f0f0f;
+    --surface: #1a1a1a;
+    --card: #222222;
+    --border: #2e2e2e;
+    --text: #e8e8e8;
+    --muted: #888;
+    --accent: #c8a96e;
+
+    --value: #4ade80;
+    --economy: #60a5fa;
+    --midmarket: #f59e0b;
+    --premium: #e879f9;
+    --luxury: #f87171;
+
+    --western: #38bdf8;
+    --formal: #818cf8;
+    --sports: #4ade80;
+    --footwear: #fb923c;
+    --department: #a78bfa;
+    --hypermarket: #34d399;
+    --ethnic: #f472b6;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'DM Sans', sans-serif;
+    font-size: 14px;
+    line-height: 1.5;
+    padding: 24px;
+    min-height: 100vh;
+  }
+
+  header {
+    border-bottom: 1px solid var(--border);
+    padding-bottom: 24px;
+    margin-bottom: 32px;
+  }
+
+  header h1 {
+    font-size: 24px;
+    font-weight: 700;
+    letter-spacing: -0.5px;
+    color: #fff;
+    margin-bottom: 6px;
+  }
+  header p {
+    color: var(--muted);
+    font-size: 13px;
+  }
+
+  /* ASP LEGEND */
+  .legend-row {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+    margin-bottom: 28px;
+  }
+  .legend-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 8px 14px;
+    cursor: pointer;
+    transition: border-color 0.15s, opacity 0.15s;
+    user-select: none;
+  }
+  .legend-item.inactive { opacity: 0.35; }
+  .legend-item:hover { border-color: #555; }
+  .dot { width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0; }
+  .legend-item .label { font-size: 12px; font-weight: 600; color: var(--text); }
+  .legend-item .range { font-size: 11px; color: var(--muted); font-family: 'DM Mono', monospace; }
+
+  /* CONTROLS */
+  .controls {
+    display: flex;
+    gap: 12px;
+    flex-wrap: wrap;
+    margin-bottom: 24px;
+    align-items: center;
+  }
+
+  .view-toggle {
+    display: flex;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    overflow: hidden;
+  }
+  .view-toggle button {
+    border: none;
+    background: transparent;
+    color: var(--muted);
+    padding: 8px 16px;
+    font-size: 12px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background 0.15s, color 0.15s;
+    font-family: 'DM Sans', sans-serif;
+  }
+  .view-toggle button.active {
+    background: var(--accent);
+    color: #000;
+  }
+
+  .filter-group {
+    display: flex;
+    gap: 6px;
+    flex-wrap: wrap;
+    align-items: center;
+  }
+  .filter-label { font-size: 12px; color: var(--muted); font-weight: 500; }
+  .filter-btn {
+    border: 1px solid var(--border);
+    background: var(--surface);
+    color: var(--muted);
+    padding: 6px 12px;
+    border-radius: 6px;
+    font-size: 11px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.15s;
+    font-family: 'DM Sans', sans-serif;
+    letter-spacing: 0.3px;
+  }
+  .filter-btn.active { color: #000; border-color: transparent; }
+  .filter-btn:hover { border-color: #555; }
+
+  /* SEARCH */
+  .search-wrap {
+    margin-left: auto;
+  }
+  .search-wrap input {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    color: var(--text);
+    padding: 8px 14px;
+    font-size: 13px;
+    font-family: 'DM Sans', sans-serif;
+    outline: none;
+    width: 200px;
+    transition: border-color 0.15s;
+  }
+  .search-wrap input:focus { border-color: var(--accent); }
+  .search-wrap input::placeholder { color: var(--muted); }
+
+  /* TABLE */
+  .table-wrap { overflow-x: auto; border-radius: 12px; border: 1px solid var(--border); }
+  table { width: 100%; border-collapse: collapse; min-width: 700px; }
+  thead th {
+    background: var(--surface);
+    padding: 12px 16px;
+    text-align: left;
+    font-size: 11px;
+    font-weight: 600;
+    color: var(--muted);
+    letter-spacing: 0.8px;
+    text-transform: uppercase;
+    border-bottom: 1px solid var(--border);
+    white-space: nowrap;
+  }
+  thead th:first-child { width: 160px; }
+  tbody tr {
+    border-bottom: 1px solid #1e1e1e;
+    transition: background 0.1s;
+    cursor: default;
+  }
+  tbody tr:last-child { border-bottom: none; }
+  tbody tr:hover { background: #1f1f1f; }
+  tbody tr.hidden { display: none; }
+  td {
+    padding: 11px 16px;
+    vertical-align: middle;
+    font-size: 13px;
+  }
+  td:first-child { font-weight: 600; color: #fff; font-size: 13px; }
+
+  .asp-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    border-radius: 5px;
+    padding: 3px 10px;
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.3px;
+  }
+  .type-badge {
+    display: inline-block;
+    border-radius: 4px;
+    padding: 3px 9px;
+    font-size: 11px;
+    font-weight: 600;
+  }
+  .note-cell { font-size: 11px; color: var(--muted); max-width: 240px; line-height: 1.4; }
+  .flag { font-size: 11px; color: var(--accent); font-weight: 500; }
+
+  /* GRID VIEW */
+  .grid-container { display: none; }
+  .asp-section { margin-bottom: 32px; }
+  .asp-section-title {
+    font-size: 13px; font-weight: 700; letter-spacing: 0.5px;
+    display: flex; align-items: center; gap: 10px;
+    margin-bottom: 14px; padding-bottom: 10px;
+    border-bottom: 1px solid var(--border);
+  }
+  .asp-section-title .count {
+    font-size: 11px; color: var(--muted); font-weight: 400;
+    font-family: 'DM Mono', monospace;
+  }
+  .grid-cards {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    gap: 8px;
+  }
+  .brand-card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 12px 14px;
+    transition: border-color 0.15s;
+  }
+  .brand-card:hover { border-color: #444; }
+  .brand-card.hidden { display: none; }
+  .brand-card .brand-name { font-weight: 600; font-size: 13px; color: #fff; margin-bottom: 6px; }
+  .brand-card .badges { display: flex; flex-wrap: wrap; gap: 4px; margin-bottom: 6px; }
+  .brand-card .note { font-size: 11px; color: var(--muted); line-height: 1.4; }
+  .brand-card .call-flag { font-size: 10px; color: var(--accent); margin-top: 4px; }
+
+  /* RATIONALE */
+  .rationale-section { margin-top: 40px; }
+  .rationale-section h2 { font-size: 16px; font-weight: 700; margin-bottom: 20px; color: #fff; }
+  .rationale-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+  .rationale-card {
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: 12px; padding: 18px;
+  }
+  .rationale-card h3 { font-size: 13px; font-weight: 700; margin-bottom: 12px; display: flex; align-items: center; gap: 8px; }
+  .rationale-card ul { list-style: none; display: flex; flex-direction: column; gap: 8px; }
+  .rationale-card li { font-size: 12px; color: var(--muted); line-height: 1.5; display: flex; gap: 8px; }
+  .rationale-card li::before { content: '—'; color: var(--border); flex-shrink: 0; }
+
+  .calls-section {
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: 12px; padding: 20px; margin-top: 16px;
+  }
+  .calls-section h3 { font-size: 13px; font-weight: 700; margin-bottom: 14px; color: var(--accent); }
+  .call-item { margin-bottom: 14px; padding-bottom: 14px; border-bottom: 1px solid var(--border); }
+  .call-item:last-child { border-bottom: none; margin-bottom: 0; padding-bottom: 0; }
+  .call-item .call-brand { font-weight: 600; color: #fff; font-size: 13px; margin-bottom: 4px; }
+  .call-item .call-text { font-size: 12px; color: var(--muted); line-height: 1.5; }
+
+  .sources { margin-top: 24px; font-size: 11px; color: #555; line-height: 1.8; }
+  .sources span { display: inline-block; margin-right: 12px; }
+
+  @media (max-width: 600px) {
+    body { padding: 16px; }
+    .rationale-grid { grid-template-columns: 1fr; }
+    .search-wrap { width: 100%; }
+    .search-wrap input { width: 100%; }
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <h1>India Fashion Brand Segmentation</h1>
+  <p>110 brands segmented by ASP tier and retail store type · Compiled June 2026</p>
+</header>
+
+<!-- ASP LEGEND -->
+<div class="legend-row" id="aspLegend">
+  <div class="legend-item" data-asp="Value" onclick="toggleAsp(this)">
+    <div class="dot" style="background:var(--value)"></div>
+    <span class="label">Value</span>
+    <span class="range">&lt; ₹400</span>
+  </div>
+  <div class="legend-item" data-asp="Economy" onclick="toggleAsp(this)">
+    <div class="dot" style="background:var(--economy)"></div>
+    <span class="label">Economy</span>
+    <span class="range">₹400–₹900</span>
+  </div>
+  <div class="legend-item" data-asp="Mid-Market" onclick="toggleAsp(this)">
+    <div class="dot" style="background:var(--midmarket)"></div>
+    <span class="label">Mid-Market</span>
+    <span class="range">₹900–₹2,500</span>
+  </div>
+  <div class="legend-item" data-asp="Premium" onclick="toggleAsp(this)">
+    <div class="dot" style="background:var(--premium)"></div>
+    <span class="label">Premium</span>
+    <span class="range">₹2,500–₹7,000</span>
+  </div>
+  <div class="legend-item" data-asp="Luxury" onclick="toggleAsp(this)">
+    <div class="dot" style="background:var(--luxury)"></div>
+    <span class="label">Luxury</span>
+    <span class="range">&gt; ₹7,000</span>
+  </div>
+</div>
+
+<!-- CONTROLS -->
+<div class="controls">
+  <div class="view-toggle">
+    <button class="active" onclick="setView('table', this)">Table</button>
+    <button onclick="setView('grid', this)">Grid</button>
+  </div>
+
+  <div class="filter-group">
+    <span class="filter-label">Store Type:</span>
+    <button class="filter-btn active" style="background:var(--muted); border-color:var(--muted)" data-type="All" onclick="setType('All',this)">All</button>
+    <button class="filter-btn" data-type="Western" onclick="setType('Western',this)">Western</button>
+    <button class="filter-btn" data-type="Formal" onclick="setType('Formal',this)">Formal</button>
+    <button class="filter-btn" data-type="Sports" onclick="setType('Sports',this)">Sports</button>
+    <button class="filter-btn" data-type="Footwear" onclick="setType('Footwear',this)">Footwear</button>
+    <button class="filter-btn" data-type="Department" onclick="setType('Department',this)">Department</button>
+    <button class="filter-btn" data-type="Hypermarket" onclick="setType('Hypermarket',this)">Hypermarket</button>
+    <button class="filter-btn" data-type="Ethnic" onclick="setType('Ethnic',this)">Ethnic</button>
+  </div>
+
+  <div class="search-wrap">
+    <input type="text" id="searchInput" placeholder="Search brand…" oninput="applyFilters()">
+  </div>
+</div>
+
+<!-- TABLE VIEW -->
+<div class="table-wrap" id="tableView">
+  <table>
+    <thead>
+      <tr>
+        <th>Brand</th>
+        <th>ASP Tier</th>
+        <th>ASP Range (Apparel)</th>
+        <th>Store Type</th>
+        <th>Notes</th>
+      </tr>
+    </thead>
+    <tbody id="tableBody"></tbody>
+  </table>
+</div>
+
+<!-- GRID VIEW -->
+<div class="grid-container" id="gridView"></div>
+
+<!-- RATIONALE -->
+<div class="rationale-section">
+  <h2>Framework & Rationale</h2>
+  <div class="rationale-grid">
+    <div class="rationale-card">
+      <h3><span style="color:var(--accent)">◈</span> ASP Tier Definitions</h3>
+      <ul>
+        <li><strong style="color:var(--value)">Value (&lt;₹400):</strong> Price-first proposition. Unbranded-adjacent. Targets Tier 2–4 cities, first-time branded buyers. Fast-fashion basics. Operators: V-Mart, Vishal, Style Bazaar.</li>
+        <li><strong style="color:var(--economy)">Economy (₹400–₹900):</strong> Branded but budget. Accessible fashion with recognizable labels. Core of India's volume market. Zudio, Max, Reliance Trends fit here. ASP confirmed by Redseer's "sub-₹800 fastest-growing cluster."</li>
+        <li><strong style="color:var(--midmarket)">Mid-Market (₹900–₹2,500):</strong> Quality-conscious, brand-loyal urban consumer. Includes Pantaloons, Westside, Levi's, H&M, and most "Friday-dressing" formal brands like Allen Solly & Peter England.</li>
+        <li><strong style="color:var(--premium)">Premium (₹2,500–₹7,000):</strong> Aspirational, logo-driven, quality-fabric focus. Louis Philippe, Raymond, Van Heusen (formal), Tommy Hilfiger, Zara, Manyavar. International brand cachet or artisanal heritage.</li>
+        <li><strong style="color:var(--luxury)">Luxury (&gt;₹7,000):</strong> Status-signalling, exclusive distribution, heritage positioning. Lacoste, Calvin Klein, Ritu Kumar. True luxury (Sabyasachi, Gucci) not in this list.</li>
+      </ul>
+    </div>
+    <div class="rationale-card">
+      <h3><span style="color:var(--accent)">◈</span> Store Type Definitions</h3>
+      <ul>
+        <li><strong style="color:var(--western)">Western:</strong> Contemporary casual/trend-driven apparel — jeans, tees, dresses. D2C or mall-first. No strong ethnic or sport emphasis.</li>
+        <li><strong style="color:var(--formal)">Formal:</strong> Primarily office/business/occasion wear — suits, formal shirts, trousers. Typically men's-first brands.</li>
+        <li><strong style="color:var(--sports)">Sports:</strong> Performance or athleisure-first positioning — running, gym, training gear. EBOs and multi-sport retail.</li>
+        <li><strong style="color:var(--footwear)">Footwear:</strong> Footwear as core business; apparel is secondary or absent.</li>
+        <li><strong style="color:var(--department)">Department:</strong> Multi-brand or wide-category store. Carries apparel + accessories + lifestyle across genders and ages. Often houses multiple labels.</li>
+        <li><strong style="color:var(--hypermarket)">Hypermarket:</strong> Value-oriented mass-format retail. Large floor area, groceries/FMCG co-exist with apparel. Low-ticket impulse fashion.</li>
+        <li><strong style="color:var(--ethnic)">Ethnic:</strong> Traditional Indian wear as primary category — kurtas, sarees, lehengas, sherwanis, salwar suits.</li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="calls-section">
+    <h3>⚑ Major Calls — Where Two Categories Compete</h3>
+
+    <div class="call-item">
+      <div class="call-brand">Pantaloons → Mid-Market / Department</div>
+      <div class="call-text">Pantaloons sells brands spanning Economy to Premium (LP, VH) but its own private labels and floor ASP sit firmly in the ₹900–₹2,000 range. Called Mid-Market. As a Department store it hosts multiple categories and brands — categorised as Department Store type, not Western or Formal, since it covers both.</div>
+    </div>
+    <div class="call-item">
+      <div class="call-brand">H&M → Mid-Market (not Economy)</div>
+      <div class="call-text">H&M entered India targeting the middle class with globally affordable prices. In India, its average ticket is ₹1,200–₹2,000, above Zudio/Max. Redseer and industry analysts position it in the mid-market internationally; in India its relative pricing lands it at the low end of Mid-Market. Economy would understate its brand premium perception.</div>
+    </div>
+    <div class="call-item">
+      <div class="call-brand">Decathlon → Economy / Sports</div>
+      <div class="call-text">Decathlon is a hypermarket-format sports specialist. Its prices span ₹300–₹3,000 but median performance apparel sits around ₹600–₹800. Called Economy ASP. Store type is Sports — it sells only sports-adjacent products, even if the format resembles a hypermarket physically.</div>
+    </div>
+    <div class="call-item">
+      <div class="call-brand">Lacoste → Luxury (not Premium)</div>
+      <div class="call-text">A polo at Lacoste India starts at ₹5,000 and core products hit ₹8,000–₹25,000. This comfortably crosses the ₹7,000 threshold. Globally positioned as "premium-luxury" but in India context, given its pricing relative to peers, Luxury is the right call. MBA Skool's own analysis calls Lacoste "premium luxury" with prestige pricing.</div>
+    </div>
+    <div class="call-item">
+      <div class="call-brand">Fabindia → Mid-Market / Ethnic</div>
+      <div class="call-text">Fabindia's price range (₹900–₹5,000) straddles Mid-Market and Premium. However, its median basket and everyday volume pricing is Mid-Market. It could be argued as Premium for its natural-fabric, artisanal positioning — but given mass footprint (357+ stores), Mid-Market is the better call. Ethnic is its clear store type.</div>
+    </div>
+    <div class="call-item">
+      <div class="call-brand">Manyavar → Premium / Ethnic</div>
+      <div class="call-text">Manyavar's wedding sherwanis and kurta sets average ₹3,000–₹12,000, with festive collections higher. Positioned as Premium. Mohey (its women's arm) follows the same logic. Store type is Ethnic — exclusively Indian occasion wear.</div>
+    </div>
+    <div class="call-item">
+      <div class="call-brand">Shoppers Stop / Lifestyle → Department (not Western/Formal)</div>
+      <div class="call-text">Both are multi-brand department stores carrying everything from formal to ethnic to sports brands. ASP depends entirely on which sub-brand/floor; the store itself is Mid-Market leaning. Type = Department.</div>
+    </div>
+    <div class="call-item">
+      <div class="call-brand">Reliance Smart Bazaar → Value / Hypermarket</div>
+      <div class="call-text">Smart Bazaar is a grocery-led hypermarket; apparel is a secondary, impulse category at very low price points. Separated from Reliance Trends (Economy / Western) on both dimensions.</div>
+    </div>
+    <div class="call-item">
+      <div class="call-brand">Adidas / Nike / Puma → Premium / Sports</div>
+      <div class="call-text">While these brands have entry-level products in the ₹1,500–₹2,000 range, their ASPs and brand positioning in India cluster around ₹3,000–₹6,000 for apparel. Premium is the right ASP. Contrast with Campus (Economy Sports) and Decathlon (Economy Sports).</div>
+    </div>
+    <div class="call-item">
+      <div class="call-brand">Rare Rabbit → Premium / Western</div>
+      <div class="call-text">Rare Rabbit sits at ₹2,500–₹5,000 per piece with a strong premium casual positioning and DTC-first strategy. Premium is the right call — a step above Levis/Flying Machine but below Zara's global premium image in India.</div>
+    </div>
+  </div>
+</div>
+
+<div class="sources">
+  <strong style="color:var(--muted)">Sources:</strong>
+  <span>Redseer Benchmarks 2026</span>
+  <span>Ken Research India Sportswear Market 2024</span>
+  <span>Apparel Resources Ethnic Wear Report 2025</span>
+  <span>ABFRL Annual Reports FY2024</span>
+  <span>MBA Skool brand analyses</span>
+  <span>Market Research Future India Apparel 2024</span>
+  <span>Markhub24 Van Heusen Brand Strategy</span>
+  <span>Indian Retailer brand profiles</span>
+</div>
+
+<script>
+const ASP_COLORS = {
+  'Value': 'var(--value)',
+  'Economy': 'var(--economy)',
+  'Mid-Market': 'var(--midmarket)',
+  'Premium': 'var(--premium)',
+  'Luxury': 'var(--luxury)'
+};
+const TYPE_COLORS = {
+  'Western': 'var(--western)',
+  'Formal': 'var(--formal)',
+  'Sports': 'var(--sports)',
+  'Footwear': 'var(--footwear)',
+  'Department': 'var(--department)',
+  'Hypermarket': 'var(--hypermarket)',
+  'Ethnic': 'var(--ethnic)'
+};
+
+// ASP_RANGE: indicative range for apparel (footwear brands: footwear price shown)
+const brands = [
+  // VALUE
+  { name: 'V Baazar',      asp: 'Value',     range: '₹150–₹400',    type: 'Hypermarket', note: 'Kirana-adjacent value format, Tier 3/4 focus' },
+  { name: 'V2',            asp: 'Value',     range: '₹150–₹400',    type: 'Hypermarket', note: 'Deep-discount multi-category format' },
+  { name: 'Vishal Mega Mart',asp: 'Value',   range: '₹150–₹500',    type: 'Hypermarket', note: 'Grocery + apparel hypermarket, Tier 2–4' },
+  { name: 'MBazaar',       asp: 'Value',     range: '₹150–₹450',    type: 'Hypermarket', note: 'Budget format; regional reach' },
+  { name: 'CityKart',      asp: 'Value',     range: '₹200–₹500',    type: 'Hypermarket', note: 'Value retailer, UP/Bihar focused' },
+  { name: 'Style Bazaar',  asp: 'Value',     range: '₹200–₹600',    type: 'Hypermarket', note: 'Value fashion, Tier 2–3 cities' },
+  { name: 'V Mart',        asp: 'Value',     range: '₹250–₹600',    type: 'Hypermarket', note: 'Semi-urban value fashion; ~350 stores' },
+  { name: 'Bazaar Kolkata', asp: 'Value',    range: '₹200–₹500',    type: 'Hypermarket', note: 'Eastern India value retail' },
+  { name: 'Reliance Smart Bazaar', asp: 'Value', range: '₹200–₹600', type: 'Hypermarket', note: 'Grocery-led hypermarket; apparel secondary' },
+  { name: 'CityBazaar Metro', asp: 'Value',  range: '₹200–₹550',    type: 'Hypermarket', note: 'Metro-area value format' },
+
+  // ECONOMY
+  { name: 'Zudio',         asp: 'Economy',   range: '₹299–₹799',    type: 'Western',     note: 'Tata Trent. Fast-fashion value leader; 700+ stores' },
+  { name: 'Max',           asp: 'Economy',   range: '₹399–₹899',    type: 'Western',     note: 'Landmark Group. Broad age + gender coverage' },
+  { name: 'Reliance Trends',asp: 'Economy',  range: '₹399–₹999',    type: 'Department',  note: 'Reliance Retail. Multi-category, wide audience' },
+  { name: 'Unlimited',     asp: 'Economy',   range: '₹399–₹899',    type: 'Department',  note: 'Shriram Group; large-format value department' },
+  { name: 'Easy Buy',      asp: 'Economy',   range: '₹299–₹799',    type: 'Department',  note: 'Arvind Retail. Economy multi-brand format' },
+  { name: 'Duke',          asp: 'Economy',   range: '₹350–₹800',    type: 'Western',     note: 'Affordable men\'s knitwear & casuals; strong North India' },
+  { name: 'Decathlon',     asp: 'Economy',   range: '₹499–₹1,200',  type: 'Sports',      note: 'French value-sports hypermarket; all sports categories', call: '→ Sports, not hypermarket; only sports products' },
+  { name: 'Bewakoof',      asp: 'Economy',   range: '₹399–₹899',    type: 'Western',     note: 'D2C casual/graphic tees; Gen Z focus; mostly online' },
+  { name: 'BonkersCorner', asp: 'Economy',   range: '₹350–₹799',    type: 'Western',     note: 'Pop-culture tees, D2C youth brand' },
+  { name: 'The Souled Store',asp:'Economy',  range: '₹399–₹899',    type: 'Western',     note: 'Fan/pop-culture merchandise; D2C western casual' },
+  { name: 'Cantabil',      asp: 'Economy',   range: '₹499–₹999',    type: 'Formal',      note: 'Men\'s formal + casual; affordable office wear, Tier 2+' },
+  { name: 'John Player',   asp: 'Economy',   range: '₹499–₹999',    type: 'Western',     note: 'ITC brand; casual menswear, semi-urban reach' },
+  { name: 'Numero Uno',    asp: 'Economy',   range: '₹499–₹999',    type: 'Western',     note: 'Denim-led casual; North India heritage brand' },
+  { name: 'Intune',        asp: 'Economy',   range: '₹399–₹799',    type: 'Western',     note: 'Aditya Birla fast-fashion value format; economy sub-brand' },
+  { name: 'Newme',         asp: 'Economy',   range: '₹399–₹799',    type: 'Western',     note: 'D2C women\'s trendy fast-fashion; online-first' },
+  { name: 'Campus Shoes',  asp: 'Economy',   range: '₹599–₹1,200',  type: 'Footwear',    note: 'Volume leader in affordable sports/casual footwear' },
+  { name: 'Relaxo Footwear',asp:'Economy',   range: '₹200–₹700',    type: 'Footwear',    note: 'Mass-market footwear; Sparx sub-brand; very high volume' },
+  { name: 'Khadims',       asp: 'Economy',   range: '₹300–₹900',    type: 'Footwear',    note: 'Eastern India footwear chain; value-mid range' },
+  { name: 'Liberty Shoes', asp: 'Economy',   range: '₹400–₹1,200',  type: 'Footwear',    note: 'Pan-India; wide range including formal & casual' },
+  { name: 'Asian Footwears',asp:'Economy',   range: '₹200–₹700',    type: 'Footwear',    note: 'Budget footwear; wholesale + retail, North India' },
+
+  // MID-MARKET
+  { name: 'Pantaloons',    asp: 'Mid-Market',range: '₹799–₹2,500',  type: 'Department',  note: 'ABFRL. Broad multi-brand dept store; family positioning', call: '→ Dept Store, not Western/Ethnic; hosts both' },
+  { name: 'Westside',      asp: 'Mid-Market',range: '₹799–₹2,500',  type: 'Department',  note: 'Tata Trent. Curated in-house labels; premium feel in mid-tier' },
+  { name: 'Shoppers Stop', asp: 'Mid-Market',range: '₹999–₹3,000',  type: 'Department',  note: 'Multi-brand luxury & mid anchor dept store' },
+  { name: 'Lifestyle',     asp: 'Mid-Market',range: '₹799–₹2,500',  type: 'Department',  note: 'Landmark Group. Multi-brand, youth-forward dept store' },
+  { name: 'H&M',           asp: 'Mid-Market',range: '₹999–₹2,500',  type: 'Western',     note: 'Swedish fast-fashion; India pricing higher than home market', call: '→ Mid-Market not Economy; India ASP ~₹1,500' },
+  { name: 'Levis',         asp: 'Mid-Market',range: '₹1,499–₹3,999',type: 'Western',     note: 'Denim benchmark brand; premium within mid-market' },
+  { name: 'Pepe Jeans',    asp: 'Mid-Market',range: '₹1,299–₹3,499',type: 'Western',     note: 'British denim; urban youth aspirational' },
+  { name: 'Flying Machine',asp: 'Mid-Market',range: '₹999–₹2,500',  type: 'Western',     note: 'Arvind brand; affordable denim/casual' },
+  { name: 'Spykar',        asp: 'Mid-Market',range: '₹999–₹2,999',  type: 'Western',     note: 'Youthful denim & jeans brand; online + EBO' },
+  { name: 'Lee Cooper',    asp: 'Mid-Market',range: '₹999–₹2,500',  type: 'Western',     note: 'British denim heritage; mid-market positioning' },
+  { name: 'Killer Jeans',  asp: 'Mid-Market',range: '₹799–₹1,999',  type: 'Western',     note: 'Affordable denim; strong Tier 2 penetration' },
+  { name: 'Mufti',         asp: 'Mid-Market',range: '₹999–₹2,999',  type: 'Western',     note: 'Premium casual menswear; growing EBO network' },
+  { name: 'Indian Terrain',asp: 'Mid-Market',range: '₹999–₹2,999',  type: 'Western',     note: 'Smart casual menswear; corporate-casual positioning' },
+  { name: 'Color Plus',    asp: 'Mid-Market',range: '₹999–₹2,999',  type: 'Western',     note: 'Raymond sub-brand; upper-mid smart casuals for men' },
+  { name: 'Parx',          asp: 'Mid-Market',range: '₹799–₹2,500',  type: 'Western',     note: 'Raymond sub-brand; youthful casual menswear' },
+  { name: 'Allen Solly',   asp: 'Mid-Market',range: '₹999–₹2,999',  type: 'Formal',      note: 'ABFRL; smart-casual pioneer. "Friday Dressing" brand', call: '→ Mid-Market not Premium; broad accessible footprint' },
+  { name: 'Peter England', asp: 'Mid-Market',range: '₹799–₹2,499',  type: 'Formal',      note: 'ABFRL; accessible premium formals; entry-level office wear' },
+  { name: 'Arrow',         asp: 'Mid-Market',range: '₹999–₹2,999',  type: 'Formal',      note: 'ABFRL; US-heritage formal shirts; corporate positioning' },
+  { name: 'Celio',         asp: 'Mid-Market',range: '₹999–₹2,499',  type: 'Western',     note: 'French menswear; upper-mid casual & formal' },
+  { name: 'Jack and Jones', asp:'Mid-Market',range: '₹999–₹3,499',  type: 'Western',     note: 'Danish denim brand; aspirational Gen Z' },
+  { name: 'ONLY',          asp: 'Mid-Market',range: '₹999–₹2,999',  type: 'Western',     note: 'Bestseller Group; women\'s western casual' },
+  { name: 'Vero Moda',     asp: 'Mid-Market',range: '₹999–₹2,999',  type: 'Western',     note: 'Bestseller Group; contemporary women\'s western' },
+  { name: 'Forever New',   asp: 'Mid-Market',range: '₹1,499–₹3,999',type: 'Western',     note: 'Australian feminine fashion; women\'s premium-mid' },
+  { name: 'Go Colors',     asp: 'Mid-Market',range: '₹599–₹1,499',  type: 'Western',     note: 'Bottom-wear specialist (leggings, palazzos); PP Group' },
+  { name: 'AND',           asp: 'Mid-Market',range: '₹999–₹2,999',  type: 'Western',     note: 'House of Anita Dongre; contemporary women\'s western' },
+  { name: 'Kazo',          asp: 'Mid-Market',range: '₹999–₹2,999',  type: 'Western',     note: 'Women\'s western fashion; retail + D2C' },
+  { name: 'Madame',        asp: 'Mid-Market',range: '₹799–₹2,499',  type: 'Western',     note: 'Women\'s western casuals; pan-India EBOs' },
+  { name: 'Rareism',       asp: 'Mid-Market',range: '₹999–₹2,499',  type: 'Western',     note: 'Women\'s western brand; online-first' },
+  { name: 'Powerlook',     asp: 'Mid-Market',range: '₹799–₹1,999',  type: 'Western',     note: 'Affordable menswear; growing EBO chain' },
+  { name: 'Snitch',        asp: 'Mid-Market',range: '₹799–₹1,999',  type: 'Western',     note: 'D2C men\'s western; fast-fashion trend cycles' },
+  { name: 'Wrogn',         asp: 'Mid-Market',range: '₹799–₹2,499',  type: 'Western',     note: 'Virat Kohli-backed casual brand; mid-market youth' },
+  { name: 'Yousta',        asp: 'Mid-Market',range: '₹599–₹1,499',  type: 'Western',     note: 'Reliance value-fashion for teens; Economy-Mid border', call: '→ Mid-Market; positioned above Zudio with brand halo' },
+  { name: 'Bata',          asp: 'Mid-Market',range: '₹600–₹2,500',  type: 'Footwear',    note: 'Pan-India footwear chain; mid-market formal/casual shoes' },
+  { name: 'Red Tape',      asp: 'Mid-Market',range: '₹800–₹2,500',  type: 'Footwear',    note: 'UK-heritage; casual & formal footwear; mid-market' },
+  { name: 'Metro Shoes',   asp: 'Mid-Market',range: '₹799–₹2,999',  type: 'Footwear',    note: 'Multi-brand footwear dept store; mid-market to premium' },
+  { name: 'Mochi Shoes',   asp: 'Mid-Market',range: '₹799–₹2,999',  type: 'Footwear',    note: 'Mid-premium footwear; Metro Brands subsidiary' },
+  { name: 'Hush Puppies',  asp: 'Mid-Market',range: '₹1,200–₹3,500',type: 'Footwear',    note: 'US comfort footwear; formal & casual; Bata India' },
+  { name: 'Fila',          asp: 'Mid-Market',range: '₹999–₹2,999',  type: 'Sports',      note: 'Italian sports heritage; athleisure positioning in India' },
+  { name: 'Reebok',        asp: 'Mid-Market',range: '₹1,499–₹3,999',type: 'Sports',      note: 'Under ABFRL since 2024; fitness & CrossFit focus; mid-aspirational', call: '→ Mid-Market in India context post-ABFRL repositioning' },
+  { name: 'Jockey',        asp: 'Mid-Market',range: '₹499–₹1,999',  type: 'Western',     note: 'US innerwear/loungewear; Page Industries. Wide ASP range placed mid' },
+  { name: 'United Colors of Benetton', asp:'Mid-Market', range:'₹999–₹2,999', type:'Western', note:'Italian casual-wear; strong in knitwear; urban mid-market' },
+  { name: 'Monte Carlo',   asp: 'Mid-Market',range: '₹999–₹3,499',  type: 'Western',     note: 'North India woollens specialist; casual & light formal' },
+  { name: 'Turtle',        asp: 'Mid-Market',range: '₹799–₹2,499',  type: 'Formal',      note: 'Men\'s formal + smart casual; East India origin' },
+  { name: 'Oxemberg',      asp: 'Mid-Market',range: '₹699–₹1,799',  type: 'Formal',      note: 'Affordable men\'s shirts; Siyaram Group sub-brand' },
+  { name: 'Siyarams',      asp: 'Mid-Market',range: '₹799–₹2,500',  type: 'Formal',      note: 'Suiting fabric + RTW; mid-market traditional formals' },
+  { name: 'Arvind',        asp: 'Mid-Market',range: '₹999–₹2,999',  type: 'Formal',      note: 'Denim & formal fabric + RTW; Arvind Ltd own brand' },
+  { name: 'Biba',          asp: 'Mid-Market',range: '₹799–₹2,499',  type: 'Ethnic',      note: 'Women\'s ethnic wear leader; contemporary kurtas, suits' },
+  { name: 'W for Woman',   asp: 'Mid-Market',range: '₹799–₹2,499',  type: 'Ethnic',      note: 'Fusion ethnic; casual kurtas, co-ords; PP Group' },
+  { name: 'Global Desi',   asp: 'Mid-Market',range: '₹799–₹2,499',  type: 'Ethnic',      note: 'Anita Dongre brand; boho-ethnic women\'s' },
+  { name: 'Aurelia',       asp: 'Mid-Market',range: '₹799–₹2,499',  type: 'Ethnic',      note: 'TCNS Clothing; women\'s ethnic, wide distribution' },
+  { name: 'Soch',          asp: 'Mid-Market',range: '₹899–₹2,499',  type: 'Ethnic',      note: 'Women\'s ethnic; South India-origin, pan-India now' },
+  { name: 'Libas',         asp: 'Mid-Market',range: '₹699–₹1,999',  type: 'Ethnic',      note: 'Online-first affordable ethnic; strong Myntra/Flipkart' },
+  { name: 'Octave Apparels',asp:'Mid-Market',range: '₹499–₹1,499',  type: 'Ethnic',      note: 'Budget ethnic/casual; Tier 2 penetration' },
+  { name: 'Tasva',         asp: 'Mid-Market',range: '₹1,499–₹4,999',type: 'Ethnic',      note: 'Tarun Tahiliani\'s RTW men\'s ethnic; premium-mid', call: '→ Mid-Market; accessible designer, not couture' },
+  { name: 'Wildcraft',     asp: 'Mid-Market',range: '₹999–₹3,499',  type: 'Sports',      note: 'Indian outdoor/trekking brand; practical sportswear' },
+  { name: 'USPA',          asp: 'Mid-Market',range: '₹999–₹2,999',  type: 'Western',     note: 'US Polo Assn; Arvind Brands. Aspirational lifestyle brand' },
+
+  // PREMIUM
+  { name: 'Zara',          asp: 'Premium',   range: '₹1,999–₹6,999',type: 'Western',     note: 'Inditex. Global fast-fashion at premium India pricing', call: '→ Premium in India; positioned as aspirational international' },
+  { name: 'Marks & Spencer',asp:'Premium',   range: '₹1,999–₹5,999',type: 'Department',  note: 'British multi-category; quality-led premium positioning' },
+  { name: 'Van Heusen',    asp: 'Premium',   range: '₹1,999–₹5,999',type: 'Formal',      note: 'ABFRL; power dressing, corporate formal; premium within ABFRL stable' },
+  { name: 'Louis Philippe', asp:'Premium',   range: '₹2,499–₹9,999',type: 'Formal',      note: 'ABFRL; "The Upper Crest"; top of India\'s formal pyramid' },
+  { name: 'Raymond',       asp: 'Premium',   range: '₹2,499–₹12,000',type:'Formal',      note: 'Suiting + RTW; "Complete Man"; premium Indian heritage' },
+  { name: 'Park Avenue',   asp: 'Premium',   range: '₹1,999–₹5,999',type: 'Formal',      note: 'Raymond sub-brand; premium formal shirts & suits' },
+  { name: 'Blackberrys',   asp: 'Premium',   range: '₹1,999–₹7,999',type: 'Formal',      note: 'Corporate fashion; stretch-formal innovation' },
+  { name: 'Zodiac',        asp: 'Premium',   range: '₹1,799–₹5,999',type: 'Formal',      note: 'Premium shirts & neckwear; heritage positioning' },
+  { name: 'Tommy Hilfiger',asp: 'Premium',   range: '₹2,499–₹7,999',type: 'Western',     note: 'PVH Corp; preppy American premium; logo-driven aspirational' },
+  { name: 'Puma',          asp: 'Premium',   range: '₹1,999–₹5,999',type: 'Sports',      note: 'Market leader by India revenue; premium athleisure; ₹3,274 cr FY24' },
+  { name: 'Adidas',        asp: 'Premium',   range: '₹2,499–₹7,999',type: 'Sports',      note: '₹3,114 cr FY24; Ultraboost + cricket tie-up; premium sports' },
+  { name: 'Nike',          asp: 'Premium',   range: '₹2,999–₹9,999',type: 'Sports',      note: 'Highest ASP among big 3; selective store strategy in India' },
+  { name: 'Asics',         asp: 'Premium',   range: '₹3,499–₹12,000',type:'Sports',      note: '28%+ marathon market share; performance running specialist' },
+  { name: 'Skechers',      asp: 'Premium',   range: '₹2,999–₹8,000',type: 'Sports',      note: 'Comfort-sport leader; ₹1,780 cr FY24; memory foam positioning' },
+  { name: 'Woodland',      asp: 'Premium',   range: '₹2,499–₹7,999',type: 'Footwear',    note: 'Outdoor/boots specialist; premium Indian brand heritage' },
+  { name: 'Crocs',         asp: 'Premium',   range: '₹2,499–₹5,999',type: 'Footwear',    note: 'US comfort footwear; lifestyle brand with strong premiumization' },
+  { name: 'Manyavar',      asp: 'Premium',   range: '₹2,999–₹14,999',type:'Ethnic',      note: 'Vedant Fashions; men\'s ethnic #1; Virat + Alia brand equity', call: '→ Premium; sherwani + kurta sets start ₹3k, hit ₹15k' },
+  { name: 'Mohey',         asp: 'Premium',   range: '₹2,999–₹14,999',type:'Ethnic',      note: 'Vedant Fashions women\'s arm; bridal & occasion wear' },
+  { name: 'Ritu Kumar',    asp: 'Premium',   range: '₹3,999–₹18,000',type:'Ethnic',      note: 'Designer ethnic; accessible luxury bridal & festive', call: '→ Premium/Luxury border; placed Premium for broader RTW range' },
+  { name: 'FabIndia',      asp: 'Premium',   range: '₹999–₹5,999',  type: 'Ethnic',      note: 'Artisanal Indian textiles; natural fabrics; 357+ stores', call: '→ Mid-Market to Premium; placed Premium for craft/brand perception' },
+  { name: 'Rare Rabbit',   asp: 'Premium',   range: '₹2,499–₹5,999',type: 'Western',     note: 'DTC premium casual menswear; fast-growing brand equity', call: '→ Premium; ₹2.5k–₹5k ASP, strong aspirational positioning' },
+  { name: 'Style Union',   asp: 'Premium',   range: '₹1,499–₹4,999',type: 'Western',     note: 'Reliance Retail\'s premium fashion format; aspirational segment' },
+  { name: 'Azorte',        asp: 'Premium',   range: '₹1,499–₹4,999',type: 'Department',  note: 'Reliance\'s premium omnichannel fashion format' },
+  { name: 'OWND!',         asp: 'Premium',   range: '₹1,499–₹4,999',type: 'Western',     note: 'Premium casual/athleisure; newer entrant' },
+  { name: 'Skechers',      asp: 'Premium',   range: '₹2,999–₹8,000',type: 'Sports',      note: '(already listed above)' },
+
+  // LUXURY
+  { name: 'Calvin Klein',  asp: 'Luxury',    range: '₹3,999–₹15,000',type:'Western',     note: 'PVH Corp; minimalist American luxury; strong underwear+denim' },
+  { name: 'Lacoste',       asp: 'Luxury',    range: '₹5,000–₹25,000',type:'Sports',      note: 'French heritage polo brand; ₹800–₹25k range but ASP >₹7k', call: '→ Luxury; polo shirts ₹8k–₹12k; prestige pricing strategy' },
+  { name: 'Tommy Hilfiger',asp: 'Premium',   range: '₹2,499–₹7,999',type: 'Western',     note: '(already listed above)' },
+];
+
+// Deduplicate
+const seen = new Set();
+const uniqueBrands = brands.filter(b => {
+  if (seen.has(b.name)) return false;
+  seen.add(b.name);
+  return true;
+});
+
+let activeAsps = new Set(['Value','Economy','Mid-Market','Premium','Luxury']);
+let activeType = 'All';
+let searchTerm = '';
+let currentView = 'table';
+
+function aspBgStyle(asp) {
+  const map = { 'Value': '#4ade8022', 'Economy': '#60a5fa22', 'Mid-Market': '#f59e0b22', 'Premium': '#e879f922', 'Luxury': '#f8717122' };
+  return map[asp] || '';
+}
+
+function renderTable() {
+  const tbody = document.getElementById('tableBody');
+  tbody.innerHTML = '';
+  uniqueBrands.forEach(b => {
+    const color = ASP_COLORS[b.asp];
+    const typeColor = TYPE_COLORS[b.type] || '#888';
+    const tr = document.createElement('tr');
+    tr.dataset.asp = b.asp;
+    tr.dataset.type = b.type;
+    tr.dataset.name = b.name.toLowerCase();
+    tr.innerHTML = `
+      <td>${b.name}</td>
+      <td><span class="asp-badge" style="background:${aspBgStyle(b.asp)};color:${color};border:1px solid ${color}33"><span class="dot" style="background:${color}"></span>${b.asp}</span></td>
+      <td><span style="font-family:'DM Mono',monospace;font-size:12px;color:#aaa">${b.range}</span></td>
+      <td><span class="type-badge" style="background:${typeColor}22;color:${typeColor};border:1px solid ${typeColor}33">${b.type}</span></td>
+      <td class="note-cell">${b.note}${b.call ? `<div class="flag">${b.call}</div>` : ''}</td>
+    `;
+    tbody.appendChild(tr);
+  });
+}
+
+function renderGrid() {
+  const container = document.getElementById('gridView');
+  const aspOrder = ['Value','Economy','Mid-Market','Premium','Luxury'];
+  container.innerHTML = '';
+  aspOrder.forEach(asp => {
+    const group = uniqueBrands.filter(b => b.asp === asp);
+    const color = ASP_COLORS[asp];
+    const section = document.createElement('div');
+    section.className = 'asp-section';
+    section.id = `grid-${asp}`;
+    section.innerHTML = `
+      <div class="asp-section-title">
+        <span class="dot" style="background:${color};width:12px;height:12px"></span>
+        <span style="color:${color}">${asp}</span>
+        <span class="count">${group.length} brands</span>
+      </div>
+      <div class="grid-cards" id="cards-${asp}"></div>
+    `;
+    container.appendChild(section);
+    const cardsEl = section.querySelector(`#cards-${asp}`);
+    group.forEach(b => {
+      const typeColor = TYPE_COLORS[b.type] || '#888';
+      const card = document.createElement('div');
+      card.className = 'brand-card';
+      card.dataset.asp = b.asp;
+      card.dataset.type = b.type;
+      card.dataset.name = b.name.toLowerCase();
+      card.innerHTML = `
+        <div class="brand-name">${b.name}</div>
+        <div class="badges">
+          <span class="type-badge" style="background:${typeColor}22;color:${typeColor};border:1px solid ${typeColor}33">${b.type}</span>
+        </div>
+        <div style="font-family:'DM Mono',monospace;font-size:11px;color:#888;margin-bottom:4px">${b.range}</div>
+        <div class="note">${b.note}</div>
+        ${b.call ? `<div class="call-flag">${b.call}</div>` : ''}
+      `;
+      cardsEl.appendChild(card);
+    });
+  });
+}
+
+function applyFilters() {
+  searchTerm = document.getElementById('searchInput').value.toLowerCase();
+
+  if (currentView === 'table') {
+    document.querySelectorAll('#tableBody tr').forEach(tr => {
+      const aspMatch = activeAsps.has(tr.dataset.asp);
+      const typeMatch = activeType === 'All' || tr.dataset.type === activeType;
+      const nameMatch = !searchTerm || tr.dataset.name.includes(searchTerm);
+      tr.classList.toggle('hidden', !(aspMatch && typeMatch && nameMatch));
+    });
+  } else {
+    document.querySelectorAll('.brand-card').forEach(c => {
+      const aspMatch = activeAsps.has(c.dataset.asp);
+      const typeMatch = activeType === 'All' || c.dataset.type === activeType;
+      const nameMatch = !searchTerm || c.dataset.name.includes(searchTerm);
+      c.classList.toggle('hidden', !(aspMatch && typeMatch && nameMatch));
+    });
+    // Hide sections with no visible cards
+    document.querySelectorAll('.asp-section').forEach(sec => {
+      const anyVisible = Array.from(sec.querySelectorAll('.brand-card')).some(c => !c.classList.contains('hidden'));
+      sec.style.display = anyVisible ? '' : 'none';
+    });
+  }
+}
+
+function toggleAsp(el) {
+  const asp = el.dataset.asp;
+  if (activeAsps.has(asp)) {
+    if (activeAsps.size === 1) return;
+    activeAsps.delete(asp);
+    el.classList.add('inactive');
+  } else {
+    activeAsps.add(asp);
+    el.classList.remove('inactive');
+  }
+  applyFilters();
+}
+
+function setType(type, btn) {
+  activeType = type;
+  document.querySelectorAll('.filter-btn').forEach(b => {
+    b.classList.remove('active');
+    b.style.background = '';
+    b.style.borderColor = '';
+    b.style.color = '';
+  });
+  btn.classList.add('active');
+  if (type === 'All') {
+    btn.style.background = 'var(--muted)';
+    btn.style.color = '#000';
+  } else {
+    const c = TYPE_COLORS[type];
+    btn.style.background = c;
+    btn.style.borderColor = c;
+    btn.style.color = '#000';
+  }
+  applyFilters();
+}
+
+function setView(view, btn) {
+  currentView = view;
+  document.querySelectorAll('.view-toggle button').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  if (view === 'table') {
+    document.getElementById('tableView').style.display = '';
+    document.getElementById('gridView').style.display = 'none';
+  } else {
+    document.getElementById('tableView').style.display = 'none';
+    document.getElementById('gridView').style.display = '';
+  }
+  applyFilters();
+}
+
+// Init
+renderTable();
+renderGrid();
+applyFilters();
+</script>
+</body>
+</html>
