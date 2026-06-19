@@ -1,0 +1,153 @@
+
+<h2 class="sr-only">Master exhibit plan — 53 slides across 5 acts for Zudio India apparel market analysis</h2>
+<style>
+#mep{font-size:13px}
+#mep table{width:100%;border-collapse:collapse;table-layout:fixed}
+#mep thead th{font-size:11px;font-weight:500;color:var(--color-text-secondary);padding:6px 8px;border-bottom:1px solid var(--color-border-tertiary);text-align:left}
+#mep tbody tr:hover{background:var(--color-background-secondary)}
+#mep tbody td{padding:7px 8px;border-bottom:1px solid var(--color-border-tertiary);vertical-align:top}
+.mf{border:1px solid var(--color-border-secondary);background:transparent;color:var(--color-text-secondary);border-radius:4px;padding:3px 9px;font-size:11px;cursor:pointer;transition:all .15s}
+.mf.on{border-color:var(--color-border-primary);color:var(--color-text-primary);font-weight:500;background:var(--color-background-secondary)}
+.mb{display:inline-block;border-radius:4px;padding:2px 7px;font-size:11px;font-weight:500;white-space:nowrap}
+.mb-core{background:var(--color-background-info);color:var(--color-text-info)}
+.mb-support{background:var(--color-background-warning);color:var(--color-text-warning)}
+.mb-appendix{background:var(--color-background-secondary);color:var(--color-text-tertiary)}
+</style>
+<div id="mep" style="padding:1rem 0">
+<div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:14px;align-items:center">
+  <span style="font-size:12px;background:var(--color-background-secondary);color:var(--color-text-secondary);padding:4px 10px;border-radius:4px"><b style="color:var(--color-text-primary)">53</b> slides total</span>
+  <span style="font-size:12px;background:var(--color-background-warning);color:var(--color-text-warning);padding:4px 10px;border-radius:4px"><b>★ 22</b> recommended — analyst picks final 20</span>
+  <span style="font-size:12px;padding:4px 10px;border-radius:4px;background:var(--color-background-info);color:var(--color-text-info)"><b>22</b> core</span>
+  <span style="font-size:12px;padding:4px 10px;border-radius:4px;background:var(--color-background-warning);color:var(--color-text-warning)"><b>25</b> support</span>
+  <span style="font-size:12px;padding:4px 10px;border-radius:4px;background:var(--color-background-secondary);color:var(--color-text-tertiary)"><b>6</b> appendix</span>
+</div>
+<div style="display:flex;gap:5px;flex-wrap:wrap;margin-bottom:6px;align-items:center">
+  <span style="font-size:11px;color:var(--color-text-tertiary);margin-right:2px">Act:</span>
+  <button class="mf on" data-g="act" onclick="mf(this,'act','all')">All</button>
+  <button class="mf" data-g="act" onclick="mf(this,'act','0')">Setup</button>
+  <button class="mf" data-g="act" onclick="mf(this,'act','1')" style="border-left:3px solid #7F77DD">Market</button>
+  <button class="mf" data-g="act" onclick="mf(this,'act','2')" style="border-left:3px solid #1D9E75">Demand</button>
+  <button class="mf" data-g="act" onclick="mf(this,'act','3')" style="border-left:3px solid #D85A30">Supply</button>
+  <button class="mf" data-g="act" onclick="mf(this,'act','4')" style="border-left:3px solid #BA7517">Gap</button>
+  <button class="mf" data-g="act" onclick="mf(this,'act','5')" style="border-left:3px solid #185FA5">Zudio</button>
+</div>
+<div style="display:flex;gap:5px;flex-wrap:wrap;margin-bottom:16px;align-items:center">
+  <span style="font-size:11px;color:var(--color-text-tertiary);margin-right:2px">Priority:</span>
+  <button class="mf on" data-g="pri" onclick="mf(this,'pri','all')">All</button>
+  <button class="mf" data-g="pri" onclick="mf(this,'pri','rec')" style="color:var(--color-text-warning)">★ Final 22</button>
+  <button class="mf mb-core" data-g="pri" onclick="mf(this,'pri','core')">Core</button>
+  <button class="mf mb-support" data-g="pri" onclick="mf(this,'pri','support')">Support</button>
+  <button class="mf mb-appendix" data-g="pri" onclick="mf(this,'pri','appendix')">Appendix</button>
+</div>
+<table>
+<thead>
+  <tr>
+    <th style="width:36px">#</th>
+    <th style="width:238px">Title</th>
+    <th style="width:112px">Chart type</th>
+    <th style="width:80px">Priority</th>
+    <th>Punchline — hover for full text</th>
+  </tr>
+</thead>
+<tbody id="mep-b"></tbody>
+</table>
+<div style="margin-top:14px;display:flex;gap:14px;flex-wrap:wrap;align-items:center">
+  <span style="font-size:11px;color:var(--color-text-tertiary)">Section stripe:</span>
+  <span style="font-size:11px;color:var(--color-text-secondary);display:flex;align-items:center;gap:5px"><span style="display:inline-block;width:10px;height:10px;border-radius:2px;background:#888780"></span>Setup</span>
+  <span style="font-size:11px;color:var(--color-text-secondary);display:flex;align-items:center;gap:5px"><span style="display:inline-block;width:10px;height:10px;border-radius:2px;background:#7F77DD"></span>Act 1 Market</span>
+  <span style="font-size:11px;color:var(--color-text-secondary);display:flex;align-items:center;gap:5px"><span style="display:inline-block;width:10px;height:10px;border-radius:2px;background:#1D9E75"></span>Act 2 Demand</span>
+  <span style="font-size:11px;color:var(--color-text-secondary);display:flex;align-items:center;gap:5px"><span style="display:inline-block;width:10px;height:10px;border-radius:2px;background:#D85A30"></span>Act 3 Supply</span>
+  <span style="font-size:11px;color:var(--color-text-secondary);display:flex;align-items:center;gap:5px"><span style="display:inline-block;width:10px;height:10px;border-radius:2px;background:#BA7517"></span>Act 4 Gap</span>
+  <span style="font-size:11px;color:var(--color-text-secondary);display:flex;align-items:center;gap:5px"><span style="display:inline-block;width:10px;height:10px;border-radius:2px;background:#185FA5"></span>Act 5 Zudio</span>
+</div>
+</div>
+<script>
+const SC={'0':'#888780','1':'#7F77DD','2':'#1D9E75','3':'#D85A30','4':'#BA7517','5':'#185FA5'};
+const SL={'0':'Setup','1':'Act 1 Market','2':'Act 2 Demand','3':'Act 3 Supply','4':'Act 4 Gap','5':'Act 5 Zudio'};
+const D=[
+[1,0,'Cover slide','Title card','core',1,'India Value Fashion Renaissance: The Case for Zudio 8x Store Expansion'],
+[2,0,'Table of contents','Section map','support',0,'5-act structure: market to demand to supply to gap to Zudio potential'],
+[3,0,'Executive summary — 5 key findings','Summary card','core',1,'5 headline numbers that tell the entire story before the first exhibit'],
+[4,1,'India apparel market: size, segmentation, growth FY19-FY29P','Stacked bar + line','core',1,'Value = 57% of Rs.6,212 Bn market, 10.1% CAGR, less than 20% organised penetration'],
+[5,1,'Value segment deep dive: why it dominates at scale','Bar + callout','support',0,'Only segment with absolute size above Rs.4L Cr AND organised penetration below 20% simultaneously'],
+[6,1,'Apparel sub-categories: CAGR vs market size matrix','Bubble scatter','support',0,'Activewear fastest at 18.3% CAGR but value absolute wallet is 20 times larger'],
+[7,1,'B&M vs. e-commerce by price segment','Grouped bar','core',1,'Value fashion is 90%+ B&M — the e-commerce disruption thesis does not apply here'],
+[8,1,'India vs. peer economies: organised retail penetration gap','Dot plot','appendix',0,'India at 15% vs China 40% and Indonesia 30% — room to run for decades'],
+[9,1,'MPCE growth and the compounding apparel wallet','Dual-axis line','core',1,'Every 1% MPCE growth adds significant Cr to addressable wallet without any category share shift'],
+[10,1,'GDP per capita: India consumption inflection point','Line + scatter','appendix',0,'India crossed $2,500 per capita — historically the organised retail inflection point globally'],
+[11,1,'DRHP benchmarks: Bazaar Style and V-Mart as reference frame','Comp table','support',0,'DRHP data validates our demand framework and provides independent penetration benchmarks'],
+[12,2,'Our methodology: 19,694 pincodes, GSDP-adjusted MPCE','Framework diagram','core',1,'Bottom-up pincode-level — no market research report used. This is the differentiator.'],
+[13,2,'GSDP-adjusted MPCE: the refinement that changes the picture','Scatter comparison','support',0,'Raw MPCE understates Gujarat and Maharashtra wallet by 15 to 20% — adjustment is material'],
+[14,2,'The Rs.8.68 lakh crore wallet: ground-up build','Funnel / waterfall','core',1,'Total apparel+footwear wallet from 19,694 pincodes — Rs.7.24L Cr apparel, Rs.1.44L Cr footwear'],
+[15,2,'Wallet geography: apparel vs footwear, urban vs rural splits','Treemap / donut','support',0,'Apparel = 83% of wallet; urban India = 63% of wallet at only 35% of population'],
+[16,2,'The tier pyramid inversion: demand vs. organised stores','Paired horizontal bars','core',1,'Metro = 31% of organised stores but 25% of wallet. T3 and T4 = 40% of wallet, 15% of stores.'],
+[17,2,'Wallet per capita by tier: the T2/T3 sweet spot','Bubble scatter','core',1,'T2 cities run at 78% of Metro per-capita wallet but hold 4x the population'],
+[18,2,'Pincode wallet distribution: how many pincodes per bracket','Histogram','support',0,'Median pincode wallet = Rs.26 Cr — thousands of pincodes sit in the viable-for-Zudio range'],
+[19,2,'Top 50 cities ranked by apparel+footwear wallet','Horizontal bar','support',0,'Cities ranked 11-50 collectively hold more wallet than the top 10 combined'],
+[20,2,'State-wise wallet: choropleth map of India','India map','core',1,'Maharashtra, UP, Karnataka, TN = 40% of total wallet with very different penetration stories'],
+[21,2,'State-wise wallet ranked + organised penetration overlay','Bar + line overlay','support',0,'Negative correlation: largest-wallet states tend to have lowest organised penetration'],
+[22,2,'MPCE deep dive: apparel share of spend by state','Dot plot / table','appendix',0,'Apparel share ranges 3.8% to 6.5% across states — drives state-specific wallet estimates'],
+[23,3,'Organised apparel retail: 31,000+ stores, fragmented market','Summary overview','support',0,'31,000+ organised stores, 100+ brands — top 5 hold only 35% of store count'],
+[24,3,'Competitive landscape: ASP x stores x revenue bubble chart','Bubble scatter','core',1,'Value fashion is a two-horse national race — maximum wallet, minimum competition'],
+[25,3,'Listed vs unlisted brands: who owns the market','Stacked bar','support',0,'Unlisted players hold 60%+ of store count but weaker unit economics — consolidation inevitable'],
+[26,3,'Tier DNA of major brands: geographic concentration','100% stacked bar','core',1,'No national brand has deeper sub-T2 penetration than Zudio — structurally alone in its geography'],
+[27,3,'Revenue per store: cross-brand benchmarking','Lollipop / dot plot','core',1,'Zudio rev per store is not exceptional — and that is the point. Consistent economics across tiers.'],
+[28,3,'Revenue per sq.ft: format efficiency comparison','Horizontal bar','support',0,'Zudio vs Westside and mid-market brands — small format, high throughput model'],
+[29,3,'Segment x tier heatmap: structural supply gaps','Matrix heatmap','core',1,'Western wear in T3 and T4 = near zero stores. Zudio primary product = the exact supply gap.'],
+[30,3,'Store additions FY25 vs FY26: who is investing in growth','Grouped bar','support',0,'Zudio added more stores in FY26 than the next three listed competitors combined'],
+[31,3,'Average store size by brand: the format weapon','Horizontal bar','support',0,'Smaller format = profitable entry into cities where larger formats cannot operate'],
+[32,3,'Brand financials dashboard: listed brand deep dive','Data table','appendix',0,'Full benchmarking: revenue, stores, retail area, avg size, rev per store, rev per sqft per brand'],
+[33,4,'Grand unified: wallet vs organised revenue by tier','Grouped bar + line','core',1,'Rs.7.38 lakh crore — 85% of India apparel wallet — flows through unorganised trade'],
+[34,4,'Organised penetration by tier: quantifying the 85%','Horizontal bar','support',0,'Metro = 31% penetration. Rural = 6%. The gradient is the expansion roadmap.'],
+[35,4,'5,000+ underserved pincodes: the white-space scatter','Scatter (19k pincodes)','core',1,'Thousands of pincodes: wallet above Rs.50 Cr, zero organised stores — these are the greenfields'],
+[36,4,'City-level demand-supply match: top 100 cities quadrant','Quadrant scatter','support',0,'High wallet + low stores quadrant = the immediate priority list for new city entry'],
+[37,4,'State penetration: ranked divergence from India average','Ranked bar','core',1,'10 largest-wallet states below national average — combined unorganised wallet is enormous'],
+[38,4,'State penetration: second choropleth map','India map','support',0,'Geography of unorganised retail is geography of expansion opportunity — unmissable visual'],
+[39,4,'Revenue per million people by state: productivity gap','Bar + reference line','support',0,'Maharashtra: Rs.280 Cr organised revenue per million people. UP: Rs.46 Cr. Same country.'],
+[40,4,'Segment-wise runway: which categories most underserved','Horizontal waterfall','support',0,'Western wear has the single largest unorganised runway — it is Zudio primary product'],
+[41,4,'Value fashion runway: Zudio specific opportunity','Horizontal waterfall','core',1,'Zudio captures 1.5% of total value fashion wallet today. Rs.88,723 Cr of additional runway.'],
+[42,4,'Competitor runway: Westside vs Reliance Trends comparison','Grouped bar','support',0,'Rising tide lifts all organised players — Westside and Reliance Trends also have room to run'],
+[43,4,'Wallet x stores cohort matrix: tier saturation view','Matrix heatmap','support',0,'Only top two wallet cohorts in Metro approaching saturation — everything else is green'],
+[44,4,'Sensitivity: what changes the 85% conclusion','Sensitivity table','appendix',0,'Potential range 5,800 to 10,200 stores across key assumption scenarios. Conclusion always holds.'],
+[45,5,'7,522 store waterfall: from 958 to full potential','Waterfall bridge','core',1,'8x store headroom at today MPCE — zero economic growth assumption embedded'],
+[46,5,'Densification: pin cohort x tier opportunity matrix','Side-by-side matrix','core',1,'54 to 97 Cr wallet cohort in T1 and T2 = highest density of actionable densification opportunity'],
+[47,5,'City densification: existing cities, new pincodes','Bar by tier','support',0,'6,229 new stores in cities where Zudio already has brand equity and supply chain presence'],
+[48,5,'New city expansion: T2 and T3 greenfield opportunity list','Bar + city table','support',0,'X T2 cities with above Rs.500 Cr wallet have zero Zudio stores — named and prioritisable'],
+[49,5,'Geographic map: where the new 6,500+ stores will be','India bubble map','support',0,'Visual proof: potential spread across India, not one belt — systematic national expansion'],
+[50,5,'Revenue per store by tier: multiplier-approximated model','Bar + range bands','support',0,'Conservative tier haircut applied — rev per store exceeds breakeven even in T3 and T4'],
+[51,5,'Revenue potential: three scenarios','Scenario bars','core',1,'Current Rs.12,804 Cr. At 7,522 stores: estimated potential. Full runway capture: Rs.88,723 Cr additional.'],
+[52,5,'Sensitivity: potential vs wallet threshold assumption','Tornado chart','appendix',0,'Plus or minus 25% wallet threshold changes store count by plus or minus 1,200. Conclusion holds.'],
+[53,5,'Key conclusions and investment implications','Text + callouts','core',1,'5 findings, 1 central thesis, clear implication for Trent store addition trajectory'],
+];
+let af='all',pf='all';
+function mf(btn,g,v){
+  document.querySelectorAll('[data-g="'+g+'"]').forEach(b=>b.classList.remove('on'));
+  btn.classList.add('on');
+  if(g==='act')af=v; else pf=v;
+  mr();
+}
+function mr(){
+  const rows=D.filter(r=>{
+    const aok=af==='all'||String(r[1])===af;
+    const pok=pf==='all'||(pf==='rec'?r[5]:r[4]===pf);
+    return aok&&pok;
+  });
+  document.getElementById('mep-b').innerHTML=rows.map(r=>`
+    <tr>
+      <td style="white-space:nowrap;color:var(--color-text-secondary);font-size:12px">
+        <span style="display:inline-flex;align-items:center;gap:5px">
+          <span style="display:inline-block;width:3px;height:16px;border-radius:2px;background:${SC[r[1]]}" title="${SL[r[1]]}"></span>
+          ${r[0]}
+        </span>
+      </td>
+      <td style="font-weight:500;color:var(--color-text-primary);font-size:13px;line-height:1.45;word-break:break-word">
+        ${r[5]?'<span style="color:var(--color-text-warning);margin-right:3px">★</span>':''}${r[2]}
+      </td>
+      <td style="color:var(--color-text-secondary);font-size:12px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${r[3]}</td>
+      <td style="vertical-align:top"><span class="mb mb-${r[4]}">${r[4]}</span></td>
+      <td style="color:var(--color-text-secondary);font-size:11px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="${r[6]}">${r[6]}</td>
+    </tr>
+  `).join('');
+}
+mr();
+</script>
