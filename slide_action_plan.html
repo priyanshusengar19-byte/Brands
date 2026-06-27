@@ -1,0 +1,298 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Zudio Slide Action Plan</title>
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: #f8f7f4; color: #2c2c2a; padding: 20px; font-size: 14px; }
+h1 { font-size: 18px; font-weight: 600; margin-bottom: 4px; }
+.subtitle { font-size: 12px; color: #73726c; margin-bottom: 16px; }
+
+.rural-box { background: #FCEBEB; border: 1px solid #F09595; border-radius: 8px; padding: 12px 14px; margin-bottom: 14px; }
+.rural-title { font-size: 12px; font-weight: 600; color: #A32D2D; margin-bottom: 4px; }
+.rural-text { font-size: 11px; color: #79311F; line-height: 1.6; }
+
+.filter-bar { display: flex; gap: 7px; flex-wrap: wrap; margin-bottom: 14px; }
+.filter-btn { font-size: 11px; padding: 4px 11px; border-radius: 20px; border: 1px solid #d3d1c7; background: #fff; color: #73726c; cursor: pointer; }
+.filter-btn.active { background: #185FA5; color: #fff; border-color: #185FA5; }
+
+.legend { display: flex; gap: 14px; flex-wrap: wrap; margin-bottom: 14px; padding: 10px 14px; background: #fff; border-radius: 8px; border: 1px solid #e0dfd7; }
+.legend-item { display: flex; align-items: center; gap: 5px; font-size: 11px; color: #73726c; }
+.ldot { width: 10px; height: 10px; border-radius: 3px; }
+
+.slide-card { background: #fff; border: 1px solid #e0dfd7; border-radius: 10px; margin-bottom: 8px; overflow: hidden; }
+.slide-header { display: flex; align-items: center; gap: 10px; padding: 10px 14px; cursor: pointer; user-select: none; }
+.slide-header:hover { background: #f8f7f4; }
+.slide-num { width: 26px; height: 26px; border-radius: 6px; display: flex; align-items: center; justify-content: center; font-size: 11px; font-weight: 600; flex-shrink: 0; }
+.slide-title { font-size: 12px; font-weight: 500; flex: 1; line-height: 1.4; }
+.tags { display: flex; gap: 4px; flex-wrap: wrap; }
+.tag { font-size: 10px; padding: 2px 7px; border-radius: 10px; white-space: nowrap; }
+.t-text { background: #EEEDFE; color: #3C3489; }
+.t-box { background: #E1F5EE; color: #085041; }
+.t-usd { background: #FAEEDA; color: #633806; }
+.t-rural { background: #FCEBEB; color: #A32D2D; }
+.t-done { background: #EAF3DE; color: #27500A; }
+.chevron { font-size: 11px; color: #888; margin-left: 4px; transition: transform 0.2s; }
+.chevron.open { transform: rotate(180deg); }
+
+.slide-body { display: none; padding: 10px 14px 14px; border-top: 1px solid #e8e7df; }
+.slide-body.open { display: block; }
+.section-label { font-size: 10px; font-weight: 600; color: #aaa; text-transform: uppercase; letter-spacing: 0.5px; margin: 10px 0 6px; }
+.action-row { display: flex; gap: 8px; margin-bottom: 7px; align-items: flex-start; }
+.action-icon { width: 18px; height: 18px; border-radius: 4px; flex-shrink: 0; margin-top: 2px; display: flex; align-items: center; justify-content: center; font-size: 10px; font-weight: 700; }
+.ai-green { background: #E1F5EE; color: #085041; }
+.ai-red { background: #FCEBEB; color: #A32D2D; }
+.ai-blue { background: #EEEDFE; color: #3C3489; }
+.ai-amber { background: #FAEEDA; color: #633806; }
+.ai-gray { background: #f1efe8; color: #5f5e5a; }
+.action-text { font-size: 12px; color: #5f5e5a; line-height: 1.6; }
+.action-text strong { color: #2c2c2a; font-weight: 500; }
+.exec-btn { margin-top: 10px; padding-top: 8px; border-top: 1px solid #e8e7df; }
+.exec-btn button { font-size: 11px; padding: 5px 12px; border-radius: 6px; cursor: pointer; background: #f8f7f4; border: 1px solid #d3d1c7; color: #5f5e5a; }
+.exec-btn button:hover { background: #eeede5; }
+</style>
+</head>
+<body>
+
+<h1>Zudio Presentation — Slide Action Plan</h1>
+<p class="subtitle">20 slides · Click any slide to expand actions · Filter by task type</p>
+
+<div class="rural-box">
+  <div class="rural-title">⚑ Rural color-coding decision — applies to slides 17, 22, 23</div>
+  <div class="rural-text">On any chart showing tier-wise store additions, change the <strong>Rural / "Other" bars to light gray with a dashed border</strong>. Add footnote: <em>"* Rural numbers reflect mathematical runway only. Practical viability requires ≥5 stores per geography to justify supply chain setup — excluded from the operational target."</em> Show the adjusted Zudio target as 2,962 stores (ex-rural), with rural shown separately as "not yet actionable."</div>
+</div>
+
+<div class="legend">
+  <div class="legend-item"><div class="ldot" style="background:#3C3489"></div>Add text / bullets</div>
+  <div class="legend-item"><div class="ldot" style="background:#085041"></div>Add highlight box</div>
+  <div class="legend-item"><div class="ldot" style="background:#633806"></div>Add USD figure</div>
+  <div class="legend-item"><div class="ldot" style="background:#A32D2D"></div>Rural color fix</div>
+  <div class="legend-item"><div class="ldot" style="background:#27500A"></div>Complete</div>
+</div>
+
+<div class="filter-bar">
+  <button class="filter-btn active" onclick="filterSlides('all',this)">All 20 slides</button>
+  <button class="filter-btn" onclick="filterSlides('text',this)">Needs text</button>
+  <button class="filter-btn" onclick="filterSlides('box',this)">Needs highlight box</button>
+  <button class="filter-btn" onclick="filterSlides('usd',this)">Needs USD</button>
+  <button class="filter-btn" onclick="filterSlides('rural',this)">Rural fix</button>
+</div>
+
+<div id="container"></div>
+
+<script>
+const slides = [
+  { num:1, title:"Cover — India's Organized Apparel Frontier: The T2/T3 Tipping Point", tags:['done'],
+    actions:[{i:'ai-gray',t:'<strong>Status: Complete.</strong> Strong title and subtitle. Bernstein branding correct. No changes needed.'}]},
+
+  { num:3, title:"What's Driving This Analysis", tags:['text','box','usd'],
+    actions:[
+      {i:'ai-blue',t:'<strong>Add intro line below heading:</strong> "Three structural shifts make this the right time to ask how far India\'s organised apparel can go — and who is best placed to capture it."'},
+      {i:'ai-green',t:'<strong>Green highlight box</strong> around the "Value Fashion captured +6 percentage points" card — most powerful opening stat.'},
+      {i:'ai-green',t:'<strong>Green highlight box</strong> around FY25 = 1,571 store additions bar — the acceleration is the visual anchor of this slide.'},
+      {i:'ai-amber',t:'<strong>USD note under chart:</strong> "In FY26, India added 1,320 net organised apparel stores — the majority driven by value fashion."'}
+    ]},
+
+  { num:4, title:"India's Organised Apparel Story Has Just Begun", tags:['text','box','usd'],
+    actions:[
+      {i:'ai-blue',t:'<strong>Add 2 sub-bullets below title:</strong> (1) "Total apparel+footwear market grew from ₹6.24L Cr ($74B) in FY23 to ₹12.17L Cr ($145B) by FY27P." (2) "Organised share rising steadily: 38% → 48% over 5 years."'},
+      {i:'ai-green',t:'<strong>Green highlight box</strong> on 48% organised share bar at FY27 — that\'s the tipping point signal.'},
+      {i:'ai-green',t:'<strong>Green highlight box</strong> on value fashion line in store additions chart — shows value fashion now drives 43% of all net additions.'},
+      {i:'ai-amber',t:'<strong>USD figures to add:</strong> FY26 total market ₹10.38L Cr ≈ $124B | FY27P ₹12.17L Cr ≈ $145B.'}
+    ]},
+
+  { num:5, title:"The Wallet Doesn't Follow the Population", tags:['text','box'],
+    actions:[
+      {i:'ai-blue',t:'<strong>Add subtitle line:</strong> "Spending power is concentrated in T3/T4 cities — not where most stores are today."'},
+      {i:'ai-green',t:'<strong>Green highlight box</strong> around T4+ wallet bar (35%, ₹9.15K Cr) — largest single tier by wallet.'},
+      {i:'ai-red',t:'<strong>Red call-out arrow</strong> contrasting T4+ wallet share (35%) vs T4+ population share (37%) — wallet nearly matches population here, but organised retail does not go there.'},
+      {i:'ai-blue',t:'<strong>Add annotation line:</strong> "Population and wallet are spread across lower tiers, but organised retail has concentrated in Metro and T1."'}
+    ]},
+
+  { num:6, title:"Value Fashion: Where the Tailwind is Strongest (Part 1 — Market share)", tags:['text','box','usd'],
+    actions:[
+      {i:'ai-green',t:'<strong>Green highlight box</strong> on "28% Market Share; 13.7% CAGR; Only 5 Major Listed Players" — the headline stat for this slide.'},
+      {i:'ai-green',t:'<strong>Green highlight box</strong> on "28% CAGR" in organised penetration chart — key growth signal.'},
+      {i:'ai-amber',t:'<strong>USD note:</strong> Value fashion organised EBO revenue FY26 = ₹30,938 Cr ($3.7B) → FY27P = ₹37,888 Cr ($4.5B).'},
+      {i:'ai-blue',t:'<strong>Add 1-line annotation below top chart:</strong> "Value fashion has lowest brand crowding with highest market share — the structural winner of organised growth."'}
+    ]},
+
+  { num:7, title:"Value Fashion: Where the Tailwind is Strongest (Part 2 — Competition)", tags:['text','box'],
+    actions:[
+      {i:'ai-green',t:'<strong>Green highlight box</strong> on Value segment bar (15 brands, 60% listed) — fewest players, highest listed share.'},
+      {i:'ai-red',t:'<strong>Red/orange box</strong> on Mid-Market bar (42 brands) — contrast: crowded mid-market vs open value.'},
+      {i:'ai-green',t:'<strong>Green highlight box</strong> on right chart: listed players at 83% of value store count, capturing 75% of revenue.'},
+      {i:'ai-blue',t:'<strong>Add sub-headline:</strong> "42 brands fighting for mid-market. Only 15 in value — and listed players earn more per store."'}
+    ]},
+
+  { num:8, title:"The Wallet and the Stores Are in Different Places", tags:['text','box'],
+    actions:[
+      {i:'ai-red',t:'<strong>Red highlight box</strong> on Metro bars — 32% of stores, only 15% of wallet. Label: "Over-invested →"'},
+      {i:'ai-green',t:'<strong>Green highlight box</strong> on T3 bars — 24% of wallet, only 16% of stores. Label: "← Under-served"'},
+      {i:'ai-blue',t:'<strong>Keep both subtitle lines as-is.</strong> They are perfect. Add only a small annotation box on chart: "T2+T3 combined = 41% of wallet, only 37% of stores."'},
+    ]},
+
+  { num:10, title:"The Thesis: One Sentence, Then the Evidence", tags:['text','box'],
+    actions:[
+      {i:'ai-blue',t:'<strong>Add 1-line thesis below the title underline:</strong> "T2/T3 cities hold 42% of India\'s apparel wallet but half the store density per rupee of opportunity. Value fashion is the only segment that can close this gap at scale."'},
+      {i:'ai-green',t:'<strong>Add green border</strong> to the first circle (T2+T3 = 3.50L Cr / 42%) — this number powers the whole thesis.'},
+      {i:'ai-blue',t:'<strong>Third circle "Why to Bet on Value Fashion" is empty</strong> — add 3 micro-lines: "Least crowded. Fastest CAGR. Listed players earn more per store."'}
+    ]},
+
+  { num:11, title:"How We Built the Ground-Up Framework", tags:['text'],
+    actions:[
+      {i:'ai-blue',t:'<strong>Add 1 intro line below title:</strong> "We didn\'t use a top-down market estimate. We built demand and supply from the pincode up — 19,742 pincodes, every organised store mapped."'},
+      {i:'ai-gray',t:'<strong>Add data label to each D-S-M-I card:</strong> D — "19,742 pincodes" | S — "31,000+ stores scraped" | M — "Rupee-level gap per pin" | I — "Viable stores + revenue potential."'}
+    ]},
+
+  { num:12, title:"How We Calculated Total Potential Stores", tags:['text','box','usd'],
+    actions:[
+      {i:'ai-blue',t:'<strong>Fill in XXXXX placeholders:</strong> Track 1 Output = ~63,000 total viable organised stores (vs ~31,000 today). Track 2 Zudio Output = 2,962 stores, ₹47,316 Cr revenue potential.'},
+      {i:'ai-green',t:'<strong>Green highlight box</strong> on Track 2 OUTPUT B box — fill in "2,962 Zudio stores | ₹47,316 Cr ($5.6B) revenue potential."'},
+      {i:'ai-amber',t:'<strong>USD in OUTPUT boxes:</strong> ₹47,316 Cr ≈ $5.6B | Total market revenue potential ~$7.5B.'},
+      {i:'ai-blue',t:'<strong>Add footnote:</strong> "Revenue premium reflects Zudio avg rev/store (~₹15.9 Cr) running above value fashion peer average of ~₹8.1 Cr."'}
+    ]},
+
+  { num:14, title:"India's True Apparel and Fashion Wallet", tags:['text','box'],
+    actions:[
+      {i:'ai-blue',t:'<strong>Add 1-line subtitle:</strong> "Wallet per capita is rising faster than store density in T2/T3 — the supply gap is widening, not closing."'},
+      {i:'ai-green',t:'<strong>Green highlight box</strong> on T3 data point — highest wallet/capita for tier with lowest store density. Most underleveraged position on the chart.'},
+      {i:'ai-blue',t:'<strong>Label the red dashed line:</strong> "₹6,500 wallet/capita = viability threshold for EBO model" — make explicit what the line means.'},
+      {i:'ai-red',t:'<strong>Red annotation</strong> near Rural data point: "Low density AND low wallet: not yet viable for organised EBO."'}
+    ]},
+
+  { num:15, title:"The Organised vs Unorganised Split", tags:['text','box'],
+    actions:[
+      {i:'ai-blue',t:'<strong>Fix slide title</strong> — appears cut off. Confirm it reads: "The Market is Still Dominated by Unorganised Trade" or similar.'},
+      {i:'ai-blue',t:'<strong>Convert circle note</strong> "Add Ecommerce % to organised" into proper footnote: "* Ecommerce+MBO share not added to organised here; inclusion would raise organised share by ~8–10pp across tiers."'},
+      {i:'ai-green',t:'<strong>Green highlight box</strong> on Metro bar — highest organised share, use as the baseline showing how far T2/T3 must travel.'},
+      {i:'ai-red',t:'<strong>Red highlight box</strong> on Rural bar (4% organised, 81% unorganised) — reinforces the scale of opportunity.'}
+    ]},
+
+  { num:16, title:"Pincodes Wise Penetration: How Open is the Competitive Landscape", tags:['text','box'],
+    actions:[
+      {i:'ai-red',t:'<strong>Red highlight box</strong> around headline stat: "Even 20% of Pincodes with 300+ Crores Wallet have 0 Organised Stores!" — most shocking single stat in the deck.'},
+      {i:'ai-green',t:'<strong>Green highlight box</strong> on "Moat (1)" bar = 1,325 pincodes with exactly 1 store — first-mover territory for any brand.'},
+      {i:'ai-blue',t:'<strong>Add annotation below left chart:</strong> "85% of pincodes with any organised presence are lightly penetrated (1–4 stores). The market is effectively untouched."'},
+      {i:'ai-blue',t:'<strong>Add annotation below right chart:</strong> "T3 shows the largest share of uncrowded pincodes — most open competitive landscape of any tier."'}
+    ]},
+
+  { num:17, title:"How Many Stores Can Be Reached", tags:['text','box','rural'],
+    actions:[
+      {i:'ai-red',t:'<strong>RURAL FIX:</strong> Change "Other" bar to light gray. Add footnote: "* Other/Rural: mathematically viable but excluded from operational target (supply chain requires ≥5 stores per geography)." Adjusted total ~53,000 stores ex-rural.'},
+      {i:'ai-green',t:'<strong>Green highlight box</strong> on T3 bar (34% of additions) — single biggest opportunity tier.'},
+      {i:'ai-amber',t:'<strong>USD note:</strong> "Total viable organised store potential ~53,000–63,000 vs ~31,000 today — roughly 2x the current base."'},
+      {i:'ai-blue',t:'<strong>Add subtitle line:</strong> "The most untapped growth is not in Metro or T1 — T3 alone accounts for 34% of all viable new stores."'}
+    ]},
+
+  { num:18, title:"Are The Stores Correctly Placed?", tags:['text','box'],
+    actions:[
+      {i:'ai-red',t:'<strong>Red highlight box</strong> on Metro (80% penetrated) and T1 (83% penetrated). Label: "Saturated →"'},
+      {i:'ai-green',t:'<strong>Green highlight box</strong> on T3 (21% penetrated, 79% runway). Label: "← 79% runway left"'},
+      {i:'ai-blue',t:'<strong>Add 1-line subtitle:</strong> "Metro and T1 are nearly full. T3 has barely been touched — the industry is only 21% through T3\'s potential."'}
+    ]},
+
+  { num:19, title:"How Much Can We Add Before Saturation?", tags:['text','box'],
+    actions:[
+      {i:'ai-green',t:'<strong>Green highlight box</strong> on right chart: "52% of pincodes can support 5 or less stores" (vs 13% today) — 4x current penetration level is still viable.'},
+      {i:'ai-green',t:'<strong>Green highlight box</strong> on "23% more than 5 stores" in potential scenario — shows depth of opportunity.'},
+      {i:'ai-blue',t:'<strong>Add subtitle line:</strong> "Even at full saturation, 87% of pincodes will remain lightly served (5 stores or fewer). The market absorbs far more than it has today."'},
+      {i:'ai-red',t:'<strong>Red annotation</strong> on "13% cannot have any organised store" — label: "Permanently unviable (wallet too thin)."'}
+    ]},
+
+  { num:20, title:"Are They Following the Trend or Not?", tags:['text','box'],
+    actions:[
+      {i:'ai-green',t:'<strong>Green highlight box</strong> on Zudio row — 71% T2+T3 stores, following tailwind. The benchmark case.'},
+      {i:'ai-green',t:'<strong>Green highlight box</strong> on "Following Tailwind" bar (11 brands) with "6 Value Fashion" callout.'},
+      {i:'ai-blue',t:'<strong>Add sub-headline:</strong> "Of 100+ organised apparel brands, only 11 are structurally positioned for the T2/T3 shift. 6 are in value fashion."'},
+      {i:'ai-blue',t:'<strong>Add column note in brand table:</strong> Zudio avg rev/store ₹15.9 Cr vs V-Mart ₹5.3 Cr vs Vishal ₹6.8 Cr — the revenue premium per store compounds the advantage.'}
+    ]},
+
+  { num:22, title:"Is Zudio Expanding Too Fast or Not Fast Enough? (Store Additions)", tags:['text','box','rural'],
+    actions:[
+      {i:'ai-red',t:'<strong>RURAL FIX:</strong> Change "Other" tier bars to gray with asterisk. Label adjusted total as "2,962 stores (excl. rural)" vs gross mathematical 3,884.'},
+      {i:'ai-green',t:'<strong>Green highlight box</strong> on T3 bar at 39% — Zudio\'s single largest growth bucket.'},
+      {i:'ai-blue',t:'<strong>Add subtitle line:</strong> "Zudio can grow from 958 stores today to nearly 3,000 at current economics — a 3x expansion with zero change in unit economics assumed."'},
+      {i:'ai-amber',t:'<strong>USD note:</strong> "At ₹15.9 Cr avg rev/store, 2,962 stores implies ₹47,316 Cr ($5.6B) at steady state."'}
+    ]},
+
+  { num:23, title:"Is Zudio Expanding Too Fast or Not Fast Enough? (Revenue & Pace)", tags:['text','box','usd','rural'],
+    actions:[
+      {i:'ai-green',t:'<strong>Green highlight box</strong> on Total Revenue bar = ₹47,316 Cr. Label: "₹47,316 Cr ($5.6B) — total potential ceiling at today\'s MPCE."'},
+      {i:'ai-green',t:'<strong>Green highlight box</strong> on T3 penetration = 12% with 895 stores of runway — Zudio is at 12% of T3 potential.'},
+      {i:'ai-blue',t:'<strong>Add annotation on pace chart:</strong> "To capture T3/T4 runway in 10 years, Zudio needs ~233 stores/year. Current pace: ~350/year. The question is not speed — it\'s direction."'},
+      {i:'ai-amber',t:'<strong>USD conversions:</strong> FY26 revenue ₹12,215 Cr = $1.45B | Runway ₹35,101 Cr = $4.18B | Total ceiling ₹47,316 Cr = $5.63B.'},
+      {i:'ai-red',t:'<strong>RURAL FIX:</strong> In revenue charts, gray out rural/other contribution and add footnote.'}
+    ]},
+
+  { num:24, title:"What is the Takeaway?", tags:['text','usd'],
+    actions:[
+      {i:'ai-amber',t:'<strong>USD in box 03:</strong> Change to "Revenue potential: ₹47,316 Cr ($5.6B) at today\'s MPCE" — essential for international audience.'},
+      {i:'ai-blue',t:'<strong>Add 1 line under box 01:</strong> "2,962 stores vs 958 today — the market absorbs 3x more Zudio at current economics, no macroeconomic tailwind assumed."'},
+      {i:'ai-blue',t:'<strong>Mark Zudio\'s position</strong> on the market spectrum arrow clearly under "Value-Mass" or "Value-Economy" so the audience sees exactly where it sits.'},
+      {i:'ai-gray',t:'<strong>Status:</strong> Strongest slide in the deck. The 4 dark-blue takeaway boxes land well. Priority is adding the USD figure and making the 3x number explicit.'}
+    ]}
+];
+
+const iconChar = { 'ai-green':'G', 'ai-red':'R', 'ai-blue':'T', 'ai-amber':'$', 'ai-gray':'✓' };
+function tagEl(t) {
+  const m = { text:['t-text','Text'], box:['t-box','Highlight box'], usd:['t-usd','USD needed'], rural:['t-rural','Rural fix'], done:['t-done','Complete'] };
+  return m[t] ? `<span class="tag ${m[t][0]}">${m[t][1]}</span>` : '';
+}
+function numStyle(tags) {
+  if (tags.includes('done')) return 'background:#EAF3DE;color:#27500A';
+  if (tags.includes('rural')) return 'background:#FCEBEB;color:#A32D2D';
+  return 'background:#EEEDFE;color:#3C3489';
+}
+
+let openStates = {};
+
+function render(filter) {
+  const filtered = filter === 'all' ? slides : slides.filter(s => s.tags.includes(filter));
+  document.getElementById('container').innerHTML = filtered.map((s,i) => {
+    const key = `${filter}-${i}`;
+    const isOpen = openStates[key];
+    return `<div class="slide-card">
+      <div class="slide-header" onclick="toggle('${key}')">
+        <div class="slide-num" style="${numStyle(s.tags)}">${s.num}</div>
+        <div class="slide-title">${s.title}</div>
+        <div class="tags">${s.tags.map(t=>tagEl(t)).join('')}</div>
+        <span class="chevron ${isOpen?'open':''}">▾</span>
+      </div>
+      <div class="slide-body ${isOpen?'open':''}">
+        <div class="section-label">Actions for this slide</div>
+        ${s.actions.map(a => `<div class="action-row">
+          <div class="action-icon ${a.i}">${iconChar[a.i]||'•'}</div>
+          <div class="action-text">${a.t}</div>
+        </div>`).join('')}
+        <div class="exec-btn"><button onclick="alert('Copy this slide number (${s.num}) and work through actions above in PowerPoint.')">Work on slide ${s.num} →</button></div>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function toggle(key) {
+  openStates[key] = !openStates[key];
+  const btn = document.querySelector('.filter-btn.active');
+  const filter = btn ? btn.dataset.filter : 'all';
+  render(filter);
+}
+
+function filterSlides(f, btn) {
+  document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  btn.dataset.filter = f;
+  openStates = {};
+  render(f);
+}
+
+document.querySelectorAll('.filter-btn').forEach((b,i) => {
+  b.dataset.filter = ['all','text','box','usd','rural'][i] || 'all';
+});
+
+render('all');
+</script>
+</body>
+</html>
