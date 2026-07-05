@@ -1,0 +1,698 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Creator OS</title>
+<style>
+  :root {
+    --page:           #f9f9f7;
+    --surface:        #fcfcfb;
+    --text-primary:   #0b0b0b;
+    --text-secondary: #52514e;
+    --text-muted:     #898781;
+    --grid:           #e1e0d9;
+    --baseline:       #c3c2b7;
+    --border:         rgba(11,11,11,0.10);
+    --series-views:   #2a78d6;
+    --series-subs:    #1baf7a;
+    --accent:         #2a78d6;
+    --chip-bg:        #eef3fb;
+    --danger:         #d03b3b;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --page:           #0d0d0d;
+      --surface:        #1a1a19;
+      --text-primary:   #ffffff;
+      --text-secondary: #c3c2b7;
+      --text-muted:     #898781;
+      --grid:           #2c2c2a;
+      --baseline:       #383835;
+      --border:         rgba(255,255,255,0.10);
+      --series-views:   #3987e5;
+      --series-subs:    #199e70;
+      --accent:         #3987e5;
+      --chip-bg:        #24303f;
+    }
+  }
+
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    background: var(--page);
+    color: var(--text-primary);
+    font-family: system-ui, -apple-system, "Segoe UI", sans-serif;
+    font-size: 14px;
+    line-height: 1.45;
+  }
+  header {
+    padding: 20px 24px 4px;
+  }
+  header h1 { margin: 0; font-size: 20px; }
+  header p { margin: 2px 0 0; color: var(--text-muted); font-size: 13px; }
+  main { padding: 12px 24px 48px; display: flex; flex-direction: column; gap: 28px; }
+
+  section > h2 { font-size: 15px; margin: 0 0 10px; }
+  .panel {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 14px;
+  }
+
+  button {
+    font: inherit;
+    color: var(--text-primary);
+    background: transparent;
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 4px 10px;
+    cursor: pointer;
+  }
+  button:hover { border-color: var(--accent); }
+  button.primary { background: var(--accent); border-color: var(--accent); color: #fff; }
+  input[type="text"], textarea {
+    font: inherit;
+    color: var(--text-primary);
+    background: var(--page);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 6px 8px;
+    width: 100%;
+  }
+  textarea { resize: vertical; }
+
+  /* ---------- Kanban ---------- */
+  .board { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; }
+  @media (max-width: 900px) { .board { grid-template-columns: repeat(2, 1fr); } }
+  .col {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 10px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    min-height: 160px;
+  }
+  .col.drag-over { outline: 2px dashed var(--accent); outline-offset: -2px; }
+  .col-head { display: flex; justify-content: space-between; align-items: baseline; }
+  .col-head h3 { margin: 0; font-size: 13px; text-transform: uppercase; letter-spacing: 0.04em; color: var(--text-secondary); }
+  .col-count { color: var(--text-muted); font-size: 12px; }
+  .card {
+    background: var(--page);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 8px 10px;
+    cursor: grab;
+  }
+  .card.dragging { opacity: 0.5; }
+  .card-title { font-weight: 600; overflow-wrap: anywhere; }
+  .card-notes { color: var(--text-secondary); font-size: 13px; white-space: pre-wrap; margin-top: 4px; overflow-wrap: anywhere; }
+  .card-actions { margin-top: 6px; display: flex; gap: 6px; }
+  .card-actions button { font-size: 12px; padding: 2px 8px; color: var(--text-muted); }
+  .card-actions button:hover { color: var(--text-primary); }
+  .add-form { display: flex; flex-direction: column; gap: 6px; }
+  .empty-hint { color: var(--text-muted); font-size: 12px; text-align: center; padding: 8px 0; }
+
+  /* ---------- Notes ---------- */
+  .note-capture { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 12px; }
+  .note-capture input[type="text"]:first-child { flex: 2 1 260px; }
+  .note-capture input[type="text"]:nth-child(2) { flex: 1 1 160px; }
+  .tag-bar { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 12px; align-items: center; }
+  .tag-bar .label { color: var(--text-muted); font-size: 12px; }
+  .tag-chip {
+    background: var(--chip-bg);
+    border: 1px solid transparent;
+    border-radius: 999px;
+    padding: 2px 10px;
+    font-size: 12px;
+    cursor: pointer;
+    color: var(--text-primary);
+  }
+  .tag-chip.active { border-color: var(--accent); font-weight: 600; }
+  .note-list { display: flex; flex-direction: column; gap: 8px; }
+  .note-item {
+    display: flex;
+    gap: 10px;
+    align-items: baseline;
+    border-bottom: 1px solid var(--grid);
+    padding-bottom: 8px;
+  }
+  .note-item:last-child { border-bottom: none; padding-bottom: 0; }
+  .note-text { flex: 1; overflow-wrap: anywhere; }
+  .note-tags { display: flex; gap: 4px; flex-wrap: wrap; }
+  .note-item .tag-chip { cursor: pointer; }
+  .note-del { border: none; color: var(--text-muted); font-size: 12px; padding: 0 4px; }
+  .note-del:hover { color: var(--danger); }
+
+  /* ---------- Weekly stats ---------- */
+  .stats-layout { display: flex; gap: 16px; flex-wrap: wrap; }
+  .stats-input { flex: 1 1 280px; display: flex; flex-direction: column; gap: 8px; }
+  .stats-input .hint { color: var(--text-muted); font-size: 12px; margin: 0; }
+  .stats-charts { flex: 2 1 480px; display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+  @media (max-width: 760px) { .stats-charts { grid-template-columns: 1fr; } }
+  .chart-box h3 { margin: 0 0 6px; font-size: 13px; color: var(--text-secondary); display: flex; align-items: center; gap: 6px; }
+  .swatch { width: 10px; height: 10px; border-radius: 3px; display: inline-block; }
+  .chart-box svg { width: 100%; height: auto; display: block; }
+  .bar-views { fill: var(--series-views); }
+  .bar-subs { fill: var(--series-subs); }
+  .axis-label { fill: var(--text-muted); font-size: 10px; font-family: inherit; }
+  .value-label { fill: var(--text-secondary); font-size: 10px; font-family: inherit; font-variant-numeric: tabular-nums; }
+  .gridline { stroke: var(--grid); stroke-width: 1; }
+  .baseline { stroke: var(--baseline); stroke-width: 1; }
+  .parse-error { color: var(--danger); font-size: 12px; }
+  .tooltip {
+    position: fixed;
+    pointer-events: none;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 4px 8px;
+    font-size: 12px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+    z-index: 10;
+    display: none;
+    max-width: 260px;
+  }
+  .tooltip .tt-title { font-weight: 600; }
+  .tooltip .tt-value { color: var(--text-secondary); font-variant-numeric: tabular-nums; }
+</style>
+</head>
+<body>
+<header>
+  <h1>Creator OS</h1>
+  <p>Pipeline, ideas, and weekly numbers for your channel. Everything saves locally in this browser.</p>
+</header>
+<main>
+
+  <section id="pipeline">
+    <h2>Content pipeline</h2>
+    <div class="board" id="board"></div>
+  </section>
+
+  <section id="ideas">
+    <h2>Idea notes</h2>
+    <div class="panel">
+      <form class="note-capture" id="note-form">
+        <input type="text" id="note-text" placeholder="Capture an idea…" autocomplete="off">
+        <input type="text" id="note-tags" placeholder="tags, comma separated (optional)" autocomplete="off">
+        <button type="submit" class="primary">Add</button>
+      </form>
+      <div class="tag-bar" id="tag-bar"></div>
+      <div class="note-list" id="note-list"></div>
+    </div>
+  </section>
+
+  <section id="weekly">
+    <h2>Weekly numbers — last 5 uploads</h2>
+    <div class="panel stats-layout">
+      <div class="stats-input">
+        <p class="hint">Paste one upload per line: <strong>title, views, subs gained</strong> (commas, tabs, or&nbsp;|&nbsp;between fields). Only the last 5 lines are charted.</p>
+        <textarea id="stats-text" rows="7" placeholder="How I edit faster, 12400, 85&#10;Camera settings explained, 8100, 42"></textarea>
+        <span class="parse-error" id="stats-error"></span>
+      </div>
+      <div class="stats-charts">
+        <div class="chart-box">
+          <h3><span class="swatch" style="background:var(--series-views)"></span>Views</h3>
+          <div id="chart-views"></div>
+        </div>
+        <div class="chart-box">
+          <h3><span class="swatch" style="background:var(--series-subs)"></span>Subs gained</h3>
+          <div id="chart-subs"></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+</main>
+<div class="tooltip" id="tooltip"></div>
+
+<script>
+"use strict";
+
+/* ---------- state & persistence ---------- */
+const STORAGE_KEY = "creator-os-v1";
+const COLUMNS = [
+  { id: "idea",      label: "Idea" },
+  { id: "scripted",  label: "Scripted" },
+  { id: "recorded",  label: "Recorded" },
+  { id: "published", label: "Published" },
+];
+
+function defaultState() {
+  return { cards: [], notes: [], statsRaw: "" };
+}
+
+function loadState() {
+  try {
+    const raw = localStorage.getItem(STORAGE_KEY);
+    if (!raw) return defaultState();
+    const parsed = JSON.parse(raw);
+    return {
+      cards: Array.isArray(parsed.cards) ? parsed.cards : [],
+      notes: Array.isArray(parsed.notes) ? parsed.notes : [],
+      statsRaw: typeof parsed.statsRaw === "string" ? parsed.statsRaw : "",
+    };
+  } catch {
+    return defaultState();
+  }
+}
+
+let state = loadState();
+
+function saveState() {
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+}
+
+function uid() {
+  return Date.now().toString(36) + Math.random().toString(36).slice(2, 7);
+}
+
+/* ---------- kanban board ---------- */
+const boardEl = document.getElementById("board");
+let activeTagFilters = new Set();
+
+function renderBoard() {
+  boardEl.textContent = "";
+  for (const col of COLUMNS) {
+    const colEl = document.createElement("div");
+    colEl.className = "col";
+    colEl.dataset.col = col.id;
+
+    const head = document.createElement("div");
+    head.className = "col-head";
+    const h3 = document.createElement("h3");
+    h3.textContent = col.label;
+    const count = document.createElement("span");
+    count.className = "col-count";
+    const cards = state.cards.filter(c => c.col === col.id);
+    count.textContent = cards.length;
+    head.append(h3, count);
+    colEl.appendChild(head);
+
+    for (const card of cards) colEl.appendChild(renderCard(card, col.id));
+
+    if (cards.length === 0) {
+      const hint = document.createElement("div");
+      hint.className = "empty-hint";
+      hint.textContent = "Drop cards here";
+      colEl.appendChild(hint);
+    }
+
+    colEl.appendChild(renderAddButton(col));
+
+    colEl.addEventListener("dragover", e => {
+      e.preventDefault();
+      e.dataTransfer.dropEffect = "move";
+      colEl.classList.add("drag-over");
+    });
+    colEl.addEventListener("dragleave", () => colEl.classList.remove("drag-over"));
+    colEl.addEventListener("drop", e => {
+      e.preventDefault();
+      colEl.classList.remove("drag-over");
+      const id = e.dataTransfer.getData("text/plain");
+      const card = state.cards.find(c => c.id === id);
+      if (card && card.col !== col.id) {
+        card.col = col.id;
+        saveState();
+        renderBoard();
+      }
+    });
+
+    boardEl.appendChild(colEl);
+  }
+}
+
+function renderCard(card, colId) {
+  const el = document.createElement("div");
+  el.className = "card";
+  el.draggable = true;
+  el.dataset.id = card.id;
+
+  const title = document.createElement("div");
+  title.className = "card-title";
+  title.textContent = card.title;
+  el.appendChild(title);
+
+  if (card.notes) {
+    const notes = document.createElement("div");
+    notes.className = "card-notes";
+    notes.textContent = card.notes;
+    el.appendChild(notes);
+  }
+
+  const actions = document.createElement("div");
+  actions.className = "card-actions";
+  const editBtn = document.createElement("button");
+  editBtn.type = "button";
+  editBtn.textContent = "Edit";
+  editBtn.addEventListener("click", () => el.replaceWith(renderCardForm(colId, card)));
+  const delBtn = document.createElement("button");
+  delBtn.type = "button";
+  delBtn.textContent = "Delete";
+  delBtn.addEventListener("click", () => {
+    state.cards = state.cards.filter(c => c.id !== card.id);
+    saveState();
+    renderBoard();
+  });
+  actions.append(editBtn, delBtn);
+  el.appendChild(actions);
+
+  el.addEventListener("dragstart", e => {
+    e.dataTransfer.setData("text/plain", card.id);
+    e.dataTransfer.effectAllowed = "move";
+    el.classList.add("dragging");
+  });
+  el.addEventListener("dragend", () => el.classList.remove("dragging"));
+
+  return el;
+}
+
+function renderAddButton(col) {
+  const btn = document.createElement("button");
+  btn.type = "button";
+  btn.textContent = "+ Add card";
+  btn.addEventListener("click", () => btn.replaceWith(renderCardForm(col.id, null)));
+  return btn;
+}
+
+function renderCardForm(colId, existing) {
+  const form = document.createElement("form");
+  form.className = "add-form";
+
+  const titleInput = document.createElement("input");
+  titleInput.type = "text";
+  titleInput.placeholder = "Title";
+  titleInput.required = true;
+  if (existing) titleInput.value = existing.title;
+
+  const notesInput = document.createElement("textarea");
+  notesInput.rows = 3;
+  notesInput.placeholder = colId === "scripted"
+    ? "Bullet outline:\n- hook\n- point 1\n- CTA"
+    : "Short notes (optional)";
+  if (existing) notesInput.value = existing.notes || "";
+
+  const row = document.createElement("div");
+  row.style.display = "flex";
+  row.style.gap = "6px";
+  const save = document.createElement("button");
+  save.type = "submit";
+  save.className = "primary";
+  save.textContent = "Save";
+  const cancel = document.createElement("button");
+  cancel.type = "button";
+  cancel.textContent = "Cancel";
+  cancel.addEventListener("click", () => renderBoard());
+  row.append(save, cancel);
+
+  form.append(titleInput, notesInput, row);
+  form.addEventListener("submit", e => {
+    e.preventDefault();
+    const title = titleInput.value.trim();
+    if (!title) return;
+    if (existing) {
+      existing.title = title;
+      existing.notes = notesInput.value.trim();
+    } else {
+      state.cards.push({ id: uid(), title, notes: notesInput.value.trim(), col: colId });
+    }
+    saveState();
+    renderBoard();
+  });
+  setTimeout(() => titleInput.focus(), 0);
+  return form;
+}
+
+/* ---------- idea notes ---------- */
+const noteForm = document.getElementById("note-form");
+const noteTextInput = document.getElementById("note-text");
+const noteTagsInput = document.getElementById("note-tags");
+const tagBarEl = document.getElementById("tag-bar");
+const noteListEl = document.getElementById("note-list");
+
+noteForm.addEventListener("submit", e => {
+  e.preventDefault();
+  const text = noteTextInput.value.trim();
+  if (!text) return;
+  const tags = noteTagsInput.value
+    .split(",")
+    .map(t => t.trim().toLowerCase())
+    .filter(Boolean);
+  state.notes.unshift({ id: uid(), text, tags: [...new Set(tags)] });
+  saveState();
+  noteTextInput.value = "";
+  noteTagsInput.value = "";
+  noteTextInput.focus();
+  renderNotes();
+});
+
+function allTags() {
+  const set = new Set();
+  for (const n of state.notes) for (const t of n.tags) set.add(t);
+  return [...set].sort();
+}
+
+function makeTagChip(tag, { active = false } = {}) {
+  const chip = document.createElement("button");
+  chip.type = "button";
+  chip.className = "tag-chip" + (active ? " active" : "");
+  chip.textContent = tag;
+  chip.addEventListener("click", () => {
+    if (activeTagFilters.has(tag)) activeTagFilters.delete(tag);
+    else activeTagFilters.add(tag);
+    renderNotes();
+  });
+  return chip;
+}
+
+function renderNotes() {
+  // tag filter bar
+  tagBarEl.textContent = "";
+  const tags = allTags();
+  activeTagFilters = new Set([...activeTagFilters].filter(t => tags.includes(t)));
+  if (tags.length) {
+    const label = document.createElement("span");
+    label.className = "label";
+    label.textContent = "Filter:";
+    tagBarEl.appendChild(label);
+    for (const tag of tags) tagBarEl.appendChild(makeTagChip(tag, { active: activeTagFilters.has(tag) }));
+    if (activeTagFilters.size) {
+      const clear = document.createElement("button");
+      clear.type = "button";
+      clear.className = "tag-chip";
+      clear.textContent = "✕ clear";
+      clear.addEventListener("click", () => { activeTagFilters.clear(); renderNotes(); });
+      tagBarEl.appendChild(clear);
+    }
+  }
+
+  // note list
+  noteListEl.textContent = "";
+  const visible = state.notes.filter(n =>
+    [...activeTagFilters].every(t => n.tags.includes(t))
+  );
+  if (!state.notes.length) {
+    const hint = document.createElement("div");
+    hint.className = "empty-hint";
+    hint.textContent = "No ideas captured yet — type one above.";
+    noteListEl.appendChild(hint);
+    return;
+  }
+  if (!visible.length) {
+    const hint = document.createElement("div");
+    hint.className = "empty-hint";
+    hint.textContent = "No notes match the selected tags.";
+    noteListEl.appendChild(hint);
+    return;
+  }
+  for (const note of visible) {
+    const item = document.createElement("div");
+    item.className = "note-item";
+    const text = document.createElement("div");
+    text.className = "note-text";
+    text.textContent = note.text;
+    const tagsWrap = document.createElement("div");
+    tagsWrap.className = "note-tags";
+    for (const t of note.tags) tagsWrap.appendChild(makeTagChip(t, { active: activeTagFilters.has(t) }));
+    const del = document.createElement("button");
+    del.type = "button";
+    del.className = "note-del";
+    del.textContent = "✕";
+    del.title = "Delete note";
+    del.addEventListener("click", () => {
+      state.notes = state.notes.filter(n => n.id !== note.id);
+      saveState();
+      renderNotes();
+    });
+    item.append(text, tagsWrap, del);
+    noteListEl.appendChild(item);
+  }
+}
+
+/* ---------- weekly stats ---------- */
+const statsText = document.getElementById("stats-text");
+const statsError = document.getElementById("stats-error");
+const tooltipEl = document.getElementById("tooltip");
+
+statsText.addEventListener("input", () => {
+  state.statsRaw = statsText.value;
+  saveState();
+  renderStats();
+});
+
+function parseStats(raw) {
+  const rows = [];
+  const bad = [];
+  for (const line of raw.split("\n")) {
+    const trimmed = line.trim();
+    if (!trimmed) continue;
+    // split on | or tab first; otherwise commas (title itself may not contain commas then)
+    let parts;
+    if (trimmed.includes("|")) parts = trimmed.split("|");
+    else if (trimmed.includes("\t")) parts = trimmed.split("\t");
+    else parts = trimmed.split(",");
+    parts = parts.map(p => p.trim()).filter(Boolean);
+    if (parts.length < 3) { bad.push(trimmed); continue; }
+    const subs = Number(parts[parts.length - 1].replace(/[,\s]/g, ""));
+    const views = Number(parts[parts.length - 2].replace(/[,\s]/g, ""));
+    const title = parts.slice(0, -2).join(", ");
+    if (!title || !Number.isFinite(views) || !Number.isFinite(subs)) { bad.push(trimmed); continue; }
+    rows.push({ title, views, subs });
+  }
+  return { rows: rows.slice(-5), bad };
+}
+
+function formatNum(n) {
+  return n.toLocaleString("en-US");
+}
+
+function truncate(s, max) {
+  return s.length > max ? s.slice(0, max - 1) + "…" : s;
+}
+
+function renderBarChart(containerId, rows, key, barClass) {
+  const container = document.getElementById(containerId);
+  container.textContent = "";
+  if (!rows.length) {
+    const hint = document.createElement("div");
+    hint.className = "empty-hint";
+    hint.textContent = "Paste upload numbers to see the chart.";
+    container.appendChild(hint);
+    return;
+  }
+
+  const W = 320, H = 190;
+  const pad = { top: 18, right: 8, bottom: 28, left: 8 };
+  const plotW = W - pad.left - pad.right;
+  const plotH = H - pad.top - pad.bottom;
+  const maxVal = Math.max(...rows.map(r => r[key]), 1);
+  const n = rows.length;
+  const gap = 10;
+  const barW = Math.min(48, (plotW - gap * (n - 1)) / n);
+  const totalW = barW * n + gap * (n - 1);
+  const startX = pad.left + (plotW - totalW) / 2;
+  const baseY = pad.top + plotH;
+
+  const svgNS = "http://www.w3.org/2000/svg";
+  const svg = document.createElementNS(svgNS, "svg");
+  svg.setAttribute("viewBox", `0 0 ${W} ${H}`);
+  svg.setAttribute("role", "img");
+  svg.setAttribute("aria-label", rows.map(r => `${r.title}: ${formatNum(r[key])}`).join("; "));
+
+  // hairline gridlines at 50% and 100% of max
+  for (const frac of [0.5, 1]) {
+    const y = baseY - plotH * frac;
+    const line = document.createElementNS(svgNS, "line");
+    line.setAttribute("x1", pad.left); line.setAttribute("x2", W - pad.right);
+    line.setAttribute("y1", y); line.setAttribute("y2", y);
+    line.setAttribute("class", "gridline");
+    svg.appendChild(line);
+  }
+
+  rows.forEach((r, i) => {
+    const val = Math.max(r[key], 0);
+    const h = maxVal ? (val / maxVal) * plotH : 0;
+    const x = startX + i * (barW + gap);
+    const y = baseY - h;
+    const rTop = Math.min(4, h, barW / 2);
+
+    // bar with rounded top corners, square baseline
+    const path = document.createElementNS(svgNS, "path");
+    path.setAttribute("d",
+      `M${x},${baseY} V${y + rTop} Q${x},${y} ${x + rTop},${y} H${x + barW - rTop} ` +
+      `Q${x + barW},${y} ${x + barW},${y + rTop} V${baseY} Z`);
+    path.setAttribute("class", barClass);
+    svg.appendChild(path);
+
+    // direct value label above the bar
+    const vLabel = document.createElementNS(svgNS, "text");
+    vLabel.setAttribute("x", x + barW / 2);
+    vLabel.setAttribute("y", y - 4);
+    vLabel.setAttribute("text-anchor", "middle");
+    vLabel.setAttribute("class", "value-label");
+    vLabel.textContent = formatNum(val);
+    svg.appendChild(vLabel);
+
+    // truncated title under the bar
+    const tLabel = document.createElementNS(svgNS, "text");
+    tLabel.setAttribute("x", x + barW / 2);
+    tLabel.setAttribute("y", baseY + 14);
+    tLabel.setAttribute("text-anchor", "middle");
+    tLabel.setAttribute("class", "axis-label");
+    tLabel.textContent = truncate(r.title, 9);
+    svg.appendChild(tLabel);
+
+    // hover hit target wider than the bar
+    const hit = document.createElementNS(svgNS, "rect");
+    hit.setAttribute("x", x - gap / 2);
+    hit.setAttribute("y", pad.top);
+    hit.setAttribute("width", barW + gap);
+    hit.setAttribute("height", plotH);
+    hit.setAttribute("fill", "transparent");
+    hit.addEventListener("mousemove", e => {
+      tooltipEl.textContent = "";
+      const t = document.createElement("div");
+      t.className = "tt-title";
+      t.textContent = r.title;
+      const v = document.createElement("div");
+      v.className = "tt-value";
+      v.textContent = `${key === "views" ? "Views" : "Subs gained"}: ${formatNum(val)}`;
+      tooltipEl.append(t, v);
+      tooltipEl.style.display = "block";
+      tooltipEl.style.left = Math.min(e.clientX + 12, window.innerWidth - 200) + "px";
+      tooltipEl.style.top = (e.clientY + 12) + "px";
+    });
+    hit.addEventListener("mouseleave", () => { tooltipEl.style.display = "none"; });
+    svg.appendChild(hit);
+  });
+
+  // baseline
+  const base = document.createElementNS(svgNS, "line");
+  base.setAttribute("x1", pad.left); base.setAttribute("x2", W - pad.right);
+  base.setAttribute("y1", baseY); base.setAttribute("y2", baseY);
+  base.setAttribute("class", "baseline");
+  svg.appendChild(base);
+
+  container.appendChild(svg);
+}
+
+function renderStats() {
+  const { rows, bad } = parseStats(state.statsRaw);
+  statsError.textContent = bad.length
+    ? `Skipped ${bad.length} line${bad.length > 1 ? "s" : ""} (need: title, views, subs)`
+    : "";
+  renderBarChart("chart-views", rows, "views", "bar-views");
+  renderBarChart("chart-subs", rows, "subs", "bar-subs");
+}
+
+/* ---------- init ---------- */
+statsText.value = state.statsRaw;
+renderBoard();
+renderNotes();
+renderStats();
+</script>
+</body>
+</html>
